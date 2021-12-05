@@ -10,9 +10,9 @@ Beyond my experience with labView and computer hardware, Ihave delved into learn
 
 I am a student at Prominio Tech. I am learning more about Front-End technologies such as JavaScript, React, jQuery, Bootstrap, and more. I strive to become a knowlegeable Front-End Stack Engeneer.
 
-![shields](https://img.shields.io/badge/frontend-React-critical) ![shields](https://img.shields.io/badge/frontend-Bootstrap-important) ![shields](https://img.shields.io/badge/Data-Python-brightgreen)
+![shields](https://img.shields.io/badge/Front--End-React-blue) ![shields](https://img.shields.io/badge/Front--End-JavaScript-yellow) ![shields](https://img.shields.io/badge/React-Bootstrap-blueviolet) ![shields](https://img.shields.io/badge/LabView-C-yellowgreen) ![shields](https://img.shields.io/badge/Data-Python-brightgreen) 
 
 ## Contact me: ...
 
-You can contact me by [email](aspauldingcode@gmail.com), on [LinkedIn](https://www.linkedin.com/in/alexspaulding/), or [Twitter](https://twitter.com/aspauldingcode). 
+You can contact me by <aspauldingcode@gmail.com>, on [LinkedIn](https://www.linkedin.com/in/alexspaulding/), or [Twitter](https://twitter.com/aspauldingcode). 
 -->
