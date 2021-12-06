@@ -10,7 +10,7 @@ Beyond my experience with labView and computer hardware, Ihave delved into learn
 
 I am a student at Prominio Tech. I am learning more about Front-End technologies such as JavaScript, React, jQuery, Bootstrap, and more. I strive to become a knowlegeable Front-End Stack Engeneer.
 
-![shields](https://img.shields.io/badge/Front--End-React-blue) ![shields](https://img.shields.io/badge/Front--End-JavaScript-yellow) ![shields](https://img.shields.io/badge/React-Bootstrap-blueviolet) ![shields](https://img.shields.io/badge/LabView-C-yellowgreen) ![shields](https://img.shields.io/badge/Data-Python-brightgreen) 
+![shields](https://img.shields.io/badge/Front--End-React-blue) ![shields](https://img.shields.io/badge/Front--End-JavaScript-yellow) ![shields](https://img.shields.io/badge/React-Bootstrap-blueviolet) ![shields](https://img.shields.io/badge/Software-C%2B%2B-darkblue) ![shields](https://img.shields.io/badge/Data-Python-darkgreen) ![shields](https://img.shields.io/badge/LabView-NXT--G-red) ![shields](https://img.shields.io/badge/Moble-Kotlin-purple)
 
 ## Contact me: ...
 
