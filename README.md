@@ -2,7 +2,7 @@
 ### Feel free to contact me for in-person/remote hire at the bottom of this page.
 
 # Hello, World!
-### My name is *Alex Spaulding.*
+### My Name is *Alex Spaulding.*
 **Certified** Front-End JavaScript Developer. 
 Studying at *University of Montana.*
 
