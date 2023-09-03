@@ -6,14 +6,14 @@
 **Certified** Front-End JavaScript Developer. 
 Studying at *University of Montana.*
 
-## Short biography:
+## Short Biography:
 I first got into programming when I was 10, with a lego robotics kit named "Mindstorms". I have since delved into learning programming for mobile applications, building advanced websites, and working on fun security projects. I am interesting in persuing a career in computer science, specializing in Machine Learning, Neural Networks, and enhancing Artificial Intelligence models through training. Additionally, I am fascinated with Operating Systems development, Reverse-Engineering software, iOS Security Research, Linux and Linux Kernel, and mainlineing smartphones.
 
-## I’m a student.
+## I’m a Student.
 
 I study Computer Science at University of Montana. I aim for a focus on Data Science & Engineering. I am currently a sophomore, learning Java, and Calculus!
 
-## Contact me!
+## Contact Me!
 *You can contact me by [Email](mailto:aspauldingcode@gmail.com), on [LinkedIn](https://www.linkedin.com/in/alexspaulding/), or [Twitter](https://twitter.com/aspauldingcode).*
 
 Software Skills:
