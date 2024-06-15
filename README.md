@@ -1,4 +1,4 @@
-# NOTICE: ACTIVELY SEEKING SUMMER INTERNSHIPS FOR 2024! 
+# NOTICE: ACTIVELY SEEKING SUMMER INTERNSHIPS FOR 2025! 
 ### Feel free to contact me for in-person/remote hire at the bottom of this page.
 
 # Hello, World!
