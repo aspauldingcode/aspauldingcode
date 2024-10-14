@@ -11,7 +11,7 @@ I first got into programming when I was 10, with a lego robotics kit named "Mind
 
 ## I’m a Student.
 
-I study Computer Science at University of Montana. I aim for a focus on Data Science & Engineering. I am currently a sophomore, learning Java, and Calculus!
+I study Computer Science at University of Montana. I aim for a focus on Data Science & Engineering. I am currently a Junior, learning Advanced Algorithms, Database Design, Discrete Mathematics and Multivariable Calculus!
 
 ## Contact Me!
 *You can contact me by [Email](mailto:aspauldingcode@gmail.com), on [LinkedIn](https://www.linkedin.com/in/alexspaulding/), or [Twitter](https://twitter.com/aspauldingcode).*
