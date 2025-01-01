@@ -2,19 +2,26 @@
 ### Feel free to contact me for in-person/remote hire at the bottom of this page.
 
 # Hello, World!
-### My Name is *Alex Spaulding.*
-**Certified** Front-End JavaScript Developer. 
-Studying at *University of Montana.*
+### My Name is [*Alex Spaulding.*](https://aspauldingcode.com)
+**Certified** Front-End Web Developer. 
+Studying at [*University of Montana.*](https://www.umt.edu/)
 
 ## Short Biography:
-I first got into programming when I was 10, with a lego robotics kit named "Mindstorms". I have since delved into learning programming for mobile applications, building advanced websites, and working on fun security projects. I am interesting in persuing a career in computer science, specializing in Machine Learning, Neural Networks, and enhancing Artificial Intelligence models through training. Additionally, I am fascinated with Operating Systems development, Reverse-Engineering software, iOS Security Research, Linux and Linux Kernel, and mainlineing smartphones.
+I started programming at age 10 with LEGO Mindstorms robotics. Since then, I've explored mobile development, web development, and security. My interests include Machine Learning, AI, Operating Systems, and Reverse Engineering, with a particular focus on iOS, macOS, and Linux systems.
 
 ## I’m a Student.
-
-I study Computer Science at University of Montana. I aim for a focus on Data Science & Engineering. I am currently a Junior, learning Advanced Algorithms, Database Design, Discrete Mathematics and Multivariable Calculus!
+I study Computer Science with a minor in Mathematics at [University of Montana](https://www.umt.edu/). I aim for a focus on Data Science & Engineering, Machine Learning, AI, and Operating Systems. I am currently a Junior, learning Advanced Algorithms, Database Design, Discrete Mathematics, Computer Simulation, Computer Architecture, Linear Algebra, Probability and Statistics, and Multivariable Calculus!
 
 ## Contact Me!
-*You can contact me by [Email](mailto:aspauldingcode@gmail.com), on [LinkedIn](https://www.linkedin.com/in/alexspaulding/), or [Twitter](https://twitter.com/aspauldingcode).*
+*You can contact me by [Email](mailto:aspauldingcode@gmail.com), on [LinkedIn](https://www.linkedin.com/in/alexspaulding/), [Twitter](https://twitter.com/aspauldingcode), or visit my [Website](https://aspauldingcode.com).*
 
-Software Skills:
-![shields](https://img.shields.io/badge/Front--End-React-blue) ![shields](https://img.shields.io/badge/Front--End-JavaScript-yellow) ![shields](https://img.shields.io/badge/React-Bootstrap-blueviolet) ![shields](https://img.shields.io/badge/Software-C%2B%2B-darkblue) ![shields](https://img.shields.io/badge/Software-Python-darkgreen) ![sheilds](https://img.shields.io/badge/Software-Java-brown) ![shields](https://img.shields.io/badge/Software-Nix-7e7eff) ![shields](https://img.shields.io/badge/Mobile-Swift-darkorange)
+## Software Skills
+
+| Category | Technologies |
+|----------|-------------|
+| Machine Learning | ![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=flat&logo=tensorflow&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat&logo=pytorch&logoColor=white) ![Keras](https://img.shields.io/badge/Keras-D00000?style=flat&logo=keras&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat&logo=scikit-learn&logoColor=white) |
+| Programming Languages | ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white) ![Java](https://img.shields.io/badge/Java-ED8B00?style=flat&logo=openjdk&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white) ![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white) ![Swift](https://img.shields.io/badge/Swift-FA7343?style=flat&logo=swift&logoColor=white) ![Objective-C](https://img.shields.io/badge/Objective--C-438EFF?style=flat&logo=apple&logoColor=white) |
+| Web Technologies | ![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black) ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white) ![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=flat&logo=bootstrap&logoColor=white) |
+| Infrastructure & DevOps | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat&logo=kubernetes&logoColor=white) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat&logo=terraform&logoColor=white) ![Nix](https://img.shields.io/badge/Nix-5277C3?style=flat&logo=nixos&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=flat&logo=ansible&logoColor=white) |
+| Databases | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white) ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase&logoColor=black) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=flat&logo=spring-boot&logoColor=white) ![Postman](https://img.shields.io/badge/Postman-FF6C37?style=flat&logo=postman&logoColor=white) |
+| Version Control & CI/CD | ![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white) ![Git](https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white) ![GitLab](https://img.shields.io/badge/GitLab-FCA121?style=flat&logo=gitlab&logoColor=white) ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white) |
