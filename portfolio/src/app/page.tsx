@@ -9,38 +9,40 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20 bg-gradient-to-b from-gray-100 to-gray-300">
+    <div className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20 bg-base00">
       <header className="text-center mb-16">
-        <h1 className="text-4xl sm:text-6xl font-bold text-gray-800">
+        <h1 className="text-4xl sm:text-6xl font-bold text-base05">
           Alex Spaulding
         </h1>
-        <p className="text-lg sm:text-xl text-gray-600 mt-4">
+        <p className="text-lg sm:text-xl text-base04 mt-4">
           Professional Software Developer
         </p>
       </header>
 
       <main className="flex flex-col items-center gap-8">
         <Image
-          className="rounded-full border-4 border-gray-300"
+          className="rounded-full border-4 border-base02"
           src="/profile.png"
           alt="Profile Picture"
           width={150}
           height={150}
         />
-        <p className="text-center text-gray-700 max-w-2xl" onClick={handleParagraphClick}>
-          Welcome to my portfolio! I specialize in front-end development with a
-          focus on creating engaging and dynamic user experiences. Explore my
-          projects and get in touch to learn more about my work.
+        <p className="text-center text-base05 max-w-2xl" onClick={handleParagraphClick}>
+          Welcome to my portfolio! I am passionate about machine learning and AI,
+          actively seeking opportunities as an ML intern. With a strong foundation
+          in programming and data analysis, I'm eager to contribute to innovative
+          ML projects. Explore my projects to see my work with algorithms,
+          data science, and AI applications.
         </p>
         <div className="flex gap-4 mt-8">
           <a
-            className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+            className="bg-base0D text-base00 py-2 px-4 rounded hover:bg-base0C transition-colors"
             href="/projects"
           >
             View Projects
           </a>
           <a
-            className="bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 transition"
+            className="bg-base03 text-base07 py-2 px-4 rounded hover:bg-base04 transition-colors"
             href="#contact"
           >
             Contact Me
@@ -48,8 +50,8 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="mt-16 text-center text-gray-500">
-        <p>© 2023 Alex Spaulding. All rights reserved.</p>
+      <footer className="mt-16 text-center text-base03">
+        <p>© 2024-2025 Alex Spaulding. All rights reserved.</p>
       </footer>
     </div>
   );

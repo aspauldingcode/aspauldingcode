@@ -3,14 +3,50 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base16 Default Light */
+  --base00: #f8f8f8; /* Default Background */
+  --base01: #e8e8e8; /* Lighter Background */
+  --base02: #d8d8d8; /* Selection Background */
+  --base03: #b8b8b8; /* Comments, Invisibles, Line Highlighting */
+  --base04: #585858; /* Dark Foreground (Used for status bars) */
+  --base05: #383838; /* Default Foreground */
+  --base06: #282828; /* Light Foreground */
+  --base07: #181818; /* Light Background */
+  --base08: #ab4642; /* Red / Error */
+  --base09: #dc9656; /* Orange / Number */
+  --base0A: #f7ca88; /* Yellow / Warning */
+  --base0B: #a1b56c; /* Green / Success */
+  --base0C: #86c1b9; /* Cyan / Regular Expression */
+  --base0D: #7cafc2; /* Blue / Function */
+  --base0E: #ba8baf; /* Purple / Keyword */
+  --base0F: #a16946; /* Brown / Deprecated */
+
+  --background: var(--base00);
+  --foreground: var(--base05);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Base16 Default Dark */
+    --base00: #181818; /* Default Background */
+    --base01: #282828; /* Lighter Background */
+    --base02: #383838; /* Selection Background */
+    --base03: #585858; /* Comments, Invisibles, Line Highlighting */
+    --base04: #b8b8b8; /* Dark Foreground (Used for status bars) */
+    --base05: #d8d8d8; /* Default Foreground */
+    --base06: #e8e8e8; /* Light Foreground */
+    --base07: #f8f8f8; /* Light Background */
+    --base08: #ab4642; /* Red / Error */
+    --base09: #dc9656; /* Orange / Number */
+    --base0A: #f7ca88; /* Yellow / Warning */
+    --base0B: #a1b56c; /* Green / Success */
+    --base0C: #86c1b9; /* Cyan / Regular Expression */
+    --base0D: #7cafc2; /* Blue / Function */
+    --base0E: #ba8baf; /* Purple / Keyword */
+    --base0F: #a16946; /* Brown / Deprecated */
+
+    --background: var(--base00);
+    --foreground: var(--base05);
   }
 }
 
@@ -19,3 +55,38 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Utility classes for base16 colors */
+.bg-base00 { background-color: var(--base00); }
+.bg-base01 { background-color: var(--base01); }
+.bg-base02 { background-color: var(--base02); }
+.bg-base03 { background-color: var(--base03); }
+.bg-base04 { background-color: var(--base04); }
+.bg-base05 { background-color: var(--base05); }
+.bg-base06 { background-color: var(--base06); }
+.bg-base07 { background-color: var(--base07); }
+.bg-base08 { background-color: var(--base08); }
+.bg-base09 { background-color: var(--base09); }
+.bg-base0A { background-color: var(--base0A); }
+.bg-base0B { background-color: var(--base0B); }
+.bg-base0C { background-color: var(--base0C); }
+.bg-base0D { background-color: var(--base0D); }
+.bg-base0E { background-color: var(--base0E); }
+.bg-base0F { background-color: var(--base0F); }
+
+.text-base00 { color: var(--base00); }
+.text-base01 { color: var(--base01); }
+.text-base02 { color: var(--base02); }
+.text-base03 { color: var(--base03); }
+.text-base04 { color: var(--base04); }
+.text-base05 { color: var(--base05); }
+.text-base06 { color: var(--base06); }
+.text-base07 { color: var(--base07); }
+.text-base08 { color: var(--base08); }
+.text-base09 { color: var(--base09); }
+.text-base0A { color: var(--base0A); }
+.text-base0B { color: var(--base0B); }
+.text-base0C { color: var(--base0C); }
+.text-base0D { color: var(--base0D); }
+.text-base0E { color: var(--base0E); }
+.text-base0F { color: var(--base0F); }
