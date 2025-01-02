@@ -1,4 +1,12 @@
-export const projects = [
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  images: string[];
+  link?: string;
+}
+
+export const projects: Project[] = [
   {
     id: 1,
     title: "Dumonds.com",
