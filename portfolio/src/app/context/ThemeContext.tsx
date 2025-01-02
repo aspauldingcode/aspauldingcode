@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 
 type Theme = 'light' | 'dark';
 
@@ -19,7 +18,7 @@ function getInitialTheme(): Theme {
     if (storedTheme) {
       return storedTheme;
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return 'dark';
   }
   return 'dark'; // Default for SSR
 }
