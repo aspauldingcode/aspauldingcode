@@ -1,58 +1,70 @@
 "use client";
 
-import React, { useCallback } from 'react';
-import Image from "next/image";
+import Image from 'next/image';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import PageTransition from './components/PageTransition';
+import ContactForm from './components/ContactForm';
+import { emailConfig } from '@/config/email';
 
 export default function Home() {
-  const handleParagraphClick = useCallback(() => {
-    console.log('Paragraph clicked');
-  }, []);
+  const [isContactOpen, setIsContactOpen] = useState(false);
+
+  const handleContactClick = () => {
+    setIsContactOpen(true);
+    // Smooth scroll to bottom of page
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth'
+    });
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20 bg-base00">
-      <header className="text-center mb-16">
-        <h1 className="text-4xl sm:text-6xl font-bold text-base05">
+    <PageTransition>
+      <main className="flex min-h-screen flex-col items-center justify-center p-8 sm:p-24 bg-base00">
+        <div className="relative">
+          <Image
+            src="/profile.png"
+            alt="Profile picture"
+            width={200}
+            height={200}
+            className="rounded-full border-4 border-base02"
+            priority
+          />
+        </div>
+        <h1 className="text-4xl sm:text-6xl font-bold text-base05 mt-8 text-center">
           Alex Spaulding
         </h1>
-        <p className="text-lg sm:text-xl text-base04 mt-4">
-          Professional Software Developer
+        <p className="text-xl text-base04 mt-4 max-w-2xl text-center">
+          With a strong foundation in programming and data analysis, I&apos;m eager to contribute to innovative ML projects.
         </p>
-      </header>
-
-      <main className="flex flex-col items-center gap-8">
-        <Image
-          className="rounded-full border-4 border-base02"
-          src="/profile.png"
-          alt="Profile Picture"
-          width={150}
-          height={150}
-        />
-        <p className="text-center text-base05 max-w-2xl" onClick={handleParagraphClick}>
-          Welcome to my portfolio! I am passionate about machine learning and AI,
-          actively seeking opportunities as an ML intern. With a strong foundation
-          in programming and data analysis, I'm eager to contribute to innovative
-          ML projects. Explore my projects to see my work with algorithms,
-          data science, and AI applications.
-        </p>
-        <div className="flex gap-4 mt-8">
-          <a
-            className="bg-base0D text-base00 py-2 px-4 rounded hover:bg-base0C transition-colors"
-            href="/projects"
-          >
-            View Projects
-          </a>
-          <a
-            className="bg-base03 text-base07 py-2 px-4 rounded hover:bg-base04 transition-colors"
-            href="#contact"
+        <div className="flex flex-col sm:flex-row gap-4 mt-8">
+          <Link href="/projects">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-3 bg-base0D text-base00 rounded-lg hover:bg-base0C transition-colors"
+            >
+              View Projects
+            </motion.button>
+          </Link>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleContactClick}
+            className="px-8 py-3 bg-base03 text-base05 rounded-lg hover:bg-base04 transition-colors"
           >
             Contact Me
-          </a>
+          </motion.button>
         </div>
-      </main>
 
-      <footer className="mt-16 text-center text-base03">
-        <p>© 2024-2025 Alex Spaulding. All rights reserved.</p>
-      </footer>
-    </div>
+        <ContactForm 
+          isOpen={isContactOpen} 
+          onClose={() => setIsContactOpen(false)} 
+          emailConfig={emailConfig}
+        />
+      </main>
+    </PageTransition>
   );
 }

@@ -28,11 +28,5 @@ export const projects = [
       '/whisperer_slider/settingsAPIKey.png'
     ],
     description: "An innovative Apple Watch application leveraging advanced AI technology to enable natural conversation through whispered speech. Built with Swift and SwiftUI, this app combines OpenAI's Whisper for accurate speech recognition with ChatGPT for intelligent responses, allowing users to interact with AI through quiet voice commands. Perfect for discrete AI interactions on the go."
-  },
-  {
-    id: 3,
-    title: "Project Three",
-    image: "/project3.png",
-    description: "A brief description of Project Three."
   }
 ];

@@ -1,11 +1,35 @@
 import './globals.css';
-import { ThemeProvider } from './context/ThemeContext';
-import ThemeToggle from './components/ThemeToggle';
+import ClientLayout from './components/ClientLayout';
 
 export const metadata = {
   title: 'Portfolio',
   description: 'My portfolio website',
 };
+
+function ThemeScript() {
+  return (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            function getTheme() {
+              const storedTheme = localStorage.getItem('theme');
+              if (storedTheme) {
+                return storedTheme;
+              }
+              return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+
+            const theme = getTheme();
+            if (theme === 'dark') {
+              document.documentElement.classList.add('dark');
+            }
+          })();
+        `,
+      }}
+    />
+  );
+}
 
 export default function RootLayout({
   children,
@@ -14,11 +38,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body>
-        <ThemeProvider>
-          <ThemeToggle />
+        <ClientLayout>
           {children}
-        </ThemeProvider>
+        </ClientLayout>
       </body>
     </html>
   );
