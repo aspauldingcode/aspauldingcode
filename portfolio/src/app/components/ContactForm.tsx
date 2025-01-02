@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import emailjs from '@emailjs/browser';
 
 declare global {
@@ -31,84 +31,60 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
     message: ''
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
-  const [isRecaptchaLoaded, setIsRecaptchaLoaded] = useState(false);
-
-  // Load reCAPTCHA when component mounts
-  useEffect(() => {
-    const checkRecaptcha = () => {
-      if (typeof window.grecaptcha?.execute === 'function') {
-        setIsRecaptchaLoaded(true);
-        console.log('reCAPTCHA is ready');
-      } else {
-        console.log('Waiting for reCAPTCHA...');
-        setTimeout(checkRecaptcha, 100);
-      }
-    };
-
-    checkRecaptcha();
-
-    // Cleanup timeout on unmount
-    return () => {
-      clearTimeout(checkRecaptcha as unknown as number);
-    };
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('sending');
 
     try {
-      if (!isRecaptchaLoaded) {
-        throw new Error('reCAPTCHA not loaded yet');
-      }
+      window.grecaptcha.ready(async () => {
+        try {
+          const token = await window.grecaptcha.execute(emailConfig.recaptchaSiteKey, {
+            action: 'submit'
+          });
 
-      console.log('Executing reCAPTCHA...');
-      // Execute reCAPTCHA with submit action
-      const token = await window.grecaptcha.execute(emailConfig.recaptchaSiteKey, {
-        action: 'submit'
+          // Verify the token with our API
+          const verifyResponse = await fetch('/api/verify-recaptcha', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token }),
+          });
+
+          const verifyData = await verifyResponse.json();
+
+          if (!verifyData.success || verifyData.score < 0.5) {
+            throw new Error('reCAPTCHA verification failed');
+          }
+
+          // If verification successful, send email
+          await emailjs.send(
+            emailConfig.serviceId,
+            emailConfig.templateId,
+            {
+              to_name: 'Alex Spaulding',
+              from_name: formData.name,
+              email: formData.email,
+              message: formData.message,
+            },
+            emailConfig.publicKey
+          );
+
+          setStatus('success');
+          setFormData({ name: '', email: '', message: '' });
+          setTimeout(() => {
+            onClose();
+            setStatus('idle');
+          }, 2000);
+        } catch (error) {
+          console.error('Failed to process form:', error);
+          setStatus('error');
+          setTimeout(() => setStatus('idle'), 3000);
+        }
       });
-      console.log('Got reCAPTCHA token');
-
-      // Verify the token with our API
-      console.log('Verifying token...');
-      const verifyResponse = await fetch('/api/verify-recaptcha', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
-
-      const verifyData = await verifyResponse.json();
-      console.log('Verification response:', verifyData);
-
-      if (!verifyData.success) {
-        throw new Error(verifyData.error || 'reCAPTCHA verification failed');
-      }
-
-      // If verification successful, send email
-      console.log('Sending email...');
-      await emailjs.send(
-        emailConfig.serviceId,
-        emailConfig.templateId,
-        {
-          to_name: 'Alex Spaulding',
-          from_name: formData.name,
-          email: formData.email,
-          message: formData.message,
-        },
-        emailConfig.publicKey
-      );
-      console.log('Email sent successfully');
-
-      setStatus('success');
-      setFormData({ name: '', email: '', message: '' });
-      setTimeout(() => {
-        onClose();
-        setStatus('idle');
-      }, 2000);
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error('Failed to initialize reCAPTCHA:', error);
       setStatus('error');
       setTimeout(() => setStatus('idle'), 3000);
     }
