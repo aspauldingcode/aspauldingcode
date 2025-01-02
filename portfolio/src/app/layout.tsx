@@ -1,6 +1,7 @@
 import './globals.css';
 import ClientLayout from './components/ClientLayout';
 import Script from 'next/script';
+import Footer from './components/Footer';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
 
@@ -47,7 +48,10 @@ export default function RootLayout({
       </head>
       <body>
         <ClientLayout>
-          {children}
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
         </ClientLayout>
       </body>
     </html>

@@ -133,12 +133,12 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 bg-base01 rounded-t-3xl shadow-lg"
-            style={{ maxHeight: "80vh" }}
+            className="fixed inset-x-0 bottom-0 z-50 bg-base01 rounded-t-3xl shadow-lg overflow-hidden"
+            style={{ maxHeight: "90vh" }}
           >
-            <div className="p-8 max-w-2xl mx-auto overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-base05">Contact Me</h2>
+            <div className="relative h-full flex flex-col max-h-[90vh]">
+              <div className="flex justify-between items-center p-4 sm:p-6 border-b border-base02">
+                <h2 className="text-xl sm:text-2xl font-bold text-base05">Contact Me</h2>
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-base02 rounded-full transition-colors"
@@ -161,54 +161,60 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-base05 mb-2">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={formData.name}
-                    onChange={handleInputChange('name')}
-                    className="w-full p-3 rounded-lg bg-base02 text-base05 placeholder-base04 border border-base03 focus:border-base0D focus:outline-none transition-colors"
-                    placeholder="Your name"
-                    required
-                    disabled={status === 'sending'}
-                  />
-                </div>
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                  <div>
+                    <label htmlFor="name" className="block text-base05 mb-2">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      value={formData.name}
+                      onChange={handleInputChange('name')}
+                      className="w-full p-3 rounded-lg bg-base02 text-base05 placeholder-base04 border border-base03 focus:border-base0D focus:outline-none transition-colors"
+                      placeholder="Your name"
+                      required
+                      disabled={status === 'sending'}
+                    />
+                  </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-base05 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={formData.email}
-                    onChange={handleInputChange('email')}
-                    className="w-full p-3 rounded-lg bg-base02 text-base05 placeholder-base04 border border-base03 focus:border-base0D focus:outline-none transition-colors"
-                    placeholder="your.email@example.com"
-                    required
-                    disabled={status === 'sending'}
-                  />
-                </div>
+                  <div>
+                    <label htmlFor="email" className="block text-base05 mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={formData.email}
+                      onChange={handleInputChange('email')}
+                      className="w-full p-3 rounded-lg bg-base02 text-base05 placeholder-base04 border border-base03 focus:border-base0D focus:outline-none transition-colors"
+                      placeholder="your.email@example.com"
+                      required
+                      disabled={status === 'sending'}
+                    />
+                  </div>
 
-                <div>
-                  <label htmlFor="message" className="block text-base05 mb-2">
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    value={formData.message}
-                    onChange={handleInputChange('message')}
-                    className="w-full p-3 rounded-lg bg-base02 text-base05 placeholder-base04 border border-base03 focus:border-base0D focus:outline-none transition-colors min-h-[150px]"
-                    placeholder="Your message..."
-                    required
-                    disabled={status === 'sending'}
-                  />
-                </div>
+                  <div>
+                    <label htmlFor="message" className="block text-base05 mb-2">
+                      Message
+                    </label>
+                    <textarea
+                      id="message"
+                      value={formData.message}
+                      onChange={handleInputChange('message')}
+                      className="w-full p-3 rounded-lg bg-base02 text-base05 placeholder-base04 border border-base03 focus:border-base0D focus:outline-none transition-colors"
+                      placeholder="Your message..."
+                      required
+                      disabled={status === 'sending'}
+                      rows={4}
+                      style={{ minHeight: "100px", maxHeight: "200px" }}
+                    />
+                  </div>
+                </form>
+              </div>
 
+              <div className="p-4 sm:p-6 border-t border-base02">
                 <motion.button
                   whileHover={{ scale: status === 'sending' ? 1 : 1.02 }}
                   whileTap={{ scale: status === 'sending' ? 1 : 0.98 }}
@@ -240,7 +246,7 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
                     'Send Message'
                   )}
                 </motion.button>
-              </form>
+              </div>
             </div>
           </motion.div>
         </>

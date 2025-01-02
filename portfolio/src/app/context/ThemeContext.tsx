@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type Theme = 'light' | 'dark';
 
@@ -20,7 +21,7 @@ function getInitialTheme(): Theme {
     }
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
-  return 'light'; // Default for SSR
+  return 'dark'; // Default for SSR
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
