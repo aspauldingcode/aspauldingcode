@@ -1,12 +1,13 @@
 ==== *Alex Spaulding*
 [cols="1a,1a", options="header", frame=none, grid=none]
 |====
-| Missoula, MT | 406-240-9534
+| Spokane, WA | 406-240-9534
 | aspauldingcode@gmail.com | https://linkedin.com/in/aspauldingcode
+| https://aspauldingcode.com | Portfolio
 |====
 
-===== *ASPIRING MACHINE LEARNING ENGINEER*
-Disciplined and motivated computer science Junior with a strong interest in Machine Learning, operating systems, and project management. Extensive experience in AI/ML and reverse engineering. Proficient in:
+===== *ASPIRING SOFTWARE ENGINEER*
+Disciplined and motivated computer science Junior with a strong interest in operating systems and project management. Extensive experience in reverse engineering. Proficient in:
 
 // Order based on popularity. Focus on readability. Focus on the most relevant skills from the intern/job application. //
 [cols="1a,1a", frame=none, grid=none]
@@ -14,41 +15,37 @@ Disciplined and motivated computer science Junior with a strong interest in Mach
 | *Languages:* Python, JavaScript, Java, TypeScript, Rust, Swift, Objective-C, Nix |
 | *Web:* Next.js, React, Django, Spring Boot |
 | *Tools:* Git, AWS, Azure, SQL, REST APIs, CMake, CI/CD |
-| *ML/AI:* PyTorch, TensorFlow, scikit-learn, NumPy, Pandas |
+| *Reverse Engineering:* IDA Pro, C++, C, Objective-C, Private macOS Frameworks |
 |====
 
 ===== *EDUCATION*
 ====== Bachelor of Science (BS) in Computer Science
-_University of Montana | Expected May 2026_
+_Eastern Washington University | Expected May 2027_
 
-* Data Science Concentration with Mathematics Minor
-* Research focus on Deep Learning and Neural Networks
+* Mathematics Minor
 * Active member of Computer Science and Cybersecurity Clubs
 
 ====== Front-end Developer Certification
 _Montana Code School / Promineo Tech, Missoula, MT | 2020_
 
 * Completed intensive 18-week program focused on web development
-* Implemented ML-powered features in web applications
 
 ===== *PROFESSIONAL EXPERIENCE*
 ====== Information Technology (IT) Consultant
 _University of Montana IT Help Desk, Missoula, MT_
-_(Sep 2020 - Oct 2020) | (Oct 2024 - Present)_
+_(Sep 2020 - Oct 2020) | (Oct 2024 - Jan 2025)_
 
 * Provide Tier I phone support, resolving support tickets on TeamDynamix related to logins, laptops, printers, internet issues, software, account setup, and technical configuration
 * Conduct weekly sprints to deliver on-site technical support to students and employees
-* Developed automated ticket classification system using ML algorithms
 * Implement and maintain automated system monitoring solutions
 
 ====== Printed Circuit Board (PCB) Technician
 _Sunburst Sensors, Missoula, MT_
-_(Jan 2022 - Present)_
+_(Jan 2022 - March 2025)_
 
 * Design and manufacture autonomous instruments measuring marine and freshwater inorganic carbon parameters (CO2 and pH) using patented drift-free technology
 * Solder components to printed circuit boards (PCB), craft cabling, adapters, and battery packs to facilitate product shipping and power provision
-* Integrated machine learning algorithms for predictive maintenance and quality control
-* Optimize sensor calibration using statistical learning techniques
+* Optimize sensor calibration using statistical techniques
 
 ====== Sales Associate – Seasonal
 _Men's Wearhouse, Missoula, MT_
@@ -57,7 +54,6 @@ _(Jun 2023 - Aug 2023)_
 * Sized customers and sold tuxedos, suits, sport jackets, and wedding rentals
 * Utilized strong sales skills to ensure every customer left with a purchase, whether it was a suit, shirt, or accessory, enhancing their shopping experience
 * Utilized data-driven approaches to optimize sales strategies
-* Implemented inventory prediction system using basic ML algorithms
 
 ====== Apple Sales – Seasonal
 _Simply Mac, Missoula, MT_
@@ -65,8 +61,7 @@ _(Oct 2018 - Nov 2018)_
 
 * Welcomed and assisted customers with professional support, sales, service, and phone repair
 * Exceeded monthly sales quotas for Macs, MacBook Pros, iPads, and new/used MacBooks
-* Gained hands-on experience with Apple's ML frameworks and Neural Engine
-* Provided technical support for ML-enabled applications and features
+* Provided technical support for applications and features
 
 ====== Web Developer
 _Wheelbound Productions, Missoula, MT_
@@ -74,25 +69,16 @@ _(Apr 2018 - Sep 2018)_
 
 * Provided personalized customer service to discuss business plans and website goals, resulting in the design of mobile-friendly dynamic websites
 * Utilized JavaScript, HTML, CSS, and SASS to create engaging homepages featuring multi-parallax scrolling, animations, and interactive elements
-* Integrated AI-powered chat support and SEO optimization tools to enhance user engagement and search rankings
+* Integrated chat support and SEO optimization tools to enhance user engagement and search rankings
 
 // Add skills from the intern/job application. //
 ===== *SKILLSET*
 |===
 |Category |Skills
 
-|Machine Learning & AI
-|PyTorch, TensorFlow +
-Neural Networks +
-Computer Vision +
-Natural Language Processing +
-Reinforcement Learning
-
 |Data Science & Analytics
 |Statistical Analysis +
 Data Visualization +
-Feature Engineering +
-Model Optimization +
 Big Data Processing
 
 |Back-end Development
@@ -106,8 +92,7 @@ SaaS Architecture, Rust
 |Shell Scripting (POSIX) +
 Nix Build/Dev Automation +
 Automation Scripts +
-AppleScript +
-LLM Integration
+AppleScript
 
 |Systems & Low-level Programming
 |Reverse Engineering +
@@ -145,3 +130,12 @@ Adobe Premier Pro +
 Music Production (Ableton Live, Logic Pro) +
 YouTube Content Creation +
 |===
+
+===== *REFERENCES*
+_For references, please contact me._
+
+// [cols="1a,1a", frame=none, grid=none]
+// |====
+// | Jane Doe | janedoe@example.com
+// |====
+
