@@ -44,7 +44,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <ThemeScript />
-        <Script src={`https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`} />
+        <Script src={`https://www.google.com/recaptcha/api.js?render=${SITE_KEY}&badge=bottomright&size=invisible`} />
       </head>
       <body>
         <ClientLayout>

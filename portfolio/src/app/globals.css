@@ -148,4 +148,7 @@ body {
   right: 50px !important;
   z-index: auto !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  visibility: hidden !important;
+  z-index: -1 !important;
+  transform: scale(0.7) translate(-25%, 25%) !important;
 }
