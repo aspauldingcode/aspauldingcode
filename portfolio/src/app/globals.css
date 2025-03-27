@@ -142,3 +142,11 @@ body {
 .text-base0D { color: var(--base0D); }
 .text-base0E { color: var(--base0E); }
 .text-base0F { color: var(--base0F); }
+
+.grecaptcha-badge {
+  position: fixed !important;
+  bottom: 50px !important;
+  right: 50px !important;
+  z-index: auto !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
