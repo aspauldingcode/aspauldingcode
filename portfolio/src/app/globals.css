@@ -3,26 +3,25 @@
 @tailwind utilities;
 
 :root {
-  /* Base16 Default Light */
-  --base00: #f8f8f8; /* Default Background */
-  --base01: #e8e8e8; /* Lighter Background */
-  --base02: #d8d8d8; /* Selection Background */
-  --base03: #b8b8b8; /* Comments, Invisibles, Line Highlighting */
-  --base04: #585858; /* Dark Foreground (Used for status bars) */
-  --base05: #383838; /* Default Foreground */
-  --base06: #282828; /* Light Foreground */
-  --base07: #181818; /* Light Background */
-  --base08: #ab4642; /* Red / Error */
-  --base09: #dc9656; /* Orange / Number */
-  --base0A: #f7ca88; /* Yellow / Warning */
-  --base0B: #a1b56c; /* Green / Success */
-  --base0C: #86c1b9; /* Cyan / Regular Expression */
-  --base0D: #7cafc2; /* Blue / Function */
-  --base0E: #ba8baf; /* Purple / Keyword */
-  --base0F: #a16946; /* Brown / Deprecated */
+  /* Base16 Default Light (atelier-dune-light base16 theme) */
+  --base00: #fefbec; /* Default Background */
+  --base01: #e8e4cf; /* Lighter Background */
+  --base02: #a6a28c; /* Selection Background */
+  --base03: #999580; /* Comments, Invisibles, Line Highlighting */
+  --base04: #7d7a68; /* Dark Foreground (Used for status bars) */
+  --base05: #6e6b5e; /* Default Foreground */
+  --base06: #292824; /* Light Foreground */
+  --base07: #20201d; /* Light Background */
+  --base08: #d73737; /* Red / Error */
+  --base09: #b65611; /* Orange / Number */
+  --base0A: #ae9513; /* Yellow / Warning */
+  --base0B: #60ac39; /* Green / Success */
+  --base0C: #1fad83; /* Cyan / Regular Expression */
+  --base0D: #6684e1; /* Blue / Function */
+  --base0E: #b854d4; /* Purple / Keyword */
+  --base0F: #d43552; /* Brown / Deprecated */
 }
-
-/* Dark mode colors */
+/* Dark mode colors () */
 :root[class~="dark"] {
   --base00: #181818; /* Default Background */
   --base01: #282828; /* Lighter Background */
