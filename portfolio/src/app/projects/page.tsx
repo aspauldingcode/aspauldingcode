@@ -30,24 +30,32 @@ const useIsTouchDevice = () => {
   return isTouch;
 };
 
-const floatingCards = (hoveredId: number | null, isButtonHovered: boolean, projectId: number, isTouch: boolean) => ({
-  y: isTouch ? 0 : (hoveredId === projectId ? 0 : [0, -8, 0]),
-  rotateX: isTouch ? 0 : (hoveredId === projectId ? 0 : [-1, 0, 1, 0]),
-  rotateY: isTouch ? 0 : (hoveredId === projectId ? 0 : [0, 1, 0, -1]),
-  rotateZ: isTouch ? 0 : (hoveredId === projectId ? 0 : [-0.5, 0, 0.5, 0]),
-  boxShadow: hoveredId === projectId 
-    ? isButtonHovered 
-      ? "0 0 15px rgba(211,54,130,0.4), 0 0 15px #b48ead" 
-      : "0 0 15px rgba(131,165,242,0.4), 0 0 15px #81a2be"
-    : "none",
-  transition: { 
-    duration: hoveredId === projectId ? 0.15 : 8,
-    repeat: isTouch ? 0 : (hoveredId === projectId ? 0 : Infinity),
-    repeatType: hoveredId === projectId ? undefined : "mirror" as const,
-    ease: "easeInOut"
-  },
-  transformPerspective: 1000
-});
+const floatingCards = (hoveredId: number | null, isButtonHovered: boolean, projectId: number, isTouch: boolean) => {
+  // Generate a unique but consistent random seed for each card
+  const randomSeed = projectId * 0.1;
+  
+  return {
+    y: isTouch ? 0 : (hoveredId === projectId ? -10 : Math.sin(Date.now() * 0.001 + randomSeed) * 5),
+    scale: isTouch ? 1 : (hoveredId === projectId ? 1.03 : 1),
+    rotateX: isTouch ? 0 : (hoveredId === projectId ? -5 : Math.sin(Date.now() * 0.0005 + randomSeed) * 2),
+    rotateY: isTouch ? 0 : (hoveredId === projectId ? Math.sin(Date.now() * 0.001) * 3 : Math.cos(Date.now() * 0.0007 + randomSeed) * 3),
+    rotateZ: isTouch ? 0 : (hoveredId === projectId ? Math.sin(Date.now() * 0.0008) * 1 : 0),
+    boxShadow: hoveredId === projectId 
+      ? isButtonHovered 
+        ? "0 20px 25px rgba(211,54,130,0.2), 0 10px 10px rgba(180,142,173,0.2), 0 0 15px rgba(211,54,130,0.4), 0 0 15px #b48ead" 
+        : "0 20px 25px rgba(131,165,242,0.2), 0 10px 10px rgba(129,162,190,0.2), 0 0 15px rgba(131,165,242,0.4), 0 0 15px #81a2be"
+      : "0 5px 15px rgba(0,0,0,0.1)",
+    transition: {
+      type: "spring",
+      stiffness: hoveredId === projectId ? 300 : 100,
+      damping: hoveredId === projectId ? 20 : 10,
+      duration: hoveredId === projectId ? 0.2 : 0.5,
+      ease: "easeInOut"
+    },
+    transformPerspective: 1200,
+    transformOrigin: "center center"
+  };
+};
 
 export default function Projects() {
   const router = useRouter();
