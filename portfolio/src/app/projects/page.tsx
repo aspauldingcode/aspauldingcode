@@ -16,10 +16,20 @@ const useIsTouchDevice = () => {
 
   useEffect(() => {
     const detectTouch = () => {
-      setIsTouch(
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0
-      );
+      // Check if it's a Windows device with touch capability
+      const isWindows = navigator.userAgent.indexOf('Windows') !== -1;
+      const hasTouchCapability = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      // For Windows devices, we want to provide desktop experience even if they have touch capability
+      // For other devices (mobile/tablets), we use touch detection
+      if (isWindows) {
+        // Only consider it a touch device if it's likely a tablet in tablet mode
+        // Most laptops with touch screens should get desktop experience
+        setIsTouch(hasTouchCapability && window.innerWidth <= 1024 && window.innerHeight <= 1366);
+      } else {
+        // For non-Windows devices, use standard touch detection
+        setIsTouch(hasTouchCapability);
+      }
     };
 
     detectTouch();
@@ -224,7 +234,7 @@ export default function Projects() {
                       {/* Desktop-only overlay and button */}
                       <div className={!isTouch ? 'block' : 'hidden'}>
                         <motion.div
-                          className="absolute inset-0 bg-base0D/80 backdrop-blur-[2px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center"
+                          className="absolute inset-x-0 top-[30px] bottom-0 bg-base0D/80 backdrop-blur-[2px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center"
                           initial={false}
                           animate={{ 
                             opacity: hoveredCard === project.id ? 1 : 0,
