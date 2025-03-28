@@ -1,9 +1,9 @@
 "use client";
 
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import PageTransition from './components/PageTransition';
 import ContactForm from './components/ContactForm';
 import { emailConfig } from '@/config/email';
@@ -13,16 +13,36 @@ export default function Home() {
 
   const handleContactClick = () => {
     setIsContactOpen(true);
-    // Smooth scroll to bottom of page
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth'
-    });
+    // No need to scroll since the page is now non-scrollable
   };
+
+  // Add useEffect to disable scrolling when the component mounts
+  React.useEffect(() => {
+    // Save the original overflow style
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    
+    // Disable scrolling
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    document.body.style.touchAction = 'none';
+    
+    // Re-enable scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = originalStyle;
+      document.documentElement.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.touchAction = '';
+    };
+  }, []);
 
   return (
     <PageTransition>
-      <main className="flex min-h-screen flex-col items-center justify-center p-8 sm:p-24 bg-base00">
+      <main className="flex min-h-screen flex-col items-center justify-center p-8 sm:p-24 bg-base00 overflow-hidden">
         <div className="relative">
           <Image
             src="/profile.png"
@@ -37,7 +57,7 @@ export default function Home() {
           Alex Spaulding
         </h1>
         <p className="text-xl text-base04 mt-4 max-w-2xl text-center">
-          With a strong foundation in programming and data analysis, I&apos;m eager to contribute to innovative ML projects.
+          Software developer focused on building efficient, scalable solutions.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mt-8">
           <Link href="/projects">
@@ -46,7 +66,7 @@ export default function Home() {
               whileTap={{ scale: 0.95 }}
               className="px-6 py-3 bg-base0D hover:bg-base0E text-base00 rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2"
             >
-              <span>View Projects</span>
+              <span>Projects</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"

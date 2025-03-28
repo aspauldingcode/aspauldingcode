@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Slider from 'react-slick';
-import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { motion, AnimatePresence } from 'framer-motion';
 import { projects } from './projectData';
@@ -52,9 +52,9 @@ const floatingCards = (hoveredId: number | null, isButtonHovered: boolean, proje
     rotateZ: isTouch ? 0 : (hoveredId === projectId ? Math.sin(Date.now() * 0.0008) * 1 : 0),
     boxShadow: hoveredId === projectId 
       ? isButtonHovered 
-        ? "0 20px 25px rgba(211,54,130,0.2), 0 10px 10px rgba(180,142,173,0.2), 0 0 15px rgba(211,54,130,0.4), 0 0 15px #b48ead" 
-        : "0 20px 25px rgba(131,165,242,0.2), 0 10px 10px rgba(129,162,190,0.2), 0 0 15px rgba(131,165,242,0.4), 0 0 15px #81a2be"
-      : "0 5px 15px rgba(0,0,0,0.1)",
+        ? "0 20px 25px var(--base0E), 0 10px 10px var(--base0E), 0 0 15px var(--base0E), 0 0 15px var(--base0E)" 
+        : "0 20px 25px var(--base0D), 0 10px 10px var(--base0D), 0 0 15px var(--base0D), 0 0 15px var(--base0D)"
+      : "0 5px 15px var(--base02)",
     transition: {
       type: "spring",
       stiffness: hoveredId === projectId ? 300 : 100,
@@ -73,6 +73,102 @@ export default function Projects() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const isTouch = useIsTouchDevice();
+  
+  // Disable scrolling on desktop only
+  useEffect(() => {
+    // Only apply scroll lock on desktop devices
+    if (!isTouch) {
+      // Save the original overflow style
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      
+      // Disable scrolling
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.style.touchAction = 'none';
+      
+      // Re-enable scrolling when component unmounts
+      return () => {
+        document.body.style.overflow = originalStyle;
+        document.documentElement.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+        document.body.style.touchAction = '';
+      };
+    }
+  }, [isTouch]); // Re-run if touch detection changes
+  
+  // Reset user interaction flag when scrolling on mobile
+  useEffect(() => {
+    if (isTouch) {
+      const handleScroll = () => {
+        // If user is scrolling the page (not the carousel), we should reset the interaction flag
+        // This prevents the carousel from staying paused forever when user scrolls
+        setTimeout(() => {
+          setIsUserInteracting(false);
+        }, 1000);
+      };
+      
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [isTouch]);
+
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+  const cardScrollRef = useRef<HTMLDivElement>(null);
+
+  // Handle card scroll while preventing page scroll
+  useEffect(() => {
+    const handleCardScroll = (e: Event) => {
+      const wheelEvent = e as WheelEvent;
+      if (cardScrollRef.current) {
+        wheelEvent.preventDefault();
+        cardScrollRef.current.scrollTop += wheelEvent.deltaY;
+      }
+    };
+
+    const handlePageScroll = (e: Event) => {
+      e.preventDefault();
+    };
+
+    const cards = document.querySelectorAll('.project-card');
+    cards.forEach(card => {
+      card.addEventListener('wheel', handleCardScroll);
+    });
+
+    window.addEventListener('scroll', handlePageScroll, { passive: false });
+
+    return () => {
+      cards.forEach(card => {
+        card.removeEventListener('wheel', handleCardScroll);
+      });
+      window.removeEventListener('scroll', handlePageScroll);
+    };
+  }, []);
+  
+  // Add a failsafe timer to ensure autoplay always resumes
+  useEffect(() => {
+    // If user interaction is active, set a failsafe timer to reset it
+    if (isUserInteracting) {
+      const failsafeTimer = setTimeout(() => {
+        setIsUserInteracting(false);
+        
+        // Force restart autoplay
+        const sliders = document.querySelectorAll('.slick-slider');
+        sliders.forEach((slider) => {
+          const slickInstance = slider as { slick?: { slickPlay: () => void } };
+          if (slickInstance.slick) {
+            slickInstance.slick.slickPlay();
+          }
+        });
+      }, isTouch ? 6000 : 5000); // Longer timeout for mobile
+      
+      return () => clearTimeout(failsafeTimer);
+    }
+  }, [isUserInteracting, isTouch]);
 
   const settings = {
     dots: true,
@@ -80,14 +176,30 @@ export default function Projects() {
     speed: 800,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: true, // Always autoplay
     autoplaySpeed: 3000,
     pauseOnHover: false,
     lazyLoad: 'ondemand' as const,
     cssEase: "linear",
     fade: true,
     initialSlide: 0,
-    waitForAnimate: false
+    waitForAnimate: false,
+    swipe: true, // Enable swipe for all devices
+    swipeToSlide: false, // Disable swipe to slide directly
+    touchThreshold: 10, // Make swiping less sensitive
+    dotsClass: 'slick-dots custom-slick-dots', // Add custom class for styling
+    appendDots: (dots: React.ReactNode) => (
+      <div>
+        <ul style={{ margin: '0' }}>{dots}</ul>
+      </div>
+    ),
+    // Add event handlers for better interaction detection
+    onSwipe: () => {
+      setIsUserInteracting(false); // Don't stop autoplay on swipe
+    },
+    onEdge: () => {
+      setIsUserInteracting(false); // Don't stop autoplay on edge
+    }
   };
 
   // Initialize sliders and ensure autoplay starts
@@ -123,6 +235,14 @@ export default function Projects() {
 
   const handleProjectClick = (link?: string) => {
     if (link) {
+      setHoveredCard(null);
+      window.open(link, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Handle mobile tap on description area
+  const handleMobileTap = (link?: string) => {
+    if (isTouch && link) {
       setHoveredCard(null);
       window.open(link, '_blank', 'noopener,noreferrer');
     }
@@ -191,20 +311,14 @@ export default function Projects() {
                       delay: index * 0.05 
                     }
                   }}
-                  className="min-w-[280px]"
+                  className="min-w-[280px] project-card"
                 >
                   <motion.div
                     animate={floatingCards(hoveredCard, isButtonHovered, project.id, isTouch)}
-                    className={`bg-base01 rounded-lg shadow-lg overflow-hidden relative group transition-all duration-150
-                      ${isTouch ? 'cursor-pointer active:scale-[0.99]' : 'cursor-default hover:rotate-[0.5deg]'}`}
+                    className={`bg-base01 rounded-lg shadow-lg overflow-hidden relative group transition-all duration-150 overflow-y-auto"
+                      ${isTouch ? '' : 'cursor-default hover:rotate-[0.5deg]'}`}
                     onMouseEnter={() => !isTouch && setHoveredCard(project.id)}
                     onMouseLeave={() => !isTouch && setHoveredCard(null)}
-                    onClick={() => {
-                      // Handle click for touch devices only
-                      if (isTouch && project.link) {
-                        handleProjectClick(project.link);
-                      }
-                    }}
                   >
                     <div className="relative">
                       <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-base00/30 to-transparent z-10"></div>
@@ -276,11 +390,17 @@ export default function Projects() {
                         </motion.div>
                       </div>
                       <h2 className="text-xl font-semibold text-base05 mt-2">{project.title}</h2>
-                      <div className="text-base04 mt-2">
+                      <div 
+                        className="text-base04 mt-2 cursor-pointer"
+                        onClick={() => isTouch ? handleMobileTap(project.link) : null}
+                      >
                         {project.description}
                       </div>
-                      {/* Mobile-only indicator */}
-                      <div className={`flex items-center mt-3 text-base0D ${isTouch ? 'block' : 'hidden'}`}>
+                      {/* Mobile-only indicator and clickable area */}
+                      <div 
+                        className={`flex items-center mt-3 text-base0D ${isTouch ? 'block' : 'hidden'}`}
+                        onClick={() => handleMobileTap(project.link)}
+                      >
                         <span className="text-sm">Tap to view</span>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { useState } from 'react';
 import emailjs from '@emailjs/browser';
 
@@ -98,10 +98,23 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.2}
+          dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+          onDragEnd={(event, info: PanInfo) => {
+            if (info.offset.y > 100) {
+              onClose();
+            }
+          }}
+          whileDrag={{ opacity: 0.9 }}
           className="fixed inset-x-0 bottom-0 z-50 bg-base01 rounded-t-3xl shadow-lg"
           style={{ maxHeight: "80vh" }}
         >
-          <div className="p-8 max-w-2xl mx-auto overflow-y-auto">
+          <div className="relative p-8 max-w-2xl mx-auto overflow-y-auto">
+            <div className="absolute top-2 left-0 right-0 flex justify-center">
+              <div className="w-12 h-1 bg-base03 rounded-full opacity-70" aria-hidden="true" />
+            </div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-base05">Contact Me</h2>
               <button
@@ -211,4 +224,4 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
       )}
     </AnimatePresence>
   );
-} 
+}

@@ -15,7 +15,7 @@ export default function Footer() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.5 }}
-      className="fixed bottom-0 left-0 w-full py-2 text-center text-base04 text-xs bg-base00/80 backdrop-blur-sm z-10"
+      className="fixed bottom-0 left-0 w-full py-2 text-center text-base04 text-xs bg-base00/80 backdrop-blur-sm z-10 border-t border-base02"
     >
       <p>
         © {copyrightYears} Alex Spaulding{' • '}
@@ -40,4 +40,4 @@ export default function Footer() {
       </p>
     </motion.footer>
   );
-} 
+}
