@@ -311,7 +311,7 @@ export default function Projects() {
                       delay: index * 0.05 
                     }
                   }}
-                  className="min-w-[280px] project-card"
+                  className="min-w-[280px] project-card text-justify"
                 >
                   <motion.div
                     animate={floatingCards(hoveredCard, isButtonHovered, project.id, isTouch)}
@@ -391,7 +391,7 @@ export default function Projects() {
                       </div>
                       <h2 className="text-xl font-semibold text-base05 mt-2">{project.title}</h2>
                       <div 
-                        className="text-base04 mt-2 cursor-pointer"
+                        className="text-base04 mt-2 cursor-pointer tracking-[0.01em] word-spacing-[0.02em]"
                         onClick={() => isTouch ? handleMobileTap(project.link) : null}
                       >
                         {project.description}

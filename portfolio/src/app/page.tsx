@@ -64,7 +64,7 @@ export default function Home() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-6 py-3 bg-base0D hover:bg-base0E text-base00 rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2"
+              className="px-6 py-3 bg-base0D hover:bg-base0E text-base00 rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2 text-justify tracking-[0.01em] word-spacing-[0.02em]"
             >
               <span>Projects</span>
               <svg
@@ -85,7 +85,7 @@ export default function Home() {
           </Link>
           <motion.button
             onClick={() => window.open('/resume_alex_spaulding.pdf', '_blank')}
-            className="px-6 py-3 bg-base0D hover:bg-base0E text-base00 rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2"
+            className="px-6 py-3 bg-base0D hover:bg-base0E text-base00 rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2 text-justify tracking-[0.01em] word-spacing-[0.02em]"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -107,7 +107,7 @@ export default function Home() {
           </motion.button>
           <motion.button
             onClick={handleContactClick}
-            className="px-6 py-3 bg-base0D hover:bg-base0E text-base00 rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2"
+            className="px-6 py-3 bg-base0D hover:bg-base0E text-base00 rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2 text-justify tracking-[0.01em] word-spacing-[0.02em]"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

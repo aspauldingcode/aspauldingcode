@@ -18,7 +18,7 @@ export const projects: Project[] = [
       '/dumonds_slider/search.png',
       '/dumonds_slider/sidebar.png'
     ],
-    description: "Dumonds.com is a custom WordPress website for a Montana company making furniture. It has over 700 pages and was rebuilt from scratch for optimization in 2017.",
+    description: "Dumonds.com is a custom WordPress website for a Montana company making furniture. It has over 700 pages and was rebuilt from scratch for optimization in 2017.".slice(0, 300) + '...',
     link: "https://dumonds.com"
   },
   {
@@ -35,6 +35,6 @@ export const projects: Project[] = [
       '/whisperer_slider/selectTTS&Language.png',
       '/whisperer_slider/settingsAPIKey.png'
     ],
-    description: "An innovative Apple Watch application leveraging advanced AI technology to enable natural conversation through whispered speech. Built with Swift and SwiftUI, this app combines OpenAI's Whisper for accurate speech recognition with ChatGPT for intelligent responses, allowing users to interact with AI through quiet voice commands. Perfect for discrete AI interactions on the go."
+    description: "An innovative Apple Watch application leveraging advanced AI technology to enable natural conversation through whispered speech. Built with Swift and SwiftUI, this app combines OpenAI's Whisper for accurate speech recognition with ChatGPT for intelligent responses, allowing users to interact with AI through quiet voice commands. Perfect for discrete AI interactions on the go.".slice(0, 300) + '...'
   }
 ];
