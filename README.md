@@ -10,7 +10,7 @@ I started programming at age 10 with LEGO Mindstorms robotics. Since then, I've 
 I study Computer Science with a minor in Mathematics at [University of Montana](https://www.umt.edu/). I aim for a focus on Data Science & Engineering, Machine Learning, AI, and Operating Systems. I am currently a Junior, learning Advanced Algorithms, Database Design, Discrete Mathematics, Computer Simulation, Computer Architecture, Linear Algebra, Probability and Statistics, and Multivariable Calculus!
 
 ## Contact Me!
-*You can contact me by [Email](mailto:aspauldingcode@gmail.com), on [LinkedIn](https://www.linkedin.com/in/alexspaulding/), [Twitter](https://twitter.com/aspauldingcode), or visit my [Website](https://aspauldingcode.com).*
+*You can contact me by [Email](mailto:aspauldingcode@gmail.com), on [LinkedIn](https://www.linkedin.com/in/aspauldingcode/), [Twitter](https://twitter.com/aspauldingcode), or visit my [Website](https://aspauldingcode.com).*
 
 ## Stats:
 | ![aspauldingcode's Streak](https://github-readme-streak-stats.herokuapp.com/?user=aspauldingcode&hide_border=true&theme=dark) |
