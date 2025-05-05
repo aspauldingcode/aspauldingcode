@@ -252,7 +252,7 @@ export default function Projects() {
     <PageTransition>
       <motion.div 
         key="projects-content"
-        className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20 bg-base00 pb-[75px] md:pb-8"
+        className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20 bg-base00"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

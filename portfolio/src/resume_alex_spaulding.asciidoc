@@ -41,7 +41,7 @@ _(Sep 2020 - Oct 2020) | (Oct 2024 - Jan 2025)_
 
 ====== Printed Circuit Board (PCB) Technician
 _Sunburst Sensors, Missoula, MT_
-_(Jan 2022 - March 2025)_
+_(Jan 2022 - Mar 2025)_
 
 * Design and manufacture autonomous instruments measuring marine and freshwater inorganic carbon parameters (CO2 and pH) using patented drift-free technology
 * Solder components to printed circuit boards (PCB), craft cabling, adapters, and battery packs to facilitate product shipping and power provision

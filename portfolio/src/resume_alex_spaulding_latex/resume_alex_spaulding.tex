@@ -1,0 +1,205 @@
+%-------------------------
+% Resume in Latex
+% Author
+% License : MIT
+%------------------------
+
+%---- Required Packages and Functions ----
+
+\documentclass[a4paper,11pt]{article}
+\usepackage{latexsym}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{ragged2e}
+\usepackage[empty]{fullpage}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+\usepackage{tabularx}
+\usepackage{titlesec}
+\usepackage{geometry}
+\usepackage{marvosym}
+\usepackage{fontawesome}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage{tcolorbox}
+
+% Adjust margins
+\geometry{left=0.5in, top=0.3in, right=0.5in, bottom=0.3in, footskip=.5cm}
+
+%\usepackage[skins, listings, breakable, theorems, most]{tcolorbox}
+\tcbset{
+	frame code={},
+	center title,
+	left=0pt,
+	right=0pt,
+	top=0pt,
+	bottom=0pt,
+	colback=gray!20,
+	colframe=white,
+	width=\dimexpr\textwidth\relax,
+	enlarge left by=-2mm,
+	boxsep=4pt,
+	arc=0pt,outer arc=0pt,
+}
+
+\urlstyle{same}
+
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-7pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[2]{
+  \item{
+    \textbf{#1}{\hspace{0.5mm}#2 \vspace{-0.5mm}}
+  }
+}
+
+\newcommand{\resumePOR}[3]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1}\hspace{0.3mm}#2 & \textit{\small{#3}} 
+    \end{tabular*}
+    \vspace{-2mm}
+}
+
+\newcommand{\resumeSubheading}[4]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & \textit{\footnotesize{#4}} \\
+        \textit{\footnotesize{#3}} &  \footnotesize{#2}\\
+    \end{tabular*}
+    \vspace{-2.4mm}
+}
+
+\newcommand{\resumeProject}[4]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & \textit{\footnotesize{#3}} \\
+        \footnotesize{\textit{#2}} & \footnotesize{#4}
+    \end{tabular*}
+    \vspace{-2.4mm}
+}
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
+% \renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemi}{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*,labelsep=0mm]}
+\newcommand{\resumeHeadingSkillStart}{\begin{itemize}[leftmargin=*,itemsep=1.7mm, rightmargin=2ex]}
+\newcommand{\resumeItemListStart}{\begin{justify}\begin{itemize}[leftmargin=3ex, rightmargin=2ex, noitemsep,labelsep=1.2mm,itemsep=0mm]\small}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{2mm}}
+\newcommand{\resumeHeadingSkillEnd}{\end{itemize}\vspace{-2mm}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\vspace{-2mm}}
+\newcommand{\cvsection}[1]{%
+\vspace{2mm}
+\begin{tcolorbox}
+    \textbf{\large #1}
+\end{tcolorbox}
+    \vspace{-4mm}
+}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}%
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\newcolumntype{C}{>{\centering\arraybackslash}X}%
+%---- End of Packages and Functions ------
+
+%-------------------------------------------
+%%%%%% DEFINE ELEMENTS HERE %%%%%%%
+\newcommand{\name}{Alex Spaulding} % Your Name
+\newcommand{\course}{Aspiring Software Engineer} % Your Program
+\newcommand{\roll}{Spokane, WA} % Your Location
+\newcommand{\phone}{406-240-9534} % Your Phone Number
+\newcommand{\emaila}{aspauldingcode@gmail.com} %Email 1
+
+\begin{document}
+\fontfamily{cmr}\selectfont
+%----------HEADING-----------------
+
+{
+\begin{tabularx}{\linewidth}{L r} \\
+  \textbf{\Large \name} & {\raisebox{0.0\height}{\footnotesize \faPhone}\ +1-\phone}\\
+  {\roll } & \href{mailto:\emaila}{\raisebox{0.0\height}{\footnotesize \faEnvelope}\ {\emaila}} \\
+  \course & \href{https://linkedin.com/in/aspauldingcode}{\raisebox{0.0\height}{\footnotesize \faLinkedin}\ {LinkedIn Profile}} \\
+  \href{https://www.aspauldingcode.com/}{\raisebox{0.0\height}{\footnotesize \faGlobe} {\texttt{https://www.aspauldingcode.com}}} & \href{https://github.com/aspauldingcode}{\raisebox{0.0\height}{\footnotesize \faGithub} {GitHub Profile}} \\
+\end{tabularx}
+}
+
+%-----------EDUCATION-----------
+\section{\textbf{Education}}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Bachelor of Science (BS) in Computer Science}{Expected May 2027}
+      {Eastern Washington University}{Mathematics Minor}
+  \resumeSubHeadingListEnd
+\vspace{-5.5mm}
+
+%-----------PROFESSIONAL EXPERIENCE-----------
+\section{\textbf{Professional Experience}}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Information Technology (IT) Consultant}{Sep 2020 - Oct 2020 | Oct 2024 - Jan 2025}
+      {University of Montana IT Help Desk, Missoula, MT}{}
+      \resumeItemListStart
+        \item {Provide Tier I phone support, resolving support tickets on TeamDynamix related to logins, laptops, printers, internet issues, software, account setup, and technical configuration}
+        \item {Conduct weekly sprints to deliver on-site technical support to students and employees}
+        \item {Implement and maintain automated system monitoring solutions}
+      \resumeItemListEnd
+    \resumeSubheading
+      {Printed Circuit Board (PCB) Technician}{Jan 2022 - March 2025}
+      {Sunburst Sensors, Missoula, MT}{}
+      \resumeItemListStart
+        \item {Design and manufacture autonomous instruments measuring marine and freshwater inorganic carbon parameters (CO2 and pH) using patented drift-free technology}
+        \item {Solder components to printed circuit boards (PCB), craft cabling, adapters, and battery packs to facilitate product shipping and power provision}
+        \item {Optimize sensor calibration using statistical techniques}
+      \resumeItemListEnd
+    \resumeSubheading
+      {Sales Associate – Seasonal}{Jun 2023 - Aug 2023}
+      {Men's Wearhouse, Missoula, MT}{}
+      \resumeItemListStart
+        \item {Sized customers and sold tuxedos, suits, sport jackets, and wedding rentals}
+        \item {Utilized strong sales skills to ensure every customer left with a purchase, whether it was a suit, shirt, or accessory, enhancing their shopping experience}
+        \item {Utilized data-driven approaches to optimize sales strategies}
+      \resumeItemListEnd
+    \resumeSubheading
+      {Apple Sales – Seasonal}{Oct 2018 - Nov 2018}
+      {Simply Mac, Missoula, MT}{}
+      \resumeItemListStart
+        \item {Welcomed and assisted customers with professional support, sales, service, and phone repair}
+        \item {Exceeded monthly sales quotas for Macs, MacBook Pros, iPads, and new/used MacBooks}
+        \item {Provided technical support for applications and features}
+      \resumeItemListEnd
+    \resumeSubheading
+      {Web Developer}{Apr 2018 - Sep 2018}
+      {Wheelbound Productions, Missoula, MT}{}
+      \resumeItemListStart
+        \item {Provided personalized customer service to discuss business plans and website goals, resulting in the design of mobile-friendly dynamic websites}
+        \item {Utilized JavaScript, HTML, CSS, and SASS to create engaging homepages featuring multi-parallax scrolling, animations, and interactive elements}
+        \item {Integrated chat support and SEO optimization tools to enhance user engagement and search rankings}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+\vspace{-5.5mm}
+
+%-----------SKILLSET-----------
+\section{\textbf{Skillset}}
+\begin{itemize}[leftmargin=0.05in, label={}]
+    \small{\item{
+     \textbf{Languages}{: JavaScript, TypeScript, Python, Rust, Swift, Objective-C, Java, Nix} \\
+     \textbf{System Programming Skills}{: Reverse Engineering, Operating Systems, Kernel Programming}\\
+     \textbf{Technologies \& Tools}{: Artificial Intelligence (AI/ML), Cloud Computing \& DevOps (Docker, Kubernetes, Terraform, CI/CD), Programming (Python, JavaScript, Java), Source Control (Git, GitHub, GitLab), Databases (SQL/NoSQL, Hadoop, Spark), Cybersecurity (Secure Coding, Pen Testing), API Design (REST, GraphQL, Swagger), Testing \& Debugging, Agile/Scrum, Collaboration \& Communication} \\
+     }}
+ \end{itemize}
+ \vspace{-16pt}
+
+%-----------REFERENCES-----------
+\section{\textbf{References}}
+\textit{For references, please contact me.}
+
+%-------------------------------------------
+\end{document}
+
