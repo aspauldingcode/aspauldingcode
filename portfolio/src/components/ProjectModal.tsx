@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Project } from '../app/projects/projectData';
 import Slider from 'react-slick';
+import Image from 'next/image';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
@@ -35,7 +36,6 @@ export default function ProjectModal({
   onPass,
   onSwipe
 }: ProjectModalProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     startX: 0,
@@ -161,7 +161,6 @@ export default function ProjectModal({
         }
         onClose();
         setSwipeDirection(null);
-        setCurrentImageIndex(0);
       }, 300);
     }
 
@@ -208,18 +207,6 @@ export default function ProjectModal({
     handleEnd();
   };
 
-  const nextImage = () => {
-    if (project && currentImageIndex < project.images.length - 1) {
-      setCurrentImageIndex(prev => prev + 1);
-    }
-  };
-
-  const prevImage = () => {
-    if (project && currentImageIndex > 0) {
-      setCurrentImageIndex(prev => prev - 1);
-    }
-  };
-
   // Slick slider settings
   const sliderSettings = {
     dots: true,
@@ -230,7 +217,6 @@ export default function ProjectModal({
     swipe: true,
     touchMove: true,
     arrows: false,
-    afterChange: (current: number) => setCurrentImageIndex(current),
   };
 
   const getModalStyle = (): React.CSSProperties => {
@@ -320,9 +306,11 @@ export default function ProjectModal({
             <Slider ref={sliderRef} {...sliderSettings}>
               {project.images.map((image, index) => (
                 <div key={index}>
-                  <img 
+                  <Image 
                     src={image} 
                     alt={`${project.title} - Image ${index + 1}`}
+                    width={400}
+                    height={320}
                     className="w-full h-80 object-cover"
                     draggable={false}
                   />
@@ -368,7 +356,6 @@ export default function ProjectModal({
                   onPass(project);
                   onClose();
                 }
-                setCurrentImageIndex(0);
               }}
               className="flex-1 py-3 bg-base08 hover:bg-base09 text-base00 rounded-lg font-semibold transition-colors"
             >
@@ -382,7 +369,6 @@ export default function ProjectModal({
                   onLike(project);
                   onClose();
                 }
-                setCurrentImageIndex(0);
               }}
               className="flex-1 py-3 bg-base0B hover:bg-base0A text-base00 rounded-lg font-semibold transition-colors"
             >

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 
 interface CardData {
   id: string;
@@ -8,7 +9,7 @@ interface CardData {
   description: string;
   image?: string;
   tags?: string[];
-  [key: string]: any;
+  [key: string]: string | string[] | undefined;
 }
 
 interface CardStackProps {
@@ -165,7 +166,7 @@ export default function CardStack({
       deltaX: 0,
       deltaY: 0,
     });
-  }, [dragState, availableCards.length, onSwipe, onStackEmpty, visibleCards]);
+  }, [dragState, availableCards, onSwipe, onStackEmpty, visibleCards, externalSwipedCardIds]);
 
   // Mouse events
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -173,13 +174,7 @@ export default function CardStack({
     handleStart(e.clientX, e.clientY);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleMove(e.clientX, e.clientY);
-  };
 
-  const handleMouseUp = () => {
-    handleEnd();
-  };
 
   // Touch events
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -279,9 +274,9 @@ export default function CardStack({
   return (
     <div 
       className={`relative w-80 h-96 mx-auto ${className} card-stack-container`}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseMove={(e: React.MouseEvent) => handleMove(e.clientX, e.clientY)}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
     >
       {visibleCards.map((card, index) => (
         <div
@@ -301,9 +296,11 @@ export default function CardStack({
           <div className="p-6 h-full flex flex-col">
             {card.image && (
               <div className="w-full h-48 bg-base02 rounded-lg mb-4 overflow-hidden">
-                <img 
+                <Image 
                   src={card.image} 
                   alt={card.title}
+                  width={320}
+                  height={192}
                   className="w-full h-full object-cover"
                   draggable={false}
                 />

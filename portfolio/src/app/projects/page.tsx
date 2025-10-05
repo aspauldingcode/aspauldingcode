@@ -7,6 +7,16 @@ import ProjectsHeader from '../components/ProjectsHeader';
 import CardStack from '../../components/CardStack';
 import ProjectModal from '../../components/ProjectModal';
 
+interface CardData {
+  id: string;
+  title: string;
+  description: string;
+  image?: string;
+  tags?: string[];
+  link?: string;
+  images?: string[];
+}
+
 export default function Projects() {
   const [swipedCards, setSwipedCards] = useState<Project[]>([]);
   const [dismissedCards, setDismissedCards] = useState<Project[]>([]);
@@ -46,7 +56,7 @@ export default function Projects() {
         ...dismissedCards.map(card => card.id.toString())
       ]);
 
-  const handleSwipe = (card: any, direction: 'left' | 'right') => {
+  const handleSwipe = (card: CardData, direction: 'left' | 'right') => {
     const project = projects.find(p => p.id.toString() === card.id);
     
     if (project) {
@@ -101,7 +111,7 @@ export default function Projects() {
     setShowAllCards(false);
   };
 
-  const handleViewProject = (card: any) => {
+  const handleViewProject = (card: CardData) => {
     const project = projects.find(p => p.id.toString() === card.id);
     if (project) {
       setSelectedProject(project);

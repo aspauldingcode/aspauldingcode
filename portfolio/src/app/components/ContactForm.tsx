@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
 
 declare global {
@@ -77,16 +77,16 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
     setDragY(0);
   };
 
-  const handleMove = (clientY: number) => {
+  const handleMove = useCallback((clientY: number) => {
     if (!isDragging) return;
     
     const deltaY = clientY - startY;
     if (deltaY > 0) { // Only allow downward drag
       setDragY(deltaY);
     }
-  };
+  }, [isDragging, startY]);
 
-  const handleEnd = () => {
+  const handleEnd = useCallback(() => {
     if (!isDragging) return;
     
     setIsDragging(false);
@@ -97,7 +97,7 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
     }
     
     setDragY(0);
-  };
+  }, [isDragging, dragY, onClose]);
 
   // Touch events for drag handle only
   const handleDragHandleTouchStart = (e: React.TouchEvent) => {
@@ -119,14 +119,6 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
     handleStart(e.clientY);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleMove(e.clientY);
-  };
-
-  const handleMouseUp = () => {
-    handleEnd();
-  };
-
   // Add global mouse event listeners when dragging
   useEffect(() => {
     if (isDragging) {
@@ -146,7 +138,7 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
         document.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, startY, dragY]);
+  }, [isDragging, startY, dragY, handleEnd, handleMove]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
