@@ -15,6 +15,8 @@ interface CardData {
   tags?: string[];
   link?: string;
   images?: string[];
+  startYear?: number;
+  endYear?: number;
 }
 
 export default function Projects() {
@@ -36,7 +38,9 @@ export default function Projects() {
         image: project.images[0],
         tags: project.link ? ['Live Site'] : [],
         link: project.link,
-        images: project.images
+        images: project.images,
+        startYear: project.startYear,
+        endYear: project.endYear
       }))
     : projects.map(project => ({
         id: project.id.toString(),
@@ -45,7 +49,9 @@ export default function Projects() {
         image: project.images[0],
         tags: project.link ? ['Live Site'] : [],
         link: project.link,
-        images: project.images
+        images: project.images,
+        startYear: project.startYear,
+        endYear: project.endYear
       }));
 
   // Create a set of swiped card IDs from liked and dismissed cards
@@ -241,7 +247,17 @@ export default function Projects() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {swipedCards.map((project) => (
                 <div key={project.id} className="bg-base01 backdrop-blur-sm rounded-lg p-6 border border-base02">
-                  <h3 className="text-xl font-bold text-base05 mb-2">{project.title}</h3>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-xl font-bold text-base05">{project.title}</h3>
+                    <span className="text-base0D text-sm font-semibold opacity-80">
+                      {project.startYear && project.endYear 
+                        ? `${project.startYear} - ${project.endYear}`
+                        : project.startYear 
+                          ? `${project.startYear} - Present`
+                          : project.endYear?.toString()
+                      }
+                    </span>
+                  </div>
                   <p className="text-base04 mb-4">{project.description}</p>
                   <div className="flex gap-3">
                     <button

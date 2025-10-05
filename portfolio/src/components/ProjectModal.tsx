@@ -321,13 +321,23 @@ export default function ProjectModal({
 
           {/* Content */}
           <div className="p-6 flex flex-col">
-            <h2 className="text-2xl font-bold text-base05 mb-3">
-              {project.title}
-            </h2>
+            <div className="flex justify-between items-start mb-3">
+              <h2 className="text-2xl font-bold text-base05">
+                {project.title}
+              </h2>
+              <span className="text-base0D text-lg font-semibold opacity-80">
+                {project.startYear && project.endYear 
+                  ? `${project.startYear} - ${project.endYear}`
+                  : project.startYear 
+                    ? `${project.startYear} - Present`
+                    : project.endYear?.toString()
+                }
+              </span>
+            </div>
             
             <div className="mb-4">
               <p className="text-base04 text-sm leading-relaxed">
-                {project.description.replace('...', '')}
+                {project.description}
               </p>
               
               {project.link && (

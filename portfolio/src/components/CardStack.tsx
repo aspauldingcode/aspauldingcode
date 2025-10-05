@@ -9,7 +9,9 @@ interface CardData {
   description: string;
   image?: string;
   tags?: string[];
-  [key: string]: string | string[] | undefined;
+  startYear?: number;
+  endYear?: number;
+  [key: string]: string | string[] | number | undefined;
 }
 
 interface CardStackProps {
@@ -310,6 +312,18 @@ export default function CardStack({
             <h3 className="text-xl font-bold text-base05 mb-2 line-clamp-2">
               {card.title}
             </h3>
+            
+            {/* Year display with different styling */}
+            {(card.startYear || card.endYear) && (
+              <div className="text-base0D text-sm font-semibold mb-2 opacity-80">
+                {card.startYear && card.endYear 
+                  ? `${card.startYear} - ${card.endYear}`
+                  : card.startYear 
+                    ? `${card.startYear} - Present`
+                    : card.endYear?.toString()
+                }
+              </div>
+            )}
             
             <p className="text-base04 text-sm flex-1 line-clamp-3">
               {card.description}

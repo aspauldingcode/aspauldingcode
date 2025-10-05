@@ -12,6 +12,7 @@ export default function Home() {
   const [useHorizontalLayout, setUseHorizontalLayout] = useState(false);
   const [useCompactButtons, setUseCompactButtons] = useState(false);
   const [useHorizontalButtons, setUseHorizontalButtons] = useState(false);
+  const [useLargePortraitProfile, setUseLargePortraitProfile] = useState(false);
 
   const handleContactClick = () => {
     console.log('Contact button clicked');
@@ -76,6 +77,13 @@ export default function Home() {
       // Total estimated: ~452px
       const estimatedVerticalContentHeight = 452;
       
+      // Check for plenty of space (both width and height) to use large portrait profile
+      // Need significant extra space beyond minimum requirements
+      const hasAmpleWidth = viewportWidth >= 1200; // Large desktop width
+      const hasAmpleHeight = viewportHeight >= 700; // Plenty of vertical space
+      const hasAmpleSpace = hasAmpleWidth && hasAmpleHeight;
+      setUseLargePortraitProfile(hasAmpleSpace);
+      
       // Use horizontal layout if content would overflow viewport
       setUseHorizontalLayout(viewportHeight < estimatedVerticalContentHeight);
       
@@ -130,15 +138,19 @@ export default function Home() {
             <div className={`flex-shrink-0 ${useHorizontalLayout ? 'mb-0' : 'mb-2'}`}>
               <div className="relative">
                 <Image
-                  src="/profile.png"
+                  src={useLargePortraitProfile ? "/profile_regular.jpg" : "/profile_square.jpg"}
                   alt="Profile picture"
-                  width={150}
-                  height={150}
-                  className={`rounded-full border-4 border-base02 ${
-                    useHorizontalLayout 
-                      ? 'w-16 h-16 sm:w-20 sm:h-20' 
-                      : 'w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40'
-                  }`}
+                  width={useLargePortraitProfile ? 220 : 150}
+                  height={useLargePortraitProfile ? 293 : 150}
+                  className={
+                    useLargePortraitProfile 
+                      ? "rounded-2xl border-4 border-base02 w-44 h-60 object-cover"
+                      : `rounded-full border-4 border-base02 ${
+                          useHorizontalLayout 
+                            ? 'w-16 h-16 sm:w-20 sm:h-20' 
+                            : 'w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40'
+                        }`
+                  }
                   priority
                 />
               </div>
