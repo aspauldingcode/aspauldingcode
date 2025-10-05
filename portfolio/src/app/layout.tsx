@@ -20,16 +20,34 @@ function ThemeScript() {
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
+            function getBrowserPreference() {
+              if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+              }
+              return 'light';
+            }
+            
             function getTheme() {
               const storedTheme = localStorage.getItem('theme');
-              if (storedTheme === 'light' || storedTheme === 'dark') {
+              if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto') {
                 return storedTheme;
               }
-              return 'dark';
+              return 'auto'; // Default to auto mode
+            }
+            
+            function applyTheme(theme) {
+              let effectiveTheme;
+              if (theme === 'auto') {
+                effectiveTheme = getBrowserPreference();
+              } else {
+                effectiveTheme = theme;
+              }
+              document.documentElement.classList.toggle('dark', effectiveTheme === 'dark');
+              return effectiveTheme;
             }
             
             const theme = getTheme();
-            document.documentElement.classList.toggle('dark', theme === 'dark');
+            applyTheme(theme);
             
             // Pre-render theme toggle and footer to prevent re-rendering
             const style = document.createElement('style');
@@ -100,9 +118,7 @@ export default function RootLayout({
       </head>
       <body>
         <ClientLayout>
-          <main className="min-h-screen">
-            {children}
-          </main>
+          {children}
           <Footer />
         </ClientLayout>
       </body>

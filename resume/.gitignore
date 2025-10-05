@@ -1,0 +1,21 @@
+# Ignore LaTeX build outputs
+result/
+
+# Ignore individual LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+*.idx
+*.ind
+*.ilg
+*.lot
+*.lof
+
+# Ignore the generated PDF (gets copied to portfolio anyway)
+*.pdf

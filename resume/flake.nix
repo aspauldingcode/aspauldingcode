@@ -35,8 +35,8 @@
                 if [ -f resume_alex_spaulding.pdf ]; then
                     mv -f resume_alex_spaulding.{pdf,aux,log,out} result/
                     echo "✅ Outputs moved to result/:"
-                    echo "copying portfolio/src/resume_alex_spaulding_latex/result/resume_alex_spaulding.pdf to portfolio/public/resume_alex_spaulding.pdf"
-                    cp result/resume_alex_spaulding.pdf ../../public/resume_alex_spaulding.pdf
+                    echo "copying resume/result/resume_alex_spaulding.pdf to portfolio/public/resume_alex_spaulding.pdf"
+                    cp result/resume_alex_spaulding.pdf ../portfolio/public/resume_alex_spaulding.pdf
                     ${open} result/resume_alex_spaulding.pdf
                 else
                     echo "Error: PDF not generated."

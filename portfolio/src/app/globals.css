@@ -2,6 +2,165 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Nerd Font Icons Support */
+@font-face {
+  font-family: 'NerdFont';
+  src: url('/fonts/JetBrainsMonoNLNerdFont-Regular.ttf') format('truetype'),
+       url('/fonts/JetBrainsMonoNerdFont-Regular.ttf') format('truetype'),
+       local('JetBrainsMono Nerd Font'), 
+       local('JetBrains Mono NL Nerd Font Complete'), 
+       local('Hack Nerd Font'), 
+       local('FiraCode Nerd Font'), 
+       local('Inconsolata Nerd Font'),
+       local('monospace');
+  font-weight: normal;
+  font-style: normal;
+  unicode-range: U+E000-U+F8FF, U+F0000-U+FFFFD, U+100000-U+10FFFD, U+23FB-U+23FE, U+2665, U+26A1, U+2B58, U+E000-U+E00A, U+E0A0-U+E0A2, U+E0B0-U+E0B3, U+E0B4-U+E0C8, U+E0CA, U+E0CC-U+E0D2, U+E0D4, U+E200-U+E2A9, U+E300-U+E3EB, U+E5FA-U+E62B, U+E700-U+E7C5, U+F000-U+F2E0, U+F300-U+F313, U+F400-U+F4A8, U+F500-U+F8FF;
+}
+
+/* Container-based responsive button styles */
+.project-buttons-container {
+  container-type: inline-size;
+  /* Ensure the container takes the same width as the description */
+  width: 100%;
+}
+
+/* Ensure the description and buttons have the same width */
+.project-description {
+  width: 100%;
+}
+
+/* Liked project buttons container - uses card width for container queries */
+.liked-project-buttons-container {
+  container-type: inline-size;
+  container-name: button-container;
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  justify-content: space-between;
+}
+
+.liked-project-button {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Default state - show full text */
+.project-button .full-text {
+  display: inline;
+}
+
+.project-button .medium-text,
+.project-button .short-text,
+.project-button .icon-text {
+  display: none;
+}
+
+/* When container is narrow (< 400px), show medium text */
+@container (max-width: 400px) {
+  .project-button .full-text {
+    display: none;
+  }
+  
+  .project-button .medium-text {
+    display: inline;
+  }
+}
+
+/* When container is very narrow (< 300px), show short text */
+@container (max-width: 300px) {
+  .project-button .medium-text {
+    display: none;
+  }
+  
+  .project-button .short-text {
+    display: inline;
+  }
+}
+
+/* When container is extremely narrow (< 200px), show icons only */
+@container (max-width: 200px) {
+  .project-button .short-text {
+    display: none;
+  }
+  
+  .project-button .icon-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .project-button {
+    padding: 0.5rem;
+    min-width: 2rem;
+  }
+}
+
+/* Default state for liked project buttons - show full text */
+.liked-project-button .full-text {
+  display: inline;
+}
+
+.liked-project-button .medium-text,
+.liked-project-button .short-text,
+.liked-project-button .icon-text {
+  display: none;
+}
+
+/* Container query breakpoints for liked project buttons */
+@container button-container (max-width: 400px) {
+  .liked-project-button .full-text {
+    display: none;
+  }
+  .liked-project-button .medium-text {
+    display: inline;
+  }
+}
+
+@container button-container (max-width: 300px) {
+  .liked-project-button .medium-text {
+    display: none;
+  }
+  .liked-project-button .short-text {
+    display: inline;
+  }
+}
+
+@container button-container (max-width: 200px) {
+  .liked-project-button .short-text {
+    display: none;
+  }
+  .liked-project-button .icon-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Default state - show full text and add padding */
+.liked-project-button {
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liked-project-button .full-text {
+  display: inline;
+}
+
+.liked-project-button .medium-text,
+.liked-project-button .short-text,
+.liked-project-button .icon-text {
+  display: none;
+}
+
 /* Base16 Theme Variables */
 :root {
   /* Base16 Default Dark Theme */
@@ -197,4 +356,33 @@ body {
 
 .animate-marquee {
   animation: marquee 15s linear infinite;
+}
+
+/* Ensure proper scrolling behavior */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Smooth fade-in animations for liked projects section */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

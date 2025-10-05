@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
+import { GitHubRepoData } from '../lib/github';
 
 interface CardData {
   id: string;
@@ -11,6 +12,7 @@ interface CardData {
   tags?: string[];
   startYear?: number;
   endYear?: number;
+  githubRepo?: string;
   [key: string]: string | string[] | number | undefined;
 }
 
@@ -24,6 +26,7 @@ interface CardStackProps {
   className?: string;
   cardClassName?: string;
   swipedCardIds?: Set<string>;
+  githubData?: Record<string, GitHubRepoData>;
 }
 
 interface DragState {
@@ -49,7 +52,8 @@ export default function CardStack({
   dismissedCount = 0,
   className = '',
   cardClassName = '',
-  swipedCardIds: externalSwipedCardIds
+  swipedCardIds: externalSwipedCardIds,
+  githubData
 }: CardStackProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipedCardIds, setSwipedCardIds] = useState<Set<string>>(new Set());
@@ -295,29 +299,31 @@ export default function CardStack({
           onTouchEnd={index === 0 ? handleTouchEnd : undefined}
         >
           {/* Card Content */}
-          <div className="p-6 h-full flex flex-col">
+          <div className="p-4 h-full flex flex-col">
             {card.image && (
-              <div className="w-full h-48 bg-base02 rounded-lg mb-4 overflow-hidden">
+              <div className="w-full h-40 bg-base02 rounded-lg mb-3 overflow-hidden">
                 <Image 
                   src={card.image} 
                   alt={card.title}
                   width={320}
-                  height={192}
+                  height={160}
                   className="w-full h-full object-cover"
                   draggable={false}
                 />
               </div>
             )}
             
-            <h3 className="text-xl font-bold text-base05 mb-2 line-clamp-2">
+            <h3 className="text-lg font-bold text-base05 mb-1 line-clamp-2">
               {card.title}
             </h3>
             
             {/* Year display with different styling */}
             {(card.startYear || card.endYear) && (
-              <div className="text-base0D text-sm font-semibold mb-2 opacity-80">
+              <div className="text-base0D text-xs font-semibold mb-2 opacity-80">
                 {card.startYear && card.endYear 
-                  ? `${card.startYear} - ${card.endYear}`
+                  ? card.startYear === card.endYear 
+                    ? card.startYear.toString()
+                    : `${card.startYear} - ${card.endYear}`
                   : card.startYear 
                     ? `${card.startYear} - Present`
                     : card.endYear?.toString()
@@ -325,7 +331,7 @@ export default function CardStack({
               </div>
             )}
             
-            <p className="text-base04 text-sm flex-1 line-clamp-3">
+            <p className="text-base05 text-base font-semibold text-center flex-1 line-clamp-2 mb-2">
               {card.description}
             </p>
             
@@ -336,24 +342,49 @@ export default function CardStack({
                   e.stopPropagation();
                   onViewProject(card);
                 }}
-                className="mt-3 mb-2 px-4 py-2 bg-base0C hover:bg-base0D text-base00 text-sm rounded-lg transition-colors font-medium"
+                className="mt-1 mb-2 px-4 py-2 bg-base0C hover:bg-base0D text-base00 text-sm rounded-lg transition-colors font-medium"
               >
                 View Project
               </button>
             )}
             
-            {card.tags && card.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {card.tags.slice(0, 3).map((tag, tagIndex) => (
-                  <span 
-                    key={tagIndex}
-                    className="px-2 py-1 bg-base0D text-base00 text-xs rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Tags and GitHub Stats Row */}
+            <div className="flex justify-between items-center">
+              {/* Tags on the left */}
+              {card.tags && card.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {card.tags.slice(0, 2).map((tag, tagIndex) => (
+                    <span 
+                      key={tagIndex}
+                      className="px-2 py-0.5 bg-base0D text-base00 text-xs rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {/* GitHub stats on the right */}
+              {card.githubRepo && githubData?.[card.githubRepo] && (
+                <div className="flex items-center gap-3 text-xs text-base04 font-mono">
+                  {/* Stars */}
+                  {githubData[card.githubRepo].stargazers_count > 0 && (
+                    <div className="flex items-center font-mono">
+                      <span className="mr-1 text-sm" style={{fontFamily: 'NerdFont, monospace'}}>󰓎</span>
+                      {githubData[card.githubRepo].stargazers_count}
+                    </div>
+                  )}
+                  
+                  {/* Forks */}
+                  {githubData[card.githubRepo].forks_count > 0 && (
+                    <div className="flex items-center font-mono">
+                      <span className="mr-1 text-sm" style={{fontFamily: 'NerdFont, monospace'}}>󰓁</span>
+                      {githubData[card.githubRepo].forks_count}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Swipe indicators */}

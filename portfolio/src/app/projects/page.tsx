@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { projects, Project } from './projectData';
-import Link from 'next/link';
 import ProjectsHeader from '../components/ProjectsHeader';
 import CardStack from '../../components/CardStack';
-import ProjectModal from '../../components/ProjectModal';
+import { ResponsiveButtons } from '@/components/ResponsiveButtons';
+import ProjectModal from '@/components/ProjectModal';
+import { fetchMultipleGitHubRepoData, GitHubRepoData } from '../../lib/github';
 
 interface CardData {
   id: string;
@@ -17,6 +18,7 @@ interface CardData {
   images?: string[];
   startYear?: number;
   endYear?: number;
+  githubRepo?: string;
 }
 
 export default function Projects() {
@@ -28,30 +30,141 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedProjectSource, setSelectedProjectSource] = useState<'stack' | 'liked'>('stack'); // Track where the project was opened from
   const [cardStackKey, setCardStackKey] = useState(0); // Key to force CardStack re-render
+  const [githubData, setGithubData] = useState<Record<string, GitHubRepoData>>({});
+  const [showScrollHint, setShowScrollHint] = useState(false);
+  const [isInLikedSection, setIsInLikedSection] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Disable page scrolling when component mounts
+  useEffect(() => {
+    // Save the original overflow style
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalDocumentOverflow = document.documentElement.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyWidth = document.body.style.width;
+    const originalBodyHeight = document.body.style.height;
+    
+    // Disable scrolling
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    
+    // Re-enable scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalDocumentOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.width = originalBodyWidth;
+      document.body.style.height = originalBodyHeight;
+    };
+  }, []);
+
+  // Fetch GitHub repository data on component mount
+  useEffect(() => {
+    const fetchRepoData = async () => {
+      const reposWithGithub = projects.filter(p => p.githubRepo);
+      if (reposWithGithub.length > 0) {
+        const repoUrls = reposWithGithub.map(p => p.githubRepo!);
+        const repoData = await fetchMultipleGitHubRepoData(repoUrls);
+        setGithubData(repoData);
+      }
+    };
+
+    fetchRepoData();
+  }, []);
+
+  // Show scroll hint when there are liked projects
+  useEffect(() => {
+    if (swipedCards.length > 0) {
+      setShowScrollHint(true);
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => setShowScrollHint(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [swipedCards.length]);
+
+  // Simple scroll detection for liked section
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        const likedSection = document.querySelector('[data-liked-section]');
+        if (likedSection) {
+          const containerRect = scrollContainerRef.current.getBoundingClientRect();
+          const sectionRect = likedSection.getBoundingClientRect();
+          
+          // Check if My Projects section is still visible using the main element
+          const mainElement = scrollContainerRef.current.querySelector('main');
+          const myProjectsTitle = mainElement ? mainElement.querySelector('h1') : null;
+          const myProjectsVisible = myProjectsTitle ? 
+            myProjectsTitle.getBoundingClientRect().bottom > containerRect.top + 100 : false; // Add 100px buffer
+          
+          // Check if we're at the bottom of the page
+          const scrollContainer = scrollContainerRef.current;
+          const isAtBottom = scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50; // 50px buffer
+          
+          // Calculate liked section visibility
+          const sectionHeight = sectionRect.bottom - sectionRect.top;
+          const visibleHeight = Math.min(sectionRect.bottom, containerRect.bottom) - Math.max(sectionRect.top, containerRect.top);
+          const visibilityRatio = sectionHeight > 0 ? visibleHeight / sectionHeight : 0;
+          
+          // Show scroll button only when:
+          // 1. My Projects section is visible (user can see it) AND
+          // 2. There are swiped cards to show AND
+          // 3. User is NOT at the bottom of the page
+          // Hide when liked section is dominant (>50% visible) AND My Projects is scrolled past OR when at bottom
+          const likedSectionDominant = visibilityRatio > 0.5;
+          const myProjectsScrolledPast = !myProjectsVisible;
+          
+          setIsInLikedSection((likedSectionDominant && myProjectsScrolledPast) || isAtBottom);
+        } else {
+          setIsInLikedSection(false);
+        }
+      } else {
+        setIsInLikedSection(false);
+      }
+    };
+
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      handleScroll(); // Check initial state
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [swipedCards.length]);
 
   // Convert projects to CardStack format
   const cardData = showDismissedOnly 
     ? dismissedCards.map(project => ({
         id: project.id.toString(),
         title: project.title,
-        description: project.description,
+        description: project.threeWordDescriptor,
         image: project.images[0],
-        tags: project.link ? ['Live Site'] : [],
+        tags: [
+          ...(project.githubRepo ? ['GitHub'] : []),
+          ...(project.link ? ['Live Site'] : [])
+        ],
         link: project.link,
         images: project.images,
         startYear: project.startYear,
-        endYear: project.endYear
+        endYear: project.endYear,
+        githubRepo: project.githubRepo
       }))
     : projects.map(project => ({
         id: project.id.toString(),
         title: project.title,
-        description: project.description,
+        description: project.threeWordDescriptor,
         image: project.images[0],
-        tags: project.link ? ['Live Site'] : [],
+        tags: [
+          ...(project.githubRepo ? ['GitHub'] : []),
+          ...(project.link ? ['Live Site'] : [])
+        ],
         link: project.link,
         images: project.images,
         startYear: project.startYear,
-        endYear: project.endYear
+        endYear: project.endYear,
+        githubRepo: project.githubRepo
       }));
 
   // Create a set of swiped card IDs from liked and dismissed cards
@@ -165,9 +278,16 @@ export default function Projects() {
   };
 
   return (
-    <div className="h-screen bg-base00 relative overflow-hidden">
+    <div className="relative min-h-screen">
       {/* Background layer with gradient and fade overlays - Fixed to viewport */}
-      <div className="fixed inset-0">
+      <div 
+        className="fixed inset-0 z-0"
+        style={{
+          transform: 'translate3d(0,0,0)', // Force hardware acceleration for mobile
+          WebkitTransform: 'translate3d(0,0,0)', // Safari-specific
+          position: 'fixed' // Ensure fixed positioning is explicit
+        }}
+      >
         {/* Fixed gradient background with blur, darkening, and desaturation */}
         <div 
           className="absolute inset-0 blur-sm saturate-50 dark:opacity-60 opacity-30"
@@ -194,16 +314,22 @@ export default function Projects() {
         />
       </div>
       
-      {/* Scrollable content container */}
-      <div className="relative z-10 h-full overflow-y-auto">
-        <div className="min-h-full pb-16">
-          <ProjectsHeader />
-          
-          <main className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-base05 mb-4" style={{textShadow: '0 0 8px var(--glow-red), 0 0 16px var(--glow-purple), 0 0 24px var(--glow-red-light)'}}>
-            My Projects
-          </h1>
+      {/* Scrollable content container - replaces body scroll */}
+      <div 
+        ref={scrollContainerRef}
+        className="fixed inset-0 z-10 overflow-y-auto"
+        style={{
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
+        <ProjectsHeader />
+        
+        <main className="container mx-auto px-4 py-8 bg-base00/90 backdrop-blur-sm min-h-screen">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-base05 mb-4">
+          My Projects
+        </h1>
           <p className="text-base04 text-lg max-w-2xl mx-auto" style={{textShadow: '0 0 6px var(--glow-red-light), 0 0 12px var(--glow-purple-light)'}}>
             Swipe right to like a project, left to pass.
           </p>
@@ -222,6 +348,7 @@ export default function Projects() {
               className="mb-8"
               cardClassName="backdrop-blur-sm"
               swipedCardIds={swipedCardIds}
+              githubData={githubData}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-96 mb-8">
@@ -240,52 +367,174 @@ export default function Projects() {
         </div>
 
         {swipedCards.length > 0 && (
-          <div className="mt-12 max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-base05 mb-6 text-center" style={{textShadow: '0 0 8px var(--glow-red), 0 0 16px var(--glow-purple-light)'}}>
-            Projects You Liked ({swipedCards.length})
-          </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {swipedCards.map((project) => (
-                <div key={project.id} className="bg-base01 backdrop-blur-sm rounded-lg p-6 border border-base02">
+          <div 
+            className="mt-16 max-w-4xl mx-auto px-4 sm:px-6 animate-fade-in-up" 
+            data-liked-section
+            style={{
+              animation: 'fadeInUp 0.8s ease-out forwards',
+              opacity: 0,
+              transform: 'translateY(30px)'
+            }}
+          >
+            {/* Enhanced visual separator */}
+            <div 
+              className="w-full h-px bg-gradient-to-r from-transparent via-base0D to-transparent mb-8 opacity-60"
+              style={{
+                animation: 'fadeIn 1.2s ease-out 0.2s forwards',
+                opacity: 0
+              }}
+            ></div>
+            
+            {/* Enhanced heading with better mobile visibility */}
+            <div 
+              className="text-center mb-8"
+              style={{
+                animation: 'fadeInUp 0.8s ease-out 0.4s forwards',
+                opacity: 0,
+                transform: 'translateY(20px)'
+              }}
+            >
+              <div className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-base0D/20 to-base0C/20 rounded-full border border-base0D/30 backdrop-blur-sm mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  className="w-5 h-5 mr-2 text-base0D"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                <span className="text-base0D font-semibold text-sm uppercase tracking-wider">Favorites</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-base05 mb-2">
+                Projects You Liked ({swipedCards.length})
+              </h2>
+              <p className="text-base04 text-sm sm:text-base max-w-2xl mx-auto" style={{textShadow: '0 0 4px var(--glow-red-light), 0 0 8px var(--glow-purple-light)'}}>
+                These are the projects you&apos;ve shown interest in. Explore them further!
+              </p>
+            </div>
+            <div 
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              style={{
+                animation: 'fadeIn 0.8s ease-out 0.6s forwards',
+                opacity: 0
+              }}
+            >
+              {swipedCards.map((project, index) => (
+                <div 
+                  key={project.id} 
+                  className="bg-base01 backdrop-blur-sm rounded-lg p-6 border border-base02 flex flex-col"
+                  style={{
+                    animation: `fadeInUp 0.6s ease-out ${0.8 + (index * 0.1)}s forwards`,
+                    opacity: 0,
+                    transform: 'translateY(20px)'
+                  }}
+                >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-xl font-bold text-base05">{project.title}</h3>
                     <span className="text-base0D text-sm font-semibold opacity-80">
                       {project.startYear && project.endYear 
-                        ? `${project.startYear} - ${project.endYear}`
+                        ? project.startYear === project.endYear 
+                          ? project.startYear.toString()
+                          : `${project.startYear} - ${project.endYear}`
                         : project.startYear 
                           ? `${project.startYear} - Present`
                           : project.endYear?.toString()
                       }
                     </span>
                   </div>
-                  <p className="text-base04 mb-4">{project.description}</p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        setSelectedProject(project);
-                        setSelectedProjectSource('liked'); // Opened from liked section
-                      }}
-                      className="px-4 py-2 bg-base0C hover:bg-base0D text-base00 rounded-lg transition-colors font-medium"
-                    >
-                      View Project
-                    </button>
-                    {project.link && (
-                      <Link 
-                        href={project.link} 
-                        target="_blank"
-                        className="inline-flex items-center px-4 py-2 bg-base0D hover:bg-base0C text-base00 rounded-lg transition-colors"
-                      >
-                        Visit Project →
-                      </Link>
-                    )}
-                  </div>
+                  
+                  {/* GitHub star and fork count display for liked projects */}
+                  {project.githubRepo && githubData[project.githubRepo] && (
+                    <div className="flex items-center gap-4 text-base0D text-sm font-semibold mb-3 opacity-80 font-mono">
+                      {/* Stars */}
+                      {githubData[project.githubRepo].stargazers_count > 0 && (
+                        <div className="flex items-center">
+                          <span className="mr-1" style={{fontFamily: 'NerdFont, monospace'}}>󰓎</span>
+                          {githubData[project.githubRepo].stargazers_count}
+                        </div>
+                      )}
+                      
+                      {/* Forks */}
+                      {githubData[project.githubRepo].forks_count > 0 && (
+                        <div className="flex items-center">
+                          <span className="mr-1" style={{fontFamily: 'NerdFont, monospace'}}>󰓁</span>
+                          {githubData[project.githubRepo].forks_count}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  <p className="text-base04 mb-4 project-description flex-grow">
+                    {project.shortDescription 
+                      ? project.shortDescription.length > 150 
+                        ? `${project.shortDescription.substring(0, 150)}...`
+                        : project.shortDescription
+                      : project.description.length > 150 
+                        ? `${project.description.substring(0, 150)}...`
+                        : project.description
+                    }
+                  </p>
+                  <ResponsiveButtons
+                    project={project}
+                    onViewProject={() => {
+                      setSelectedProject(project);
+                      setSelectedProjectSource('liked');
+                    }}
+                    className="mt-auto"
+                  />
                 </div>
               ))}
             </div>
           </div>
         )}
         </main>
-        </div>
+        
+        {/* Scroll Indicator with Hint */}
+        {swipedCards.length > 0 && !isInLikedSection && (
+          <div className="fixed bottom-8 right-8 z-20">
+            {/* Scroll Hint Popup */}
+            {showScrollHint && swipedCards.length > 0 && (
+              <div className="absolute bottom-16 right-0 mb-2 px-4 py-2 bg-base01 border border-base0D/30 rounded-lg shadow-lg backdrop-blur-sm animate-bounce">
+                <div className="text-base05 text-sm font-medium whitespace-nowrap">
+                  Projects you&apos;ve liked ↓
+                </div>
+                <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-base01"></div>
+              </div>
+            )}
+            
+            {/* Scroll Indicator Button */}
+            <button
+              onClick={() => {
+                const likedSection = document.querySelector('[data-liked-section]');
+                if (scrollContainerRef.current && likedSection) {
+                  const containerRect = scrollContainerRef.current.getBoundingClientRect();
+                  const sectionRect = likedSection.getBoundingClientRect();
+                  const scrollTop = scrollContainerRef.current.scrollTop;
+                  const targetScrollTop = scrollTop + sectionRect.top - containerRect.top;
+                  
+                  scrollContainerRef.current.scrollTo({
+                    top: targetScrollTop,
+                    behavior: 'smooth'
+                  });
+                }
+                setShowScrollHint(false);
+              }}
+              className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-base0D/20 to-base0C/20 border border-base0D/30 rounded-full backdrop-blur-sm hover:from-base0D/30 hover:to-base0C/30 transition-all duration-300 group"
+              title="Scroll to liked projects"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6 text-base0D"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
       
       {/* Project Modal */}
@@ -294,6 +543,7 @@ export default function Projects() {
           project={selectedProject}
           onClose={() => setSelectedProject(null)}
           onSwipe={handleModalSwipe}
+          githubData={githubData}
         />
       )}
     </div>

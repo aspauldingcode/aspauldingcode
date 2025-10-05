@@ -14,25 +14,25 @@
     "debug": "^4.3.4",
     "glob": "^10.3.10",
     "lru-cache": "^10.1.0",
-    "next": "^14.0.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "next": "^15.5.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-slick": "^0.30.2",
     "slick-carousel": "^1.8.1",
     "uuid": "^9.0.1",
     "vercel": "^32.3.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.5",
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
+    "@types/node": "^24.6.2",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "@types/react-slick": "^0.23.13",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint-config-next": "^14.0.4",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "debug": "^4.3.4",

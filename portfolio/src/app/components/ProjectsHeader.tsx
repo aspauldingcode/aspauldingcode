@@ -17,7 +17,14 @@ export default function ProjectsHeader() {
   return (
     <>
       {/* Consolidated Header Bar - Fixed position for small screens */}
-      <div className="fixed top-4 left-4 right-4 sm:top-5 sm:left-5 sm:right-5 lg:top-6 lg:left-6 lg:right-6 z-30 flex items-center justify-between">
+      <div 
+        className="fixed top-4 left-4 right-4 sm:top-5 sm:left-5 sm:right-5 lg:top-6 lg:left-6 lg:right-6 z-30 flex items-center justify-between"
+        style={{
+          transform: 'translate3d(0,0,0)', // Force hardware acceleration for mobile
+          WebkitTransform: 'translate3d(0,0,0)', // Safari-specific
+          position: 'fixed' // Ensure fixed positioning is explicit
+        }}
+      >
         {/* Back Button */}
         <Link 
           href="/" 
@@ -45,7 +52,8 @@ export default function ProjectsHeader() {
           onClick={toggleTheme}
           className="p-3 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95"
           style={{ opacity: 0 }}
-          aria-label="Toggle theme"
+          aria-label={`Current: ${theme} mode`}
+          title={`Current: ${theme} mode`}
         >
           {mounted && (
             <svg
@@ -60,15 +68,32 @@ export default function ProjectsHeader() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
                 />
-              ) : (
+              ) : theme === 'dark' ? (
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
                 />
+              ) : (
+                <>
+                  {/* Auto icon - half sun, half moon */}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8a4 4 0 100 8V8z"
+                    fill="currentColor"
+                  />
+                </>
               )}
             </svg>
           )}

@@ -204,7 +204,7 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
     <div className="fixed inset-0 z-50 flex items-end">
       {/* Backdrop */}
       <div 
-        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-black transition-opacity duration-500 ${
           isOpen ? 'opacity-50' : 'opacity-0'
         }`}
         onClick={onClose}
@@ -213,13 +213,13 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
       {/* Contact Form */}
       <div 
         ref={formRef}
-        className={`relative w-full bg-base01 rounded-t-3xl shadow-lg transform transition-all duration-300 ease-out ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
+        className={`relative w-full bg-base01 rounded-t-3xl shadow-lg transform transition-all duration-500 ease-out ${
+          isOpen ? 'translate-y-0 scale-100' : 'translate-y-full scale-95'
         }`}
         style={{ 
           maxHeight: `calc(90vh - ${footerHeight}px)`, // Account for footer height dynamically
           transform: `translateY(${dragY}px)`,
-          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+          transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), scale 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         }}
       >
         {/* Fixed X button - positioned on the left side */}

@@ -7,12 +7,47 @@ import Image from 'next/image';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
+// Custom styles for carousel dots and animations
+const customDotsStyle = `
+  .custom-dots {
+    bottom: 15px !important;
+  }
+  .custom-dots li button:before {
+    font-size: 10px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+  .custom-dots li.slick-active button:before {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  @keyframes horizontal-bounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: translateX(0) translateY(-50%);
+    }
+    40% {
+      transform: translateX(4px) translateY(-50%);
+    }
+    60% {
+      transform: translateX(2px) translateY(-50%);
+    }
+  }
+`;
+
+// Inject custom styles
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = customDotsStyle;
+  document.head.appendChild(styleElement);
+}
+
+import { GitHubRepoData } from '../lib/github';
+
 interface ProjectModalProps {
   project: Project | null;
   onClose: () => void;
   onLike?: (project: Project) => void;
   onPass?: (project: Project) => void;
   onSwipe?: (direction: 'left' | 'right') => void;
+  githubData?: Record<string, GitHubRepoData>;
 }
 
 interface DragState {
@@ -29,12 +64,70 @@ const SWIPE_THRESHOLD = 40;
 const ROTATION_FACTOR = 0.1;
 const MAX_ROTATION = 15;
 
+// Custom arrow components for carousel
+const CustomPrevArrow = ({ onClick, currentSlide }: { onClick?: () => void; currentSlide?: number }) => {
+  if (currentSlide === 0) return null;
+  
+  return (
+    <button
+      onClick={onClick}
+      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full transition-all duration-200 shadow-2xl"
+      style={{
+        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+      }}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={2}
+        stroke="currentColor"
+        className="w-5 h-5 text-base05"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+    </button>
+  );
+};
+
+const CustomNextArrow = ({ onClick, currentSlide, slideCount }: { onClick?: () => void; currentSlide?: number; slideCount?: number }) => {
+  if (currentSlide !== undefined && slideCount !== undefined && currentSlide >= slideCount - 1) return null;
+  
+  // Add horizontal pulse animation when on first slide
+  const isFirstSlide = currentSlide === 0;
+  
+  return (
+    <button
+      onClick={onClick}
+      className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full transition-all duration-200 shadow-2xl ${isFirstSlide ? 'animate-pulse' : ''}`}
+      style={{
+        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
+        ...(isFirstSlide && {
+          animation: 'horizontal-bounce 2s infinite'
+        })
+      }}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={2}
+        stroke="currentColor"
+        className="w-5 h-5 text-base05"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+      </svg>
+    </button>
+  );
+};
+
 export default function ProjectModal({ 
   project, 
   onClose, 
   onLike, 
   onPass,
-  onSwipe
+  onSwipe,
+  githubData
 }: ProjectModalProps) {
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
@@ -46,8 +139,12 @@ export default function ProjectModal({
     deltaY: 0,
   });
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [hasUserSwiped, setHasUserSwiped] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<Slider>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Prevent page scrolling when modal is open
   useEffect(() => {
@@ -77,6 +174,23 @@ export default function ProjectModal({
         // Restore scroll position
         window.scrollTo(0, scrollY);
       };
+    }
+  }, [project]);
+
+  // Check if content can scroll down
+  useEffect(() => {
+    const checkScrollable = () => {
+      if (scrollContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        setCanScrollDown(scrollHeight > clientHeight && scrollTop < scrollHeight - clientHeight - 10);
+      }
+    };
+
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      checkScrollable();
+      scrollContainer.addEventListener('scroll', checkScrollable);
+      return () => scrollContainer.removeEventListener('scroll', checkScrollable);
     }
   }, [project]);
 
@@ -216,7 +330,14 @@ export default function ProjectModal({
     slidesToScroll: 1,
     swipe: true,
     touchMove: true,
-    arrows: false,
+    arrows: !!(project?.images.length && project.images.length > 1), // Show arrows only if multiple images
+    prevArrow: <CustomPrevArrow currentSlide={currentSlide} />,
+    nextArrow: <CustomNextArrow currentSlide={currentSlide} slideCount={project?.images.length} />,
+    dotsClass: "slick-dots custom-dots",
+    afterChange: (current: number) => {
+      setCurrentSlide(current);
+      setHasUserSwiped(true); // Hide swipe message after first swipe
+    },
   };
 
   const getModalStyle = (): React.CSSProperties => {
@@ -277,7 +398,10 @@ export default function ProjectModal({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-30 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full transition-all duration-200"
+          className="absolute top-4 right-4 z-30 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full transition-all duration-200 shadow-2xl"
+          style={{
+            filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4))'
+          }}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -296,22 +420,44 @@ export default function ProjectModal({
         </button>
 
         {/* Scrollable content container */}
-        <div className="flex-1 overflow-y-auto modal-scrollable-content">
+        <div 
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto modal-scrollable-content relative"
+        >
+          
           {/* Image carousel */}
           <div 
             className="relative h-80 bg-base02 flex-shrink-0"
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
           >
+            {/* Vignette overlay */}
+            <div className="absolute inset-0 pointer-events-none z-10 rounded-lg" style={{
+              background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.15) 100%)'
+            }} />
+            
+            {/* Carousel swipe hint for multiple images - now overlays the carousel */}
+            {project?.images && project.images.length > 1 && (
+              <div 
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-base00 bg-opacity-90 backdrop-blur-sm rounded-full text-xs text-base05 font-medium border border-base02 transition-opacity duration-500 ease-out pointer-events-none"
+                style={{
+                  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
+                  opacity: hasUserSwiped ? 0 : 1
+                }}
+              >
+                Swipe for more images ({project.images.length})
+              </div>
+            )}
+            
             <Slider ref={sliderRef} {...sliderSettings}>
-              {project.images.map((image, index) => (
+              {project?.images.map((image, index) => (
                 <div key={index}>
                   <Image 
                     src={image} 
                     alt={`${project.title} - Image ${index + 1}`}
                     width={400}
                     height={320}
-                    className="w-full h-80 object-cover"
+                    className="w-full h-80 object-contain bg-base02"
                     draggable={false}
                   />
                 </div>
@@ -327,7 +473,9 @@ export default function ProjectModal({
               </h2>
               <span className="text-base0D text-lg font-semibold opacity-80">
                 {project.startYear && project.endYear 
-                  ? `${project.startYear} - ${project.endYear}`
+                  ? project.startYear === project.endYear 
+                    ? project.startYear.toString()
+                    : `${project.startYear} - ${project.endYear}`
                   : project.startYear 
                     ? `${project.startYear} - Present`
                     : project.endYear?.toString()
@@ -335,28 +483,62 @@ export default function ProjectModal({
               </span>
             </div>
             
+            {/* GitHub star and fork count display */}
+            {project.githubRepo && githubData?.[project.githubRepo] && (
+              <div className="flex items-center gap-4 text-base0D text-sm font-semibold mb-3 opacity-80 font-mono">
+                {/* Stars - only show if count > 0 */}
+                {githubData[project.githubRepo].stargazers_count > 0 && (
+                  <div className="flex items-center">
+                    <span className="mr-1" style={{fontFamily: 'NerdFont, monospace'}}>󰓎</span>
+                    {githubData[project.githubRepo].stargazers_count}
+                  </div>
+                )}
+                
+                {/* Forks - only show if count > 0 */}
+                {githubData[project.githubRepo].forks_count > 0 && (
+                  <div className="flex items-center">
+                    <span className="mr-1" style={{fontFamily: 'NerdFont, monospace'}}>󰓁</span>
+                    {githubData[project.githubRepo].forks_count}
+                  </div>
+                )}
+              </div>
+            )}
+            
             <div className="mb-4">
               <p className="text-base04 text-sm leading-relaxed">
                 {project.description}
               </p>
               
-              {project.link && (
-                <a 
-                  href={project.link} 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center mt-4 px-3 py-2 bg-base0D hover:bg-base0C text-base00 text-sm rounded-lg transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Visit Live Site →
-                </a>
-              )}
+              <div className="flex gap-2 mt-4">
+                {project.githubRepo && (
+                  <a 
+                    href={project.githubRepo} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-3 py-2 bg-base0D hover:bg-base0C text-base00 text-sm rounded-lg transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    View Source Code →
+                  </a>
+                )}
+                {project.link && (
+                  <a 
+                    href={project.link} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-3 py-2 bg-base0C hover:bg-base0D text-base00 text-sm rounded-lg transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {project.githubRepo ? 'Visit Live Site →' : 'Visit Project →'}
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Action buttons - Fixed at bottom */}
-        <div className="flex-shrink-0 p-6 pt-0">
+        <div className="flex-shrink-0 p-6 pt-0 relative z-40">
           <div className="flex space-x-4">
             <button
               onClick={() => {
@@ -391,7 +573,7 @@ export default function ProjectModal({
         {dragState.isDragging && (
           <>
             <div 
-              className={`absolute top-8 left-8 px-4 py-2 rounded-full text-lg font-bold transition-opacity ${
+              className={`absolute top-8 left-8 px-4 py-2 rounded-full text-lg font-bold transition-opacity z-40 ${
                 dragState.deltaX > 50 
                   ? 'bg-base0B text-base00 opacity-100' 
                   : 'bg-base02 text-base04 opacity-50'
@@ -400,7 +582,7 @@ export default function ProjectModal({
               LIKE
             </div>
             <div 
-              className={`absolute top-8 right-8 px-4 py-2 rounded-full text-lg font-bold transition-opacity ${
+              className={`absolute top-8 right-8 px-4 py-2 rounded-full text-lg font-bold transition-opacity z-40 ${
                 dragState.deltaX < -50 
                   ? 'bg-base08 text-base00 opacity-100' 
                   : 'bg-base02 text-base04 opacity-50'
@@ -409,6 +591,34 @@ export default function ProjectModal({
               PASS
             </div>
           </>
+        )}
+
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-base01 to-transparent pointer-events-none z-20"></div>
+
+        {/* Scroll indicator - Fixed at modal bottom, behind pass/like buttons */}
+        {canScrollDown && (
+          <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none z-30">
+            <div className="flex items-center justify-center h-full pb-16">
+              <div 
+                className="animate-bounce relative"
+                style={{
+                  filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.8)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6))'
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={3}
+                  stroke="currentColor"
+                  className="w-8 h-8 text-base05"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
