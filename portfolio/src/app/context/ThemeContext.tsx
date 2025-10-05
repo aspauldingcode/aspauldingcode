@@ -15,9 +15,13 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 function getInitialTheme(): Theme {
   if (typeof window !== 'undefined') {
     const storedTheme = localStorage.getItem('theme') as Theme;
-    if (storedTheme) {
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+      // Apply theme immediately to prevent flash
+      document.documentElement.classList.toggle('dark', storedTheme === 'dark');
       return storedTheme;
     }
+    // Apply default theme immediately
+    document.documentElement.classList.add('dark');
     return 'dark';
   }
   return 'dark'; // Default for SSR
@@ -28,12 +32,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Set mounted immediately and only once
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    // Only update DOM if theme actually changed and we're mounted
     if (mounted) {
-      document.documentElement.classList.toggle('dark', theme === 'dark');
+      const isDark = theme === 'dark';
+      const currentlyDark = document.documentElement.classList.contains('dark');
+      if (isDark !== currentlyDark) {
+        document.documentElement.classList.toggle('dark', isDark);
+      }
     }
   }, [theme, mounted]);
 
@@ -56,4 +66,4 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-} 
+}

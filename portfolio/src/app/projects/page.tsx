@@ -1,430 +1,275 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import Slider from 'react-slick';
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import { motion, AnimatePresence } from 'framer-motion';
-import { projects } from './projectData';
-import PageTransition from '../components/PageTransition';
-
-// Hook to detect touch device
-const useIsTouchDevice = () => {
-  const [isTouch, setIsTouch] = useState(false);
-
-  useEffect(() => {
-    const detectTouch = () => {
-      // Check if it's a Windows device with touch capability
-      const isWindows = navigator.userAgent.indexOf('Windows') !== -1;
-      const hasTouchCapability = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      
-      // For Windows devices, we want to provide desktop experience even if they have touch capability
-      // For other devices (mobile/tablets), we use touch detection
-      if (isWindows) {
-        // Only consider it a touch device if it's likely a tablet in tablet mode
-        // Most laptops with touch screens should get desktop experience
-        setIsTouch(hasTouchCapability && window.innerWidth <= 1024 && window.innerHeight <= 1366);
-      } else {
-        // For non-Windows devices, use standard touch detection
-        setIsTouch(hasTouchCapability);
-      }
-    };
-
-    detectTouch();
-    window.addEventListener('resize', detectTouch);
-    return () => window.removeEventListener('resize', detectTouch);
-  }, []);
-
-  return isTouch;
-};
-
-const floatingCards = (hoveredId: number | null, isButtonHovered: boolean, projectId: number, isTouch: boolean) => {
-  // Generate a unique but consistent random seed for each card
-  const randomSeed = projectId * 0.1;
-  
-  return {
-    y: isTouch ? 0 : (hoveredId === projectId ? -10 : Math.sin(Date.now() * 0.001 + randomSeed) * 5),
-    scale: isTouch ? 1 : (hoveredId === projectId ? 1.03 : 1),
-    rotateX: isTouch ? 0 : (hoveredId === projectId ? -5 : Math.sin(Date.now() * 0.0005 + randomSeed) * 2),
-    rotateY: isTouch ? 0 : (hoveredId === projectId ? Math.sin(Date.now() * 0.001) * 3 : Math.cos(Date.now() * 0.0007 + randomSeed) * 3),
-    rotateZ: isTouch ? 0 : (hoveredId === projectId ? Math.sin(Date.now() * 0.0008) * 1 : 0),
-    boxShadow: hoveredId === projectId 
-      ? isButtonHovered 
-        ? "0 20px 25px var(--base0E), 0 10px 10px var(--base0E), 0 0 15px var(--base0E), 0 0 15px var(--base0E)" 
-        : "0 20px 25px var(--base0D), 0 10px 10px var(--base0D), 0 0 15px var(--base0D), 0 0 15px var(--base0D)"
-      : "0 5px 15px var(--base02)",
-    transition: {
-      type: "spring",
-      stiffness: hoveredId === projectId ? 300 : 100,
-      damping: hoveredId === projectId ? 20 : 10,
-      duration: hoveredId === projectId ? 0.2 : 0.5,
-      ease: "easeInOut"
-    },
-    transformPerspective: 1200,
-    transformOrigin: "center center"
-  };
-};
+import { useState } from 'react';
+import { projects, Project } from './projectData';
+import Link from 'next/link';
+import ProjectsHeader from '../components/ProjectsHeader';
+import CardStack from '../../components/CardStack';
+import ProjectModal from '../../components/ProjectModal';
 
 export default function Projects() {
-  const router = useRouter();
-  const [isLeaving, setIsLeaving] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const isTouch = useIsTouchDevice();
-  
-  // Disable scrolling on desktop only
-  useEffect(() => {
-    // Only apply scroll lock on desktop devices
-    if (!isTouch) {
-      // Save the original overflow style
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      
-      // Disable scrolling
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-      document.body.style.touchAction = 'none';
-      
-      // Re-enable scrolling when component unmounts
-      return () => {
-        document.body.style.overflow = originalStyle;
-        document.documentElement.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.height = '';
-        document.body.style.touchAction = '';
-      };
-    }
-  }, [isTouch]); // Re-run if touch detection changes
-  
-  // Reset user interaction flag when scrolling on mobile
-  useEffect(() => {
-    if (isTouch) {
-      const handleScroll = () => {
-        // If user is scrolling the page (not the carousel), we should reset the interaction flag
-        // This prevents the carousel from staying paused forever when user scrolls
-        setTimeout(() => {
-          setIsUserInteracting(false);
-        }, 1000);
-      };
-      
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, [isTouch]);
+  const [swipedCards, setSwipedCards] = useState<Project[]>([]);
+  const [dismissedCards, setDismissedCards] = useState<Project[]>([]);
+  const [dismissedViewSwipedCards, setDismissedViewSwipedCards] = useState<Set<string>>(new Set()); // Track cards swiped in dismissed view
+  const [showAllCards, setShowAllCards] = useState(true);
+  const [showDismissedOnly, setShowDismissedOnly] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedProjectSource, setSelectedProjectSource] = useState<'stack' | 'liked'>('stack'); // Track where the project was opened from
+  const [cardStackKey, setCardStackKey] = useState(0); // Key to force CardStack re-render
 
-  const [isUserInteracting, setIsUserInteracting] = useState(false);
-  const cardScrollRef = useRef<HTMLDivElement>(null);
+  // Convert projects to CardStack format
+  const cardData = showDismissedOnly 
+    ? dismissedCards.map(project => ({
+        id: project.id.toString(),
+        title: project.title,
+        description: project.description,
+        image: project.images[0],
+        tags: project.link ? ['Live Site'] : [],
+        link: project.link,
+        images: project.images
+      }))
+    : projects.map(project => ({
+        id: project.id.toString(),
+        title: project.title,
+        description: project.description,
+        image: project.images[0],
+        tags: project.link ? ['Live Site'] : [],
+        link: project.link,
+        images: project.images
+      }));
 
-  // Handle card scroll while preventing page scroll
-  useEffect(() => {
-    const handleCardScroll = (e: Event) => {
-      const wheelEvent = e as WheelEvent;
-      if (cardScrollRef.current) {
-        wheelEvent.preventDefault();
-        cardScrollRef.current.scrollTop += wheelEvent.deltaY;
-      }
-    };
+  // Create a set of swiped card IDs from liked and dismissed cards
+  const swipedCardIds = showDismissedOnly 
+    ? dismissedViewSwipedCards
+    : new Set([
+        ...swipedCards.map(card => card.id.toString()),
+        ...dismissedCards.map(card => card.id.toString())
+      ]);
 
-    const handlePageScroll = (e: Event) => {
-      e.preventDefault();
-    };
-
-    const cards = document.querySelectorAll('.project-card');
-    cards.forEach(card => {
-      card.addEventListener('wheel', handleCardScroll);
-    });
-
-    window.addEventListener('scroll', handlePageScroll, { passive: false });
-
-    return () => {
-      cards.forEach(card => {
-        card.removeEventListener('wheel', handleCardScroll);
-      });
-      window.removeEventListener('scroll', handlePageScroll);
-    };
-  }, []);
-  
-  // Add a failsafe timer to ensure autoplay always resumes
-  useEffect(() => {
-    // If user interaction is active, set a failsafe timer to reset it
-    if (isUserInteracting) {
-      const failsafeTimer = setTimeout(() => {
-        setIsUserInteracting(false);
-        
-        // Force restart autoplay
-        const sliders = document.querySelectorAll('.slick-slider');
-        sliders.forEach((slider) => {
-          const slickInstance = slider as { slick?: { slickPlay: () => void } };
-          if (slickInstance.slick) {
-            slickInstance.slick.slickPlay();
-          }
-        });
-      }, isTouch ? 6000 : 5000); // Longer timeout for mobile
-      
-      return () => clearTimeout(failsafeTimer);
-    }
-  }, [isUserInteracting, isTouch]);
-
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 800,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true, // Always autoplay
-    autoplaySpeed: 3000,
-    pauseOnHover: false,
-    lazyLoad: 'ondemand' as const,
-    cssEase: "linear",
-    fade: true,
-    initialSlide: 0,
-    waitForAnimate: false,
-    swipe: true, // Enable swipe for all devices
-    swipeToSlide: false, // Disable swipe to slide directly
-    touchThreshold: 10, // Make swiping less sensitive
-    dotsClass: 'slick-dots custom-slick-dots', // Add custom class for styling
-    appendDots: (dots: React.ReactNode) => (
-      <div>
-        <ul style={{ margin: '0' }}>{dots}</ul>
-      </div>
-    ),
-    // Add event handlers for better interaction detection
-    onSwipe: () => {
-      setIsUserInteracting(false); // Don't stop autoplay on swipe
-    },
-    onEdge: () => {
-      setIsUserInteracting(false); // Don't stop autoplay on edge
-    }
-  };
-
-  // Initialize sliders and ensure autoplay starts
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const sliders = document.querySelectorAll('.slick-slider');
-      sliders.forEach((slider) => {
-        const slickInstance = slider as { slick?: { slickGoTo: (n: number) => void; slickPlay: () => void } };
-        if (slickInstance.slick) {
-          slickInstance.slick.slickGoTo(0);
-          slickInstance.slick.slickPlay();
-        }
-      });
-    }, 0);
+  const handleSwipe = (card: any, direction: 'left' | 'right') => {
+    const project = projects.find(p => p.id.toString() === card.id);
     
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Preload first image of each project
-  useEffect(() => {
-    projects.forEach((project) => {
-      if (project.images?.[0]) {
-        const img = document.createElement('img');
-        img.src = project.images[0];
-      }
-    });
-  }, []);
-
-  const handleBack = () => {
-    setIsLeaving(true);
-    router.push('/');
-  };
-
-  const handleProjectClick = (link?: string) => {
-    if (link) {
-      setHoveredCard(null);
-      window.open(link, '_blank', 'noopener,noreferrer');
+    if (project) {
+      // Delay state updates to match CardStack animation duration (300ms)
+      setTimeout(() => {
+        // If we're in dismissed view, track the swiped card
+        if (showDismissedOnly) {
+          setDismissedViewSwipedCards(prev => new Set([...prev, card.id]));
+        }
+        
+        if (direction === 'right') {
+          // Add to liked list if not already liked
+          setSwipedCards(prev => {
+            const isAlreadyLiked = prev.some(p => p.id === project.id);
+            return isAlreadyLiked ? prev : [...prev, project];
+          });
+          
+          // If we're viewing dismissed cards and like one, remove it from dismissed list
+          if (showDismissedOnly) {
+            setDismissedCards(prev => prev.filter(p => p.id !== project.id));
+          }
+        } else {
+          // Remove from liked list if it was liked (when passing from profile modal)
+          setSwipedCards(prev => prev.filter(p => p.id !== project.id));
+          
+          // Always add to dismissed list when passing (swiping left)
+          setDismissedCards(prev => {
+            const isAlreadyDismissed = prev.some(p => p.id === project.id);
+            return isAlreadyDismissed ? prev : [...prev, project];
+          });
+        }
+      }, 300); // Match CardStack animation duration
     }
   };
 
-  // Handle mobile tap on description area
-  const handleMobileTap = (link?: string) => {
-    if (isTouch && link) {
-      setHoveredCard(null);
-      window.open(link, '_blank', 'noopener,noreferrer');
+  const handleStackEmpty = () => {
+    // When stack is empty, show "see more" option
+    setShowAllCards(false);
+  };
+
+  const handleSeeMore = () => {
+    // Show only dismissed cards when "See More" is clicked
+    setShowDismissedOnly(true);
+    setShowAllCards(true);
+    // Reset the dismissed view swiped cards when entering dismissed view
+    setDismissedViewSwipedCards(new Set());
+  };
+
+  const handleDismissedStackEmpty = () => {
+    // Just exit dismissed view mode without clearing anything
+    setShowDismissedOnly(false);
+    setShowAllCards(false);
+  };
+
+  const handleViewProject = (card: any) => {
+    const project = projects.find(p => p.id.toString() === card.id);
+    if (project) {
+      setSelectedProject(project);
+      setSelectedProjectSource('stack'); // Opened from card stack
+    }
+  };
+
+  const handleModalSwipe = (direction: 'left' | 'right') => {
+    if (selectedProject) {
+      // Only handle swipe actions if the project was opened from the card stack
+      if (selectedProjectSource === 'stack') {
+        // Handle the swipe from the modal
+        handleSwipe({
+          id: selectedProject.id.toString(),
+          title: selectedProject.title,
+          description: selectedProject.description,
+          image: selectedProject.images[0],
+          tags: selectedProject.link ? ['Live Site'] : [],
+          link: selectedProject.link,
+          images: selectedProject.images
+        }, direction);
+        
+        // Force CardStack to advance to next card by incrementing the key
+        setCardStackKey(prev => prev + 1);
+      }
+      // If opened from liked section, update the liked/dismissed state and advance the card stack
+      else if (selectedProjectSource === 'liked') {
+        handleSwipe({
+          id: selectedProject.id.toString(),
+          title: selectedProject.title,
+          description: selectedProject.description,
+          image: selectedProject.images[0],
+          tags: selectedProject.link ? ['Live Site'] : [],
+          link: selectedProject.link,
+          images: selectedProject.images
+        }, direction);
+        
+        // Also advance the card stack to show the next card
+        setCardStackKey(prev => prev + 1);
+      }
+      
+      // Close the modal
+      setSelectedProject(null);
     }
   };
 
   return (
-    <PageTransition>
-      <motion.div 
-        key="projects-content"
-        className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20 bg-base00"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={handleBack}
-          className="fixed top-4 left-4 z-50 p-3 rounded-lg bg-base01 hover:bg-base02 transition-all duration-300 shadow-lg"
-          aria-label="Back to home"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-6 h-6 text-base05"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+    <div className="h-screen bg-base00 relative overflow-hidden">
+      {/* Background layer with gradient and fade overlays - Fixed to viewport */}
+      <div className="fixed inset-0">
+        {/* Fixed gradient background with blur, darkening, and desaturation */}
+        <div 
+          className="absolute inset-0 blur-sm saturate-50 dark:opacity-60 opacity-30"
+          style={{
+            background: `linear-gradient(135deg, var(--base08) 0%, var(--base0E) 30%, var(--base08) 60%, var(--base0E) 100%)`,
+            filter: 'brightness(0.9) blur(8px) saturate(0.6)'
+          }}
+        />
+        
+        {/* Fixed fade overlay for top */}
+        <div 
+          className="absolute inset-x-0 top-0 h-32 pointer-events-none"
+          style={{
+            background: `linear-gradient(to bottom, var(--base00) 0%, transparent 100%)`
+          }}
+        />
+        
+        {/* Fixed fade overlay for bottom */}
+        <div 
+          className="absolute inset-x-0 bottom-0 h-32 pointer-events-none"
+          style={{
+            background: `linear-gradient(to top, var(--base00) 0%, transparent 100%)`
+          }}
+        />
+      </div>
+      
+      {/* Scrollable content container */}
+      <div className="relative z-10 h-full overflow-y-auto">
+        <div className="min-h-full pb-16">
+          <ProjectsHeader />
+          
+          <main className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-base05 mb-4" style={{textShadow: '0 0 8px var(--glow-red), 0 0 16px var(--glow-purple), 0 0 24px var(--glow-red-light)'}}>
+            My Projects
+          </h1>
+          <p className="text-base04 text-lg max-w-2xl mx-auto" style={{textShadow: '0 0 6px var(--glow-red-light), 0 0 12px var(--glow-purple-light)'}}>
+            Swipe right to like a project, left to pass.
+          </p>
+        </div>
+
+        <div className="flex justify-center">
+          {showAllCards ? (
+            <CardStack 
+              key={cardStackKey}
+              cards={cardData}
+              onSwipe={handleSwipe}
+              onStackEmpty={showDismissedOnly ? handleDismissedStackEmpty : handleStackEmpty}
+              onSeeMore={handleSeeMore}
+              onViewProject={handleViewProject}
+              dismissedCount={dismissedCards.length}
+              className="mb-8"
+              cardClassName="backdrop-blur-sm"
+              swipedCardIds={swipedCardIds}
             />
-          </svg>
-        </motion.button>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-96 mb-8">
+              <p className="text-base05 text-lg mb-2" style={{textShadow: '0 0 6px var(--glow-red-light), 0 0 12px var(--glow-purple-light)'}}>No more projects to swipe!</p>
+              <p className="text-base04 text-sm mb-6 text-center max-w-md" style={{textShadow: '0 0 4px var(--glow-red-light), 0 0 8px var(--glow-purple-light)'}}>
+                Scroll down to view the projects you liked and learn more about them.
+              </p>
+              <button
+                onClick={handleSeeMore}
+                className="px-6 py-3 bg-base0D hover:bg-base0C text-base00 rounded-lg transition-colors drop-shadow-md"
+              >
+                See More ({dismissedCards.length})
+              </button>
+            </div>
+          )}
+        </div>
 
-        <motion.h1 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -20, opacity: 0 }}
-          className="text-4xl sm:text-6xl font-bold text-base05 mb-8"
-        >
-          My Projects
-        </motion.h1>
-
-        <motion.div
-          className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8 w-full max-w-[1920px] mx-auto"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <AnimatePresence mode="sync">
-            {!isLeaving && (
-              projects.map((project, index) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ 
-                    opacity: 0,
-                    y: 50,
-                    transition: { 
-                      duration: 0.15,
-                      delay: index * 0.05 
-                    }
-                  }}
-                  className="min-w-[280px] project-card text-justify"
-                >
-                  <motion.div
-                    animate={floatingCards(hoveredCard, isButtonHovered, project.id, isTouch)}
-                    className={`bg-base01 rounded-lg shadow-lg overflow-hidden relative group transition-all duration-150 overflow-y-auto"
-                      ${isTouch ? '' : 'cursor-default hover:rotate-[0.5deg]'}`}
-                    onMouseEnter={() => !isTouch && setHoveredCard(project.id)}
-                    onMouseLeave={() => !isTouch && setHoveredCard(null)}
-                  >
-                    <div className="relative">
-                      <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-base00/30 to-transparent z-10"></div>
-                      <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-base00/30 to-transparent z-10"></div>
-                      {/* Mobile tap indicator */}
-                      <div className={`absolute inset-0 bg-base0D/10 opacity-0 transition-opacity duration-150 z-20 
-                        ${isTouch ? 'active:opacity-100' : 'hidden'}`}
-                      ></div>
-                      <div className="h-64 relative">
-                        <Slider {...settings}>
-                          {project.images?.map((image, imageIndex) => (
-                            <div key={imageIndex} className="h-full relative">
-                              <Image
-                                src={image} 
-                                alt={`${project.title} slide ${imageIndex + 1}`} 
-                                fill
-                                className="object-cover object-center"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                priority={imageIndex < 3}
-                              />
-                            </div>
-                          ))}
-                        </Slider>
-                      </div>
-                    </div>
-                    <div className="p-4 relative">
-                      {/* Desktop-only overlay and button */}
-                      <div className={!isTouch ? 'block' : 'hidden'}>
-                        <motion.div
-                          className="absolute inset-x-0 top-[30px] bottom-0 bg-base0D/80 backdrop-blur-[2px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center"
-                          initial={false}
-                          animate={{ 
-                            opacity: hoveredCard === project.id ? 1 : 0,
-                            transition: { duration: 0.15 }
-                          }}
-                        >
-                          <motion.button
-                            className="bg-base0D hover:bg-base0E text-base00 px-6 py-3 rounded-lg shadow-xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] flex items-center space-x-2 transition-colors duration-150 z-30"
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            whileHover={{ 
-                              scale: 1.1,
-                              transition: { duration: 0.15 }
-                            }}
-                            animate={{ 
-                              scale: hoveredCard === project.id ? 1 : 0.8, 
-                              opacity: hoveredCard === project.id ? 1 : 0,
-                              transition: { duration: 0.15 }
-                            }}
-                            onClick={() => handleProjectClick(project.link)}
-                            onMouseEnter={() => setIsButtonHovered(true)}
-                            onMouseLeave={() => setIsButtonHovered(false)}
-                          >
-                            <span className="font-semibold">GO</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={2}
-                              stroke="currentColor"
-                              className="w-5 h-5"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                              />
-                            </svg>
-                          </motion.button>
-                        </motion.div>
-                      </div>
-                      <h2 className="text-xl font-semibold text-base05 mt-2">{project.title}</h2>
-                      <div 
-                        className="text-base04 mt-2 cursor-pointer tracking-[0.01em] word-spacing-[0.02em]"
-                        onClick={() => isTouch ? handleMobileTap(project.link) : null}
+        {swipedCards.length > 0 && (
+          <div className="mt-12 max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-base05 mb-6 text-center" style={{textShadow: '0 0 8px var(--glow-red), 0 0 16px var(--glow-purple-light)'}}>
+            Projects You Liked ({swipedCards.length})
+          </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {swipedCards.map((project) => (
+                <div key={project.id} className="bg-base01 backdrop-blur-sm rounded-lg p-6 border border-base02">
+                  <h3 className="text-xl font-bold text-base05 mb-2">{project.title}</h3>
+                  <p className="text-base04 mb-4">{project.description}</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setSelectedProject(project);
+                        setSelectedProjectSource('liked'); // Opened from liked section
+                      }}
+                      className="px-4 py-2 bg-base0C hover:bg-base0D text-base00 rounded-lg transition-colors font-medium"
+                    >
+                      View Project
+                    </button>
+                    {project.link && (
+                      <Link 
+                        href={project.link} 
+                        target="_blank"
+                        className="inline-flex items-center px-4 py-2 bg-base0D hover:bg-base0C text-base00 rounded-lg transition-colors"
                       >
-                        {project.description}
-                      </div>
-                      {/* Mobile-only indicator and clickable area */}
-                      <div 
-                        className={`flex items-center mt-3 text-base0D ${isTouch ? 'block' : 'hidden'}`}
-                        onClick={() => handleMobileTap(project.link)}
-                      >
-                        <span className="text-sm">Tap to view</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-4 h-4 ml-1"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              ))
-            )}
-          </AnimatePresence>
-        </motion.div>
-      </motion.div>
-    </PageTransition>
+                        Visit Project →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        </main>
+        </div>
+      </div>
+      
+      {/* Project Modal */}
+      {selectedProject && (
+        <ProjectModal
+          project={selectedProject}
+          onClose={() => setSelectedProject(null)}
+          onSwipe={handleModalSwipe}
+        />
+      )}
+    </div>
   );
 }

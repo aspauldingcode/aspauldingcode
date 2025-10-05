@@ -1,5 +1,5 @@
 declare module 'react-slick' {
-  import { Component } from 'react';
+  import { Component, ReactNode } from 'react';
 
   interface Settings {
     dots?: boolean;
@@ -9,6 +9,11 @@ declare module 'react-slick' {
     slidesToScroll?: number;
     autoplay?: boolean;
     autoplaySpeed?: number;
+    swipe?: boolean;
+    touchMove?: boolean;
+    arrows?: boolean;
+    afterChange?: (current: number) => void;
+    children?: ReactNode;
     // Add more settings as needed
   }
 

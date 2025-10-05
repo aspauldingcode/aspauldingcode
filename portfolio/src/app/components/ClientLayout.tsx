@@ -1,8 +1,6 @@
 'use client';
 
 import { ThemeProvider } from '../context/ThemeContext';
-import ThemeToggle from './ThemeToggle';
-import { AnimatePresence } from 'framer-motion';
 
 export default function ClientLayout({
   children,
@@ -11,10 +9,7 @@ export default function ClientLayout({
 }) {
   return (
     <ThemeProvider>
-      <AnimatePresence mode="wait">
-        <ThemeToggle />
-        {children}
-      </AnimatePresence>
+      {children}
     </ThemeProvider>
   );
-} 
+}
