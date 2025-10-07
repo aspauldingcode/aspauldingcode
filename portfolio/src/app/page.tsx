@@ -13,6 +13,7 @@ export default function Home() {
   const [useCompactButtons, setUseCompactButtons] = useState(false);
   const [useHorizontalButtons, setUseHorizontalButtons] = useState(false);
   const [useLargePortraitProfile, setUseLargePortraitProfile] = useState(false);
+  const [isPortraitOrientation, setIsPortraitOrientation] = useState(false);
 
   const handleContactClick = () => {
     console.log('Contact button clicked');
@@ -77,12 +78,28 @@ export default function Home() {
       // Total estimated: ~452px
       const estimatedVerticalContentHeight = 452;
       
-      // Check for plenty of space (both width and height) to use large portrait profile
-      // Need significant extra space beyond minimum requirements
+      // Enhanced profile photo scaling logic
+      // Desktop: Need both width and height (original logic)
+      // Portrait/Mobile: Use large profile when there's plenty of vertical space OR when cards stack vertically
       const hasAmpleWidth = viewportWidth >= 1200; // Large desktop width
       const hasAmpleHeight = viewportHeight >= 700; // Plenty of vertical space
-      const hasAmpleSpace = hasAmpleWidth && hasAmpleHeight;
+      const isPortraitOrientation = viewportHeight > viewportWidth; // Portrait orientation
+      const hasExtraVerticalSpace = viewportHeight >= 650; // Reduced threshold for portrait
+      
+      // Check if we have enough space after accounting for essential content
+      const minContentHeight = 300; // Minimum space needed for title, description, buttons
+      const availableSpaceForProfile = viewportHeight - minContentHeight;
+      const canFitLargeProfile = availableSpaceForProfile >= 250; // Large profile needs ~250px
+      
+      // Use large portrait profile if:
+      // 1. Desktop with ample width AND height (original logic), OR
+      // 2. Portrait orientation with sufficient vertical space for large profile, OR
+      // 3. Any orientation where we have enough room after essential content
+      const hasAmpleSpace = (hasAmpleWidth && hasAmpleHeight) || 
+                           (isPortraitOrientation && hasExtraVerticalSpace) ||
+                           canFitLargeProfile;
       setUseLargePortraitProfile(hasAmpleSpace);
+      setIsPortraitOrientation(isPortraitOrientation);
       
       // Use horizontal layout if content would overflow viewport
       setUseHorizontalLayout(viewportHeight < estimatedVerticalContentHeight);
@@ -97,25 +114,38 @@ export default function Home() {
         // Title/description section: ~300px minimum
         // Buttons (3 buttons): ~150px each = ~450px + gaps (~48px) = ~498px
         // Total estimated horizontal width: ~180px (profile) + ~300px (text) + ~498px (buttons) = ~978px
-        const estimatedHorizontalContentWidth = 978;
+        const estimatedHorizontalContentWidth = 768; // Reduced from 978px to be less aggressive
         
         // Use compact buttons if horizontal content would overflow viewport width
-        // OR if height is extremely limited (less than 400px including footer)
-        const extremelyLimitedHeight = viewportHeight < 400;
+        // OR if height is extremely limited (less than 320px including footer)
+        const extremelyLimitedHeight = viewportHeight < 320; // Reduced from 400px
         setUseCompactButtons(viewportWidth < estimatedHorizontalContentWidth || extremelyLimitedHeight);
         
         // Use horizontal button layout when both width and height are constrained
         setUseHorizontalButtons(bothConstraintsActive);
       } else {
         // In vertical layout, check if buttons would overflow vertically
-        // Estimate button section height: 3 buttons * ~56px + gaps = ~200px
-        // Check if adding buttons would push content out of viewport
-        const contentWithoutButtons = estimatedVerticalContentHeight - 56; // Remove button estimate
-        const buttonSectionHeight = 200; // Vertical button stack
+        // Only use compact buttons if there's truly insufficient space
+        // Calculate actual content height more accurately
+        const profileHeight = useLargePortraitProfile ? 160 : 80; // Actual profile image height
+        const titleHeight = 72; // Title text height
+        const descriptionHeight = 24; // Description height
+        const normalButtonHeight = 56; // Normal button height
+        const spacingAndPadding = 120; // Margins, gaps, and padding
+        const footerHeight = 40; // Footer height
         
-        // Use compact buttons if content would overflow OR if height is extremely limited
-        const extremelyLimitedHeight = viewportHeight < 450;
-        setUseCompactButtons((contentWithoutButtons + buttonSectionHeight) > viewportHeight || extremelyLimitedHeight);
+        // Calculate total height with normal buttons
+        const totalHeightWithNormalButtons = profileHeight + titleHeight + descriptionHeight + 
+                                           (normalButtonHeight * 3) + spacingAndPadding + footerHeight;
+        
+        // Only use compact buttons if normal buttons would actually cause overflow
+        // Add a small buffer (20px) to prevent unnecessary switching
+        const wouldOverflow = (totalHeightWithNormalButtons + 20) > viewportHeight;
+        
+        // Also check for extremely limited height where even compact buttons might be tight
+        const extremelyLimitedHeight = viewportHeight < 280;
+        
+        setUseCompactButtons(wouldOverflow || extremelyLimitedHeight);
         setUseHorizontalButtons(false); // Never use horizontal buttons in vertical layout
       }
     };
@@ -125,7 +155,7 @@ export default function Home() {
     window.addEventListener('resize', checkViewportOverflow);
     
     return () => window.removeEventListener('resize', checkViewportOverflow);
-  }, []);
+  }, [useLargePortraitProfile]);
 
   return (
     <main className="fixed inset-0 flex flex-col items-center justify-center bg-base00 overflow-hidden">
@@ -134,9 +164,9 @@ export default function Home() {
         <div className="flex-shrink-0 mb-4 sm:mb-6 w-full max-w-2xl">
           {/* Use flex-row layout only when content would actually overflow viewport */}
           <div className={`flex items-center ${useHorizontalLayout ? 'flex-row justify-start gap-6' : 'flex-col'}`}>
-            {/* Profile Image */}
+            {/* Profile Image - Enhanced Flexbox scaling */}
             <div className={`flex-shrink-0 ${useHorizontalLayout ? 'mb-0' : 'mb-2'}`}>
-              <div className="relative">
+              <div className="relative flex justify-center">
                 <Image
                   src={useLargePortraitProfile ? "/profile_regular.jpg" : "/profile_square.jpg"}
                   alt="Profile picture"
@@ -144,11 +174,17 @@ export default function Home() {
                   height={useLargePortraitProfile ? 293 : 150}
                   className={
                     useLargePortraitProfile 
-                      ? "rounded-2xl border-4 border-base02 w-44 h-60 object-cover"
+                      ? `rounded-2xl border-4 border-base02 object-cover ${
+                          isPortraitOrientation 
+                            ? 'w-48 h-64 sm:w-52 sm:h-72 md:w-56 md:h-80' // Enhanced portrait scaling
+                            : 'w-44 h-60' // Desktop scaling
+                        }`
                       : `rounded-full border-4 border-base02 ${
                           useHorizontalLayout 
                             ? 'w-16 h-16 sm:w-20 sm:h-20' 
-                            : 'w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40'
+                            : isPortraitOrientation
+                            ? 'w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-44 lg:h-44' // Enhanced portrait circular scaling
+                            : 'w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40' // Standard vertical scaling
                         }`
                   }
                   priority
@@ -181,19 +217,19 @@ export default function Home() {
           {/* Grid container - adapts based on viewport constraints */}
           <div className={`flex justify-center items-center ${
             useHorizontalButtons 
-              ? 'flex-row gap-1 sm:gap-2' // Horizontal with reduced spacing when both width and height are limited
-              : 'flex-col sm:flex-row gap-4 sm:gap-6' // Normal responsive behavior
+              ? 'flex-row gap-3 sm:gap-4 md:gap-6' // Horizontal with better spacing for visual separation
+              : 'flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 lg:gap-10' // Normal responsive behavior with progressive spacing
           }`}>
             
             {/* Projects Button */}
-            <div className={`transform -rotate-1 hover:rotate-0 transition-transform duration-300 ${
+            <div className={`transform ${useHorizontalButtons ? 'rotate-0' : 'rotate-0 sm:-rotate-1'} ${useHorizontalButtons ? 'hover:-rotate-1' : 'hover:-rotate-1 sm:hover:rotate-0'} active:rotate-0 transition-transform duration-300 ${
               useHorizontalButtons 
                 ? 'flex-1 min-w-0' // Flexible width with reduced spacing for horizontal layout
                 : 'w-full sm:w-auto sm:flex-1 max-w-xs' // Normal responsive sizing
             }`}>
               <Link 
                 href="/projects"
-                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 bg-base0D hover:bg-base0E text-base00 ${
+                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0D hover:bg-base0E text-base00 ${
                   useCompactButtons 
                     ? 'px-2 py-2 text-xs' 
                     : useHorizontalButtons
@@ -228,14 +264,14 @@ export default function Home() {
             </div>
 
             {/* Resume Button */}
-            <div className={`transform rotate-0.5 hover:rotate-0 transition-transform duration-300 ${
+            <div className={`transform ${useHorizontalButtons ? 'rotate-0' : 'rotate-0 sm:rotate-0.5'} ${useHorizontalButtons ? 'hover:rotate-0.5' : 'hover:rotate-0.5 sm:hover:rotate-0'} active:rotate-0 transition-transform duration-300 ${
               useHorizontalButtons 
                 ? 'flex-1 min-w-0' // Flexible width with reduced spacing for horizontal layout
                 : 'w-full sm:w-auto sm:flex-1 max-w-xs' // Normal responsive sizing
             }`}>
               <button
                 onClick={handleResumeClick}
-                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 bg-base0B hover:bg-base0A text-base00 ${
+                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0B hover:bg-base0A text-base00 ${
                   useCompactButtons 
                     ? 'px-2 py-2 text-xs' 
                     : useHorizontalButtons
@@ -270,14 +306,14 @@ export default function Home() {
             </div>
 
             {/* Contact Button */}
-            <div className={`transform rotate-1 hover:rotate-0 transition-transform duration-300 ${
+            <div className={`transform ${useHorizontalButtons ? 'rotate-0' : 'rotate-0 sm:rotate-1'} ${useHorizontalButtons ? 'hover:rotate-1' : 'hover:rotate-1 sm:hover:rotate-0'} active:rotate-0 transition-transform duration-300 ${
               useHorizontalButtons 
                 ? 'flex-1 min-w-0' // Flexible width with reduced spacing for horizontal layout
                 : 'w-full sm:w-auto sm:flex-1 max-w-xs' // Normal responsive sizing
             }`}>
               <button
                 onClick={handleContactClick}
-                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 bg-base0C hover:bg-base0E text-base00 ${
+                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0C hover:bg-base0E text-base00 ${
                   useCompactButtons 
                     ? 'px-2 py-2 text-xs' 
                     : useHorizontalButtons

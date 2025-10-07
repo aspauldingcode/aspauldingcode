@@ -12,6 +12,8 @@ interface CardData {
   id: string;
   title: string;
   description: string;
+  shortDescription?: string; // Add shortDescription field
+  threeWordDescriptor: string; // Add threeWordDescriptor field
   image?: string;
   tags?: string[];
   link?: string;
@@ -32,6 +34,8 @@ export default function Projects() {
   const [cardStackKey, setCardStackKey] = useState(0); // Key to force CardStack re-render
   const [githubData, setGithubData] = useState<Record<string, GitHubRepoData>>({});
   const [showScrollHint, setShowScrollHint] = useState(false);
+  const [hintHasBeenShown, setHintHasBeenShown] = useState(false); // Track if hint has been shown before
+  const [hintVisible, setHintVisible] = useState(false); // Control fade animations
   const [isInLikedSection, setIsInLikedSection] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -75,15 +79,18 @@ export default function Projects() {
     fetchRepoData();
   }, []);
 
-  // Show scroll hint when there are liked projects
+
+
+  // Show scroll hint when there are liked projects (only once)
   useEffect(() => {
-    if (swipedCards.length > 0) {
+    if (swipedCards.length > 0 && !hintHasBeenShown) {
+      setHintHasBeenShown(true); // Mark as shown
       setShowScrollHint(true);
-      // Auto-hide after 5 seconds
-      const timer = setTimeout(() => setShowScrollHint(false), 5000);
-      return () => clearTimeout(timer);
+      
+      // Fade in animation
+      setTimeout(() => setHintVisible(true), 100);
     }
-  }, [swipedCards.length]);
+  }, [swipedCards.length, hintHasBeenShown]);
 
   // Simple scroll detection for liked section
   useEffect(() => {
@@ -118,6 +125,12 @@ export default function Projects() {
           const myProjectsScrolledPast = !myProjectsVisible;
           
           setIsInLikedSection((likedSectionDominant && myProjectsScrolledPast) || isAtBottom);
+          
+          // Dismiss hint when user scrolls to liked section
+          if (showScrollHint && (likedSectionDominant || isAtBottom)) {
+            setHintVisible(false);
+            setTimeout(() => setShowScrollHint(false), 300); // Hide after fade out
+          }
         } else {
           setIsInLikedSection(false);
         }
@@ -132,14 +145,16 @@ export default function Projects() {
       handleScroll(); // Check initial state
       return () => scrollContainer.removeEventListener('scroll', handleScroll);
     }
-  }, [swipedCards.length]);
+  }, [swipedCards.length, showScrollHint]);
 
   // Convert projects to CardStack format
   const cardData = showDismissedOnly 
     ? dismissedCards.map(project => ({
         id: project.id.toString(),
         title: project.title,
-        description: project.threeWordDescriptor,
+        description: project.description,
+        shortDescription: project.shortDescription,
+        threeWordDescriptor: project.threeWordDescriptor,
         image: project.images[0],
         tags: [
           ...(project.githubRepo ? ['GitHub'] : []),
@@ -154,7 +169,9 @@ export default function Projects() {
     : projects.map(project => ({
         id: project.id.toString(),
         title: project.title,
-        description: project.threeWordDescriptor,
+        description: project.description,
+        shortDescription: project.shortDescription,
+        threeWordDescriptor: project.threeWordDescriptor,
         image: project.images[0],
         tags: [
           ...(project.githubRepo ? ['GitHub'] : []),
@@ -247,6 +264,7 @@ export default function Projects() {
           id: selectedProject.id.toString(),
           title: selectedProject.title,
           description: selectedProject.description,
+          threeWordDescriptor: selectedProject.threeWordDescriptor,
           image: selectedProject.images[0],
           tags: selectedProject.link ? ['Live Site'] : [],
           link: selectedProject.link,
@@ -262,6 +280,7 @@ export default function Projects() {
           id: selectedProject.id.toString(),
           title: selectedProject.title,
           description: selectedProject.description,
+          threeWordDescriptor: selectedProject.threeWordDescriptor,
           image: selectedProject.images[0],
           tags: selectedProject.link ? ['Live Site'] : [],
           link: selectedProject.link,
@@ -325,46 +344,42 @@ export default function Projects() {
       >
         <ProjectsHeader />
         
-        <main className="container mx-auto px-4 py-8 bg-base00/90 backdrop-blur-sm min-h-screen">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-base05 mb-4">
-          My Projects
-        </h1>
-          <p className="text-base04 text-lg max-w-2xl mx-auto" style={{textShadow: '0 0 6px var(--glow-red-light), 0 0 12px var(--glow-purple-light)'}}>
-            Swipe right to like a project, left to pass.
-          </p>
-        </div>
+        <main className="container mx-auto px-4 pt-8 sm:pt-12 md:pt-16 pb-2 bg-base00/90 min-h-screen relative">
 
-        <div className="flex justify-center">
-          {showAllCards ? (
-            <CardStack 
-              key={cardStackKey}
-              cards={cardData}
-              onSwipe={handleSwipe}
-              onStackEmpty={showDismissedOnly ? handleDismissedStackEmpty : handleStackEmpty}
-              onSeeMore={handleSeeMore}
-              onViewProject={handleViewProject}
-              dismissedCount={dismissedCards.length}
-              className="mb-8"
-              cardClassName="backdrop-blur-sm"
-              swipedCardIds={swipedCardIds}
-              githubData={githubData}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-96 mb-8">
-              <p className="text-base05 text-lg mb-2" style={{textShadow: '0 0 6px var(--glow-red-light), 0 0 12px var(--glow-purple-light)'}}>No more projects to swipe!</p>
-              <p className="text-base04 text-sm mb-6 text-center max-w-md" style={{textShadow: '0 0 4px var(--glow-red-light), 0 0 8px var(--glow-purple-light)'}}>
-                Scroll down to view the projects you liked and learn more about them.
-              </p>
-              <button
-                onClick={handleSeeMore}
-                className="px-6 py-3 bg-base0D hover:bg-base0C text-base00 rounded-lg transition-colors drop-shadow-md"
-              >
-                See More ({dismissedCards.length})
-              </button>
+
+          {/* Card Stack Container - Fixed positioning to prevent shifting */}
+          <div className="relative" style={{ height: 'calc(100vh - 100px)', minHeight: '400px' }}>
+            <div className="absolute inset-0 flex justify-center items-start pt-2 w-full">
+              {showAllCards ? (
+                <CardStack 
+                  key={cardStackKey}
+                  cards={cardData}
+                  onSwipe={handleSwipe}
+                  onStackEmpty={showDismissedOnly ? handleDismissedStackEmpty : handleStackEmpty}
+                  onSeeMore={handleSeeMore}
+                  onViewProject={handleViewProject}
+                  dismissedCount={dismissedCards.length}
+                  className="w-full max-w-sm"
+                  cardClassName=""
+                  swipedCardIds={swipedCardIds}
+                  githubData={githubData}
+                />
+              ) : (
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-base05 text-lg mb-2" style={{textShadow: '0 0 6px var(--glow-red-light), 0 0 12px var(--glow-purple-light)'}}>No more projects to swipe!</p>
+                <p className="text-base04 text-sm mb-6 text-center max-w-md" style={{textShadow: '0 0 4px var(--glow-red-light), 0 0 8px var(--glow-purple-light)'}}>
+                  Scroll down to view the projects you liked and learn more about them.
+                </p>
+                <button
+                  onClick={handleSeeMore}
+                  className="px-6 py-3 bg-base0D hover:bg-base0C text-base00 rounded-lg transition-colors drop-shadow-md"
+                >
+                  See More ({dismissedCards.length})
+                </button>
+              </div>
+            )}
             </div>
-          )}
-        </div>
+          </div>
 
         {swipedCards.length > 0 && (
           <div 
@@ -413,7 +428,7 @@ export default function Projects() {
               </p>
             </div>
             <div 
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-16 sm:pb-20"
               style={{
                 animation: 'fadeIn 0.8s ease-out 0.6s forwards',
                 opacity: 0
@@ -422,15 +437,18 @@ export default function Projects() {
               {swipedCards.map((project, index) => (
                 <div 
                   key={project.id} 
-                  className="bg-base01 backdrop-blur-sm rounded-lg p-6 border border-base02 flex flex-col"
+                  className="bg-base01 rounded-lg p-6 border border-base02 flex flex-col"
                   style={{
                     animation: `fadeInUp 0.6s ease-out ${0.8 + (index * 0.1)}s forwards`,
                     opacity: 0,
                     transform: 'translateY(20px)'
                   }}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold text-base05">{project.title}</h3>
+                  <h3 className="text-xl font-bold text-base05 mb-2">{project.title}</h3>
+                  
+                  {/* Date stamp and GitHub stats on same line */}
+                  <div className="flex items-center justify-between mb-3">
+                    {/* Timestamp always on the left */}
                     <span className="text-base0D text-sm font-semibold opacity-80">
                       {project.startYear && project.endYear 
                         ? project.startYear === project.endYear 
@@ -441,28 +459,28 @@ export default function Projects() {
                           : project.endYear?.toString()
                       }
                     </span>
+                    
+                    {/* GitHub star and fork count display for liked projects - always on the right */}
+                    {project.githubRepo && githubData[project.githubRepo] && (
+                      <div className="flex items-center gap-4 text-base0D text-sm font-semibold opacity-80" style={{fontFamily: 'NerdFont, monospace'}}>
+                        {/* Stars */}
+                        {githubData[project.githubRepo].stargazers_count > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-1">󰓎</span>
+                            <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[project.githubRepo].stargazers_count}</span>
+                          </div>
+                        )}
+                        
+                        {/* Forks */}
+                        {githubData[project.githubRepo].forks_count > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-1">󰓁</span>
+                            <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[project.githubRepo].forks_count}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* GitHub star and fork count display for liked projects */}
-                  {project.githubRepo && githubData[project.githubRepo] && (
-                    <div className="flex items-center gap-4 text-base0D text-sm font-semibold mb-3 opacity-80 font-mono">
-                      {/* Stars */}
-                      {githubData[project.githubRepo].stargazers_count > 0 && (
-                        <div className="flex items-center">
-                          <span className="mr-1" style={{fontFamily: 'NerdFont, monospace'}}>󰓎</span>
-                          {githubData[project.githubRepo].stargazers_count}
-                        </div>
-                      )}
-                      
-                      {/* Forks */}
-                      {githubData[project.githubRepo].forks_count > 0 && (
-                        <div className="flex items-center">
-                          <span className="mr-1" style={{fontFamily: 'NerdFont, monospace'}}>󰓁</span>
-                          {githubData[project.githubRepo].forks_count}
-                        </div>
-                      )}
-                    </div>
-                  )}
                   
                   <p className="text-base04 mb-4 project-description flex-grow">
                     {project.shortDescription 
@@ -491,14 +509,20 @@ export default function Projects() {
         
         {/* Scroll Indicator with Hint */}
         {swipedCards.length > 0 && !isInLikedSection && (
-          <div className="fixed bottom-8 right-8 z-20">
+          <div className="fixed bottom-12 right-4 sm:right-5 lg:right-6 z-20">
             {/* Scroll Hint Popup */}
             {showScrollHint && swipedCards.length > 0 && (
-              <div className="absolute bottom-16 right-0 mb-2 px-4 py-2 bg-base01 border border-base0D/30 rounded-lg shadow-lg backdrop-blur-sm animate-bounce">
+              <div className={`absolute bottom-16 right-0 mb-2 px-4 py-2 bg-base01 border border-base02 rounded-lg shadow-lg backdrop-blur-sm transition-opacity duration-300 animate-bounce ${hintVisible ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="text-base05 text-sm font-medium whitespace-nowrap">
                   Projects you&apos;ve liked ↓
                 </div>
-                <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-base01"></div>
+                {/* Tail with proper border outline */}
+                <div className="absolute top-full right-7">
+                  {/* Outer triangle for border - slightly larger */}
+                  <div className="absolute w-0 h-0 border-l-[5px] border-r-[5px] border-t-[5px] border-transparent border-t-base02"></div>
+                  {/* Inner triangle for fill - smaller and offset */}
+                  <div className="absolute w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-base01" style={{top: '-1px', left: '1px'}}></div>
+                </div>
               </div>
             )}
             
@@ -519,7 +543,7 @@ export default function Projects() {
                 }
                 setShowScrollHint(false);
               }}
-              className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-base0D/20 to-base0C/20 border border-base0D/30 rounded-full backdrop-blur-sm hover:from-base0D/30 hover:to-base0C/30 transition-all duration-300 group"
+              className="p-3 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95"
               title="Scroll to liked projects"
             >
               <svg
@@ -528,7 +552,7 @@ export default function Projects() {
                 viewBox="0 0 24 24"
                 strokeWidth={2}
                 stroke="currentColor"
-                className="w-6 h-6 text-base0D"
+                className="w-6 h-6 text-base00"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
               </svg>

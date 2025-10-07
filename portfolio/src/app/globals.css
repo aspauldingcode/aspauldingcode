@@ -386,3 +386,91 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Glass overlay uniform gradient effect with rotating texture map */
+@keyframes rotateTexture {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.glass-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  z-index: 1;
+}
+
+.glass-overlay::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.08) 0%, transparent 40%),
+    conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.05) 25%, transparent 50%, rgba(255,255,255,0.03) 75%, transparent 100%);
+  animation: rotateTexture 20s linear infinite;
+  z-index: 0;
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+}
+
+/* Advanced gradient glass overlay with multi-layer effects and rotating texture */
+.glass-overlay-advanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    rgba(166, 227, 161, 0.15) 0%, 
+    rgba(148, 226, 213, 0.12) 20%, 
+    rgba(137, 184, 194, 0.08) 40%, 
+    rgba(125, 174, 163, 0.06) 60%, 
+    rgba(80, 73, 69, 0.04) 80%, 
+    transparent 100%
+  );
+  z-index: 1;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0.05) 100%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0.05) 100%);
+}
+
+.glass-overlay-advanced::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(166, 227, 161, 0.06) 0%, transparent 60%),
+    radial-gradient(circle at 75% 75%, rgba(148, 226, 213, 0.05) 0%, transparent 50%),
+    conic-gradient(from 45deg, transparent 0%, rgba(137, 184, 194, 0.03) 20%, transparent 40%, rgba(125, 174, 163, 0.025) 60%, transparent 80%, rgba(80, 73, 69, 0.02) 90%, transparent 100%);
+  animation: rotateTexture 25s linear infinite;
+  z-index: 0;
+  mix-blend-mode: overlay;
+  opacity: 0.4;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0.05) 100%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0.05) 100%);
+}
+
+.glass-overlay > * {
+  position: relative;
+  z-index: 2;
+}

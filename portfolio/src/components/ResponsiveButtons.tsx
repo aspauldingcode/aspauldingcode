@@ -192,7 +192,7 @@ export const ResponsiveButtons: React.FC<ResponsiveButtonsProps> = ({
           texts={sourceCodeTexts}
           href={project.githubRepo}
           target="_blank"
-          className="bg-base0D hover:bg-base0C text-base00 rounded-lg transition-colors text-xs flex-1 px-3 py-2 text-center"
+          className="bg-base0E hover:bg-base0F text-base00 rounded-lg transition-colors text-xs flex-1 px-3 py-2 text-center"
         />
       )}
       
@@ -201,7 +201,7 @@ export const ResponsiveButtons: React.FC<ResponsiveButtonsProps> = ({
           texts={visitSiteTexts}
           href={project.link}
           target="_blank"
-          className="bg-base0E hover:bg-base0F text-base00 rounded-lg transition-colors text-xs flex-1 px-3 py-2 text-center"
+          className="bg-base0C hover:bg-base0D text-base00 rounded-lg transition-colors text-xs flex-1 px-3 py-2 text-center"
         />
       )}
     </div>

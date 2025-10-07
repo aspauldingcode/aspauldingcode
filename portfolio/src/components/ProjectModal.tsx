@@ -439,10 +439,11 @@ export default function ProjectModal({
             {/* Carousel swipe hint for multiple images - now overlays the carousel */}
             {project?.images && project.images.length > 1 && (
               <div 
-                className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-base00 bg-opacity-90 backdrop-blur-sm rounded-full text-xs text-base05 font-medium border border-base02 transition-opacity duration-500 ease-out pointer-events-none"
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-base00 bg-opacity-90 backdrop-blur-sm rounded-full text-base05 font-medium border border-base02 transition-opacity duration-500 ease-out pointer-events-none whitespace-nowrap"
                 style={{
                   filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
-                  opacity: hasUserSwiped ? 0 : 1
+                  opacity: hasUserSwiped ? 0 : 1,
+                  fontSize: 'clamp(10px, 2.5vw, 12px)' // Responsive text size that shrinks on smaller screens
                 }}
               >
                 Swipe for more images ({project.images.length})
@@ -515,7 +516,7 @@ export default function ProjectModal({
                     href={project.githubRepo} 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-2 bg-base0D hover:bg-base0C text-base00 text-sm rounded-lg transition-colors"
+                    className="inline-flex items-center px-3 py-2 bg-base0C hover:bg-base0D text-base00 text-sm rounded-lg transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >
                     View Source Code →
@@ -526,7 +527,7 @@ export default function ProjectModal({
                     href={project.link} 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-2 bg-base0C hover:bg-base0D text-base00 text-sm rounded-lg transition-colors"
+                    className="inline-flex items-center px-3 py-2 bg-base0E hover:bg-base0F text-base00 text-sm rounded-lg transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {project.githubRepo ? 'Visit Live Site →' : 'Visit Project →'}
@@ -549,7 +550,7 @@ export default function ProjectModal({
                   onClose();
                 }
               }}
-              className="flex-1 py-3 bg-base08 hover:bg-base09 text-base00 rounded-lg font-semibold transition-colors"
+              className="flex-1 py-2 bg-base08 hover:bg-base09 text-base00 rounded-lg font-semibold transition-colors"
             >
               Pass
             </button>
@@ -562,7 +563,7 @@ export default function ProjectModal({
                   onClose();
                 }
               }}
-              className="flex-1 py-3 bg-base0B hover:bg-base0A text-base00 rounded-lg font-semibold transition-colors"
+              className="flex-1 py-2 bg-base0B hover:bg-base0A text-base00 rounded-lg font-semibold transition-colors"
             >
               Like
             </button>
@@ -603,7 +604,7 @@ export default function ProjectModal({
               <div 
                 className="animate-bounce relative"
                 style={{
-                  filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.8)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6))'
+                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
                 }}
               >
                 <svg
