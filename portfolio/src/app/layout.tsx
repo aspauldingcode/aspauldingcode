@@ -8,10 +8,16 @@ const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
 export const metadata = {
   title: 'Portfolio',
   description: 'My portfolio website',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
   other: {
     'overscroll-behavior': 'none',
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 function ThemeScript() {

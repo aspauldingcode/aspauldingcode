@@ -19,3 +19,6 @@ result/
 
 # Ignore the generated PDF (gets copied to portfolio anyway)
 *.pdf
+
+# Ignore nvim log file
+.nvimlog

@@ -225,7 +225,10 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
         {/* Fixed X button - positioned on the left side */}
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 p-2 hover:bg-base0C rounded-full transition-all duration-300 z-30 bg-base0E backdrop-blur-sm"
+          className="absolute top-4 left-4 p-2 hover:bg-base0C rounded-full transition-all duration-300 z-30 bg-base0E backdrop-blur-sm shadow-md"
+          style={{
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+          }}
           aria-label="Close contact form"
         >
           <svg
