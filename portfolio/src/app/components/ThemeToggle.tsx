@@ -1,23 +1,34 @@
 'use client';
 
 import { useTheme } from '../context/ThemeContext';
-import { useEffect, useRef } from 'react';
 
 export default function ThemeToggle() {
   const { theme, toggleTheme, mounted } = useTheme();
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (mounted && buttonRef.current) {
-      // Remove any placeholder styles and show the real button
-      const placeholders = document.querySelectorAll('.theme-toggle-placeholder');
-      placeholders.forEach(placeholder => placeholder.remove());
-      
-      buttonRef.current.style.opacity = '1';
-    }
-  }, [mounted]);
-
+  // Use a consistent icon during initial render to prevent hydration mismatch
   const getThemeIcon = () => {
+    // During initial render and before mounting, always show the auto icon
+    if (!mounted) {
+      return (
+        <>
+          {/* Auto icon - half sun, half moon */}
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8a4 4 0 100 8V8z"
+            fill="currentColor"
+          />
+        </>
+      );
+    }
+
     switch (theme) {
       case 'light':
         return (
@@ -62,6 +73,11 @@ export default function ThemeToggle() {
   };
 
   const getAriaLabel = () => {
+    // During initial render, use a consistent label
+    if (!mounted) {
+      return 'Toggle theme';
+    }
+
     switch (theme) {
       case 'light':
         return 'Switch to dark mode';
@@ -76,24 +92,21 @@ export default function ThemeToggle() {
 
   return (
     <button
-      ref={buttonRef}
       onClick={toggleTheme}
-      className="fixed top-4 right-4 sm:top-5 sm:right-5 lg:top-6 lg:right-6 p-3 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95 z-30"
-      style={{ opacity: 0 }}
+      className="fixed top-4 right-4 sm:top-5 sm:right-5 lg:top-6 lg:right-6 p-2 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95 z-30"
       aria-label={getAriaLabel()}
       title={`Current: ${theme} mode`}
     >
-      {mounted && (
-        <svg
-          className="w-6 h-6 text-base00"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {getThemeIcon()}
-        </svg>
-      )}
+      <svg
+        className="w-5 h-5 text-base00"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ opacity: 1, transition: 'none' }}
+      >
+        {getThemeIcon()}
+      </svg>
     </button>
   );
 }

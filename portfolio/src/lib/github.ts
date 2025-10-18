@@ -41,9 +41,12 @@ export async function fetchGitHubRepoData(repoUrl: string): Promise<GitHubRepoDa
 
 export async function fetchMultipleGitHubRepoData(repos: string[]): Promise<Record<string, GitHubRepoData>> {
   const results: Record<string, GitHubRepoData> = {};
+
+  // Deduplicate repo URLs to avoid duplicate requests
+  const uniqueRepos = Array.from(new Set(repos));
   
   // Fetch all repositories in parallel
-  const promises = repos.map(async (repo) => {
+  const promises = uniqueRepos.map(async (repo) => {
     const repoData = await fetchGitHubRepoData(repo);
     if (repoData !== null) {
       results[repo] = repoData;

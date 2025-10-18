@@ -26,6 +26,8 @@ interface CardStackProps {
   onSeeMore?: () => void;
   onViewProject?: (card: CardData) => void;
   dismissedCount?: number;
+  likedCount?: number;
+  onViewLiked?: () => void;
   className?: string;
   cardClassName?: string;
   swipedCardIds?: Set<string>;
@@ -40,6 +42,7 @@ interface DragState {
   currentY: number;
   deltaX: number;
   deltaY: number;
+  initialCardRect?: DOMRect;
 }
 
 const SWIPE_THRESHOLD = 75; // Reduced for easier swiping
@@ -68,6 +71,8 @@ export default function CardStack({
   onSeeMore,
   onViewProject,
   dismissedCount = 0,
+  likedCount = 0,
+  onViewLiked,
   className = '',
   cardClassName = '',
   swipedCardIds: externalSwipedCardIds,
@@ -83,6 +88,7 @@ export default function CardStack({
     currentY: 0,
     deltaX: 0,
     deltaY: 0,
+    initialCardRect: undefined,
   });
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [cardLayout, setCardLayout] = useState<'portrait' | 'landscape' | 'compact'>('portrait');
@@ -96,8 +102,8 @@ export default function CardStack({
   const portraitDescRef = useRef<HTMLDivElement>(null);
   
   // Use advanced opaque blur hooks
-  const landscapeBlur = useBackdropBlur(landscapeDescRef);
-  const portraitBlur = useBackdropBlur(portraitDescRef);
+  const landscapeBlur = useBackdropBlur(/*landscapeDescRef*/);
+  const portraitBlur = useBackdropBlur(/*portraitDescRef*/);
 
   // Reset currentIndex and swipedCardIds when component is re-mounted (key changes)
   useEffect(() => {
@@ -118,7 +124,7 @@ export default function CardStack({
       const availableWidth = vw - (horizontalMargin * 2);
       const availableHeight = vh - verticalReserved;
       
-      // Calculate how well each orientation would fit
+      // Calculate how each orientation would fit
       const portraitWidthScale = availableWidth / BASE_CARD_WIDTH;
       const portraitHeightScale = availableHeight / BASE_CARD_HEIGHT;
       const portraitScale = Math.min(portraitWidthScale, portraitHeightScale);
@@ -229,8 +235,9 @@ export default function CardStack({
       // Clamp scale factor to reasonable bounds
       newScaleFactor = Math.max(0.35, Math.min(1.8, newScaleFactor));
       
-      setCardLayout(newLayout);
-      setScaleFactor(newScaleFactor);
+      // Only update when values actually change to avoid re-render loops
+      setCardLayout(prev => (prev !== newLayout ? newLayout : prev));
+      setScaleFactor(prev => (Math.abs(prev - newScaleFactor) > 0.0001 ? newScaleFactor : prev));
     };
 
     updateLayout();
@@ -357,6 +364,13 @@ export default function CardStack({
   };
 
   const handleStart = useCallback((clientX: number, clientY: number) => {
+    // Capture the card's initial position when drag starts
+    const cardEl = cardRef.current;
+    let initialCardRect: DOMRect | undefined;
+    if (cardEl) {
+      initialCardRect = cardEl.getBoundingClientRect();
+    }
+    
     setDragState({
       isDragging: true,
       startX: clientX,
@@ -365,6 +379,7 @@ export default function CardStack({
       currentY: clientY,
       deltaX: 0,
       deltaY: 0,
+      initialCardRect,
     });
   }, []);
 
@@ -422,6 +437,7 @@ export default function CardStack({
       currentY: 0,
       deltaX: 0,
       deltaY: 0,
+      initialCardRect: undefined,
     });
   }, [dragState, availableCards, onSwipe, onStackEmpty, visibleCards, externalSwipedCardIds]);
 
@@ -488,28 +504,60 @@ export default function CardStack({
       }
 
       if (isDragging) {
-        // Dragging state with dynamic light casting based on drag distance
+        // Dragging state with fixed positioning to overlay everything
         const rotation = Math.max(-MAX_ROTATION, Math.min(MAX_ROTATION, deltaX * ROTATION_FACTOR));
-        // Note: Variables calculated but not used in current implementation
-        // const absDeltaX = Math.abs(deltaX);
-        // const lightIntensity = Math.min(absDeltaX / 150, 1); // Normalize to 0-1
-        // const shadowDistance = Math.min(absDeltaX / 10, 20); // Max 20px shadow distance
         
-        // Note: boxShadow calculated but not used in current implementation
-        // let boxShadow = '';
-        if (deltaX > 30) {
-          // Right swipe - base16 green gradient on left edge (like action)
-          // boxShadow = `inset ${shadowDistance * 2}px 0 ${60 + lightIntensity * 80}px var(--base0B), inset ${shadowDistance * 3}px 0 ${100 + lightIntensity * 100}px rgba(161, 181, 108, ${0.3 + lightIntensity * 0.5}), inset ${shadowDistance}px 0 ${30 + lightIntensity * 40}px var(--base0B)`;
-        } else if (deltaX < -30) {
-          // Left swipe - base16 red gradient on right edge (pass action)
-          // boxShadow = `inset ${-shadowDistance * 2}px 0 ${60 + lightIntensity * 80}px var(--base08), inset ${-shadowDistance * 3}px 0 ${100 + lightIntensity * 100}px rgba(171, 70, 66, ${0.3 + lightIntensity * 0.5}), inset ${-shadowDistance}px 0 ${30 + lightIntensity * 40}px var(--base08)`;
+        // Use the initial card position captured at drag start for consistent positioning
+        const initialRect = dragState.initialCardRect;
+        if (initialRect) {
+          // Calculate position based on initial card position plus drag offset
+          const finalX = initialRect.left + deltaX;
+          const finalY = initialRect.top + deltaY * 0.5;
+          
+          return {
+            position: 'fixed',
+            left: `${finalX}px`,
+            top: `${finalY}px`,
+            width: `${initialRect.width}px`,
+            height: `${initialRect.height}px`,
+            transform: `rotate(${rotation}deg)`,
+            zIndex: 9999, // Very high z-index to overlay everything
+            transition: 'none', // Remove transition during drag for immediate response
+            cursor: 'grabbing',
+            pointerEvents: 'auto',
+          };
         }
         
+        // Fallback to previous method if initialRect is not available
+        const cardEl = cardRef.current;
+        let cardRect = { left: 0, top: 0, width: 0, height: 0 };
+        if (cardEl) {
+          const rect = cardEl.getBoundingClientRect();
+          cardRect = {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height
+          };
+        }
+        
+        // Calculate the center position for the card
+        const centerX = cardRect.left + cardRect.width / 2;
+        const centerY = cardRect.top + cardRect.height / 2;
+        
+        // Apply drag offset from the center position
+        const finalX = centerX + deltaX - cardRect.width / 2;
+        const finalY = centerY + deltaY * 0.5 - cardRect.height / 2;
+        
         return {
-          transform: `translateX(${deltaX}px) translateY(${deltaY * 0.5}px) rotate(${rotation}deg)`,
-          zIndex: baseZIndex + 10,
+          position: 'fixed',
+          left: `${finalX}px`,
+          top: `${finalY}px`,
+          transform: `rotate(${rotation}deg)`,
+          zIndex: 9999, // Very high z-index to overlay everything
           transition: 'none', // Remove transition during drag for immediate response
           cursor: 'grabbing',
+          pointerEvents: 'auto',
         };
       }
 
@@ -534,10 +582,13 @@ export default function CardStack({
   };
 
   if (visibleCards.length === 0) {
+    // Calculate remaining dismissed cards that haven't been viewed yet
+    const remainingDismissedCards = dismissedCount > 0 ? dismissedCount : 0;
+    
     return (
       <div className={`flex flex-col items-center justify-center h-96 ${className}`}>
         <p className="text-base04 text-lg mb-4">No more projects</p>
-        {onSeeMore && (
+        {remainingDismissedCards > 0 && onSeeMore ? (
           <button
             onClick={() => {
               setCurrentIndex(0); // Reset the card index to show all cards again
@@ -545,9 +596,16 @@ export default function CardStack({
             }}
             className="px-6 py-3 bg-base0D hover:bg-base0C text-base00 rounded-lg transition-colors"
           >
-            See More ({dismissedCount})
+            View More ({remainingDismissedCards})
           </button>
-        )}
+        ) : likedCount > 0 && onViewLiked ? (
+          <button
+            onClick={onViewLiked}
+            className="px-6 py-3 bg-base0C hover:bg-base0D text-base00 rounded-lg transition-colors"
+          >
+            View Liked ({likedCount})
+          </button>
+        ) : null}
       </div>
     );
   }
@@ -841,7 +899,7 @@ export default function CardStack({
                       <div className="flex items-center text-white font-mono text-xs drop-shadow-lg" style={{ gap: '8px' }}>
                         {githubData[card.githubRepo].stargazers_count > 0 && (
                           <div className="flex items-center" style={{ gap: '3px' }}>
-                            <span style={{fontFamily: 'NerdFont, monospace'}}>󰓎</span>
+                            <span style={{fontFamily: 'NerdFont, monospace'}}>󓎕</span>
                             <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].stargazers_count}</span>
                           </div>
                         )}
@@ -1162,7 +1220,7 @@ export default function CardStack({
                     }}>
                       {githubData[card.githubRepo].stargazers_count > 0 && (
                         <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>󰓎</span>
+                          <span style={{fontFamily: 'NerdFont, monospace'}}>󓎕</span>
                           <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].stargazers_count}</span>
                         </div>
                       )}
@@ -1452,7 +1510,7 @@ export default function CardStack({
                     }}>
                       {githubData[card.githubRepo].stargazers_count > 0 && (
                         <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>󰓎</span>
+                          <span style={{fontFamily: 'NerdFont, monospace'}}>󓎕</span>
                           <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].stargazers_count}</span>
                         </div>
                       )}

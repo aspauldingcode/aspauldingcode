@@ -34,9 +34,13 @@ function ThemeScript() {
             }
             
             function getTheme() {
-              const storedTheme = localStorage.getItem('theme');
-              if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto') {
-                return storedTheme;
+              try {
+                const storedTheme = localStorage.getItem('theme');
+                if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto') {
+                  return storedTheme;
+                }
+              } catch (e) {
+                // Handle localStorage access errors
               }
               return 'auto'; // Default to auto mode
             }
@@ -49,11 +53,36 @@ function ThemeScript() {
                 effectiveTheme = theme;
               }
               document.documentElement.classList.toggle('dark', effectiveTheme === 'dark');
+              
+              // Set CSS custom properties for immediate theme application
+              const root = document.documentElement;
+              if (effectiveTheme === 'dark') {
+                root.style.setProperty('--current-theme', 'dark');
+              } else {
+                root.style.setProperty('--current-theme', 'light');
+              }
+              
               return effectiveTheme;
             }
             
+            // Apply theme immediately on load
             const theme = getTheme();
             applyTheme(theme);
+            
+            // Listen for system theme changes when in auto mode
+            if (theme === 'auto') {
+              const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+              const handleSystemChange = function() {
+                applyTheme('auto');
+              };
+              
+              // Use both modern and legacy event listeners for Safari compatibility
+              if (mediaQuery.addEventListener) {
+                mediaQuery.addEventListener('change', handleSystemChange);
+              } else if (mediaQuery.addListener) {
+                mediaQuery.addListener(handleSystemChange);
+              }
+            }
             
             // Pre-render theme toggle and footer to prevent re-rendering
             const style = document.createElement('style');

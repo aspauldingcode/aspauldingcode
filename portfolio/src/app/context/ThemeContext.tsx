@@ -20,10 +20,7 @@ function getBrowserPreference(): 'light' | 'dark' {
   return 'dark';
 }
 
-function getInitialTheme(): Theme {
-  // Always return 'auto' for SSR to prevent hydration mismatch
-  return 'auto';
-}
+
 
 function applyTheme(theme: Theme) {
   if (typeof window === 'undefined') return 'dark';
@@ -41,24 +38,27 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useState<Theme>('auto'); // Always start with 'auto' for hydration safety
   const [mounted, setMounted] = useState(false);
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('dark');
 
   useEffect(() => {
     setMounted(true);
     
-    // Get stored theme after mounting to avoid hydration mismatch
-    const storedTheme = localStorage.getItem('theme') as Theme;
-    const actualTheme = (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto') 
-      ? storedTheme 
-      : 'auto';
-    
-    setTheme(actualTheme);
-    
-    // Apply initial theme
-    const initial = applyTheme(actualTheme);
-    setEffectiveTheme(initial);
+    // Load theme from localStorage on mount (client-side only)
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme') as Theme | null;
+      if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
+        setTheme(savedTheme);
+        const effective = applyTheme(savedTheme);
+        setEffectiveTheme(effective);
+      } else {
+        // Default to auto if no saved theme
+        setTheme('auto');
+        const effective = applyTheme('auto');
+        setEffectiveTheme(effective);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -79,8 +79,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setEffectiveTheme(effective);
       };
       
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
+      // Use both addEventListener and addListener for better Safari compatibility
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleChange);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleChange);
+      }
+      
+      return () => {
+        if (mediaQuery.removeEventListener) {
+          mediaQuery.removeEventListener('change', handleChange);
+        } else if (mediaQuery.removeListener) {
+          mediaQuery.removeListener(handleChange);
+        }
+      };
     }
   }, [theme, mounted]);
 
@@ -90,7 +102,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const nextTheme = themeOrder[(currentIndex + 1) % themeOrder.length];
     
     setTheme(nextTheme);
-    localStorage.setItem('theme', nextTheme);
+    // Save to localStorage for persistence
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', nextTheme);
+    }
   };
 
   return (

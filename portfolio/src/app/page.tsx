@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ContactForm from './components/ContactForm';
@@ -9,11 +9,6 @@ import { emailConfig } from '@/config/email';
 
 export default function Home() {
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const [useHorizontalLayout, setUseHorizontalLayout] = useState(false);
-  const [useCompactButtons, setUseCompactButtons] = useState(false);
-  const [useHorizontalButtons, setUseHorizontalButtons] = useState(false);
-  const [useLargePortraitProfile, setUseLargePortraitProfile] = useState(false);
-  const [isPortraitOrientation, setIsPortraitOrientation] = useState(false);
 
   const handleContactClick = () => {
     console.log('Contact button clicked');
@@ -23,190 +18,143 @@ export default function Home() {
     }, 200);
   };
 
-
-
   const handleResumeClick = () => {
     console.log('Resume button clicked');
     // Add 0.2 second delay for animation to complete
     setTimeout(() => {
-      window.open('/resume_alex_spaulding.pdf', '_blank');
+      if (typeof window !== 'undefined') {
+        window.open('/resume_alex_spaulding.pdf', '_blank');
+      }
     }, 200);
   };
 
-  // Add useEffect to disable scrolling when the component mounts
-  React.useEffect(() => {
-    // Only disable scrolling if we're on the home page
-    if (window.location.pathname === '/') {
-      // Save the original overflow style
-      const originalBodyOverflow = document.body.style.overflow;
-      const originalDocumentOverflow = document.documentElement.style.overflow;
-      const originalBodyPosition = document.body.style.position;
-      const originalBodyWidth = document.body.style.width;
-      const originalBodyHeight = document.body.style.height;
-      
-      // Disable scrolling but allow touch interactions for buttons
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-      
-      // Re-enable scrolling when component unmounts
-      return () => {
-        document.body.style.overflow = originalBodyOverflow;
-        document.documentElement.style.overflow = originalDocumentOverflow;
-        document.body.style.position = originalBodyPosition;
-        document.body.style.width = originalBodyWidth;
-        document.body.style.height = originalBodyHeight;
-      };
-    }
-  }, []);
 
-  // Check if content would overflow viewport and require horizontal layout
-  useEffect(() => {
-    const checkViewportOverflow = () => {
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-      
-      // Estimate content height for vertical layout:
-      // Profile image: ~160px (lg size) + margin
-      // Title: ~72px (xl text) + margin  
-      // Description: ~24px + margin
-      // Buttons: ~56px + margin
-      // Spacers and padding: ~100px
-      // Footer: ~40px (when wrapping)
-      // Total estimated: ~452px
-      const estimatedVerticalContentHeight = 452;
-      
-      // Enhanced profile photo scaling logic
-      // Desktop: Need both width and height (original logic)
-      // Portrait/Mobile: Use large profile when there's plenty of vertical space OR when cards stack vertically
-      const hasAmpleWidth = viewportWidth >= 1200; // Large desktop width
-      const hasAmpleHeight = viewportHeight >= 700; // Plenty of vertical space
-      const isPortraitOrientation = viewportHeight > viewportWidth; // Portrait orientation
-      const hasExtraVerticalSpace = viewportHeight >= 650; // Reduced threshold for portrait
-      
-      // Check if we have enough space after accounting for essential content
-      const minContentHeight = 300; // Minimum space needed for title, description, buttons
-      const availableSpaceForProfile = viewportHeight - minContentHeight;
-      const canFitLargeProfile = availableSpaceForProfile >= 250; // Large profile needs ~250px
-      
-      // Use large portrait profile if:
-      // 1. Desktop with ample width AND height (original logic), OR
-      // 2. Portrait orientation with sufficient vertical space for large profile, OR
-      // 3. Any orientation where we have enough room after essential content
-      const hasAmpleSpace = (hasAmpleWidth && hasAmpleHeight) || 
-                           (isPortraitOrientation && hasExtraVerticalSpace) ||
-                           canFitLargeProfile;
-      setUseLargePortraitProfile(hasAmpleSpace);
-      setIsPortraitOrientation(isPortraitOrientation);
-      
-      // Use horizontal layout if content would overflow viewport
-      setUseHorizontalLayout(viewportHeight < estimatedVerticalContentHeight);
-      
-      // Check for both width AND height constraints
-      const bothConstraintsActive = viewportHeight < estimatedVerticalContentHeight && viewportWidth < 768; // sm breakpoint
-      
-      // Check if buttons would overflow in horizontal layout
-      if (viewportHeight < estimatedVerticalContentHeight) {
-        // In horizontal layout, estimate total width needed:
-        // Profile image: ~160px + margin (~20px)
-        // Title/description section: ~300px minimum
-        // Buttons (3 buttons): ~150px each = ~450px + gaps (~48px) = ~498px
-        // Total estimated horizontal width: ~180px (profile) + ~300px (text) + ~498px (buttons) = ~978px
-        const estimatedHorizontalContentWidth = 768; // Reduced from 978px to be less aggressive
-        
-        // Use compact buttons if horizontal content would overflow viewport width
-        // OR if height is extremely limited (less than 320px including footer)
-        const extremelyLimitedHeight = viewportHeight < 320; // Reduced from 400px
-        setUseCompactButtons(viewportWidth < estimatedHorizontalContentWidth || extremelyLimitedHeight);
-        
-        // Use horizontal button layout when both width and height are constrained
-        setUseHorizontalButtons(bothConstraintsActive);
-      } else {
-        // In vertical layout, check if buttons would overflow vertically
-        // Only use compact buttons if there's truly insufficient space
-        // Calculate actual content height more accurately
-        const profileHeight = useLargePortraitProfile ? 160 : 80; // Actual profile image height
-        const titleHeight = 72; // Title text height
-        const descriptionHeight = 24; // Description height
-        const normalButtonHeight = 56; // Normal button height
-        const spacingAndPadding = 120; // Margins, gaps, and padding
-        const footerHeight = 40; // Footer height
-        
-        // Calculate total height with normal buttons
-        const totalHeightWithNormalButtons = profileHeight + titleHeight + descriptionHeight + 
-                                           (normalButtonHeight * 3) + spacingAndPadding + footerHeight;
-        
-        // Only use compact buttons if normal buttons would actually cause overflow
-        // Add a small buffer (20px) to prevent unnecessary switching
-        const wouldOverflow = (totalHeightWithNormalButtons + 20) > viewportHeight;
-        
-        // Also check for extremely limited height where even compact buttons might be tight
-        const extremelyLimitedHeight = viewportHeight < 280;
-        
-        setUseCompactButtons(wouldOverflow || extremelyLimitedHeight);
-        setUseHorizontalButtons(false); // Never use horizontal buttons in vertical layout
-      }
-    };
 
-    // Check on mount and resize
-    checkViewportOverflow();
-    window.addEventListener('resize', checkViewportOverflow);
-    
-    return () => window.removeEventListener('resize', checkViewportOverflow);
-  }, [useLargePortraitProfile]);
+
 
   return (
     <main className="fixed inset-0 flex flex-col items-center justify-center bg-base00 overflow-hidden">
-      <div className="flex flex-col items-center justify-center h-full w-full max-w-4xl mx-auto px-4 sm:px-8 py-4 sm:py-8">
+      <div className="flex flex-col items-center justify-center h-full w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 sm:py-8
+                h-600:py-4
+                h-550:py-3
+                h-500:py-2
+                h-452:py-2
+                h-400:py-2
+                h-350:py-1.5
+                h-320:py-1
+                h-280:py-1">
         {/* Profile and Title Section - Responsive layout based on actual viewport overflow */}
-        <div className="flex-shrink-0 mb-4 sm:mb-6 w-full max-w-2xl">
+        <div className="flex-shrink-0 mb-4 sm:mb-6 w-full max-w-2xl
+            h-600:mb-3 h-600:sm:mb-4
+            h-550:mb-2 h-550:sm:mb-3
+            h-500:mb-2 h-500:sm:mb-3
+            h-452:mb-2 h-452:sm:mb-2
+            h-400:mb-1 h-400:sm:mb-2
+            h-350:mb-1 h-350:sm:mb-1
+            h-320:mb-1 h-320:sm:mb-1
+            h-280:mb-1">
           {/* Use flex-row layout only when content would actually overflow viewport */}
-          <div className={`flex items-center ${useHorizontalLayout ? 'flex-row justify-start gap-6' : 'flex-col'}`}>
-            {/* Profile Image - Enhanced Flexbox scaling */}
-            <div className={`flex-shrink-0 ${useHorizontalLayout ? 'mb-0' : 'mb-2'}`}>
-              <div className="relative flex justify-center">
+          <div className="flex items-center 
+            flex-col 
+            h-452:flex-row h-452:justify-start h-452:gap-6
+            wide-short:items-center wide-short:gap-4">
+            {/* Profile Image - Enhanced Flexbox scaling with upstream logic */}
+            <div className="flex-shrink-0 mb-2 h-452:mb-0
+                h-600:mb-2
+                h-550:mb-1
+                h-500:mb-1
+                h-400:mb-1
+                h-350:mb-1
+                h-320:mb-1
+                h-280:mb-1
+                mb-4 sm:mb-6 md:mb-8 lg:mb-10 xl:mb-12
+                h-600:mb-2 h-600:sm:mb-3 h-600:md:mb-4
+                h-550:mb-2 h-550:sm:mb-2 h-550:md:mb-3
+                h-500:mb-2 h-500:sm:mb-2 h-500:md:mb-2
+                h-452:mb-1.5 h-452:sm:mb-2 h-452:md:mb-2
+                h-400:mb-1.5 h-400:sm:mb-1.5 h-400:md:mb-2
+                h-350:mb-1 h-350:sm:mb-1 h-350:md:mb-1.5
+                h-320:mb-1 h-320:sm:mb-1 h-320:md:mb-1
+                h-280:mb-1 h-280:sm:mb-1 h-280:md:mb-1
+                wide-short:mb-3 wide-short:sm:mb-4">
+              <div className="relative flex justify-center items-center min-h-0 min-w-0">
+                {/* Large portrait image - shown with ample vertical space */}
                 <Image
-                  src={useLargePortraitProfile ? "/profile_regular.jpg" : "/profile_square.jpg"}
+                  src="/profile_regular.jpg"
                   alt="Profile picture"
-                  width={useLargePortraitProfile ? 220 : 150}
-                  height={useLargePortraitProfile ? 293 : 150}
-                  className={
-                    useLargePortraitProfile 
-                      ? `rounded-2xl border-4 border-base02 object-cover ${
-                          isPortraitOrientation 
-                            ? 'w-48 h-64 sm:w-52 sm:h-72 md:w-56 md:h-80' // Enhanced portrait scaling
-                            : 'w-44 h-60' // Desktop scaling
-                        }`
-                      : `rounded-full border-4 border-base02 ${
-                          useHorizontalLayout 
-                            ? 'w-16 h-16 sm:w-20 sm:h-20' 
-                            : isPortraitOrientation
-                            ? 'w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-44 lg:h-44' // Enhanced portrait circular scaling
-                            : 'w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40' // Standard vertical scaling
-                        }`
-                  }
+                  width={220}
+                  height={293}
+                  className="rounded-2xl border-4 border-base02 object-cover flex-shrink-0
+                    w-28 h-36 sm:w-32 sm:h-40 md:w-40 md:h-52 lg:w-44 lg:h-56 xl:w-48 xl:h-64
+                    tall-650:w-56 tall-650:h-72
+                    tall:w-60 tall:h-80
+                    h-600:w-40 h-600:h-52 h-600:lg:w-36 h-600:lg:h-48
+                    h-550:w-36 h-550:h-48 h-550:lg:w-32 h-550:lg:h-44
+                    h-500:w-32 h-500:h-44 h-500:lg:w-28 h-500:lg:h-40
+                    h-452:w-28 h-452:h-40 h-452:lg:w-24 h-452:lg:h-36
+                    h-400:w-24 h-400:h-36 h-400:lg:w-24 h-400:lg:h-36
+                    h-350:w-24 h-350:h-36 h-350:lg:w-24 h-350:lg:h-36
+                    h-320:w-24 h-320:h-36 h-320:lg:w-24 h-320:lg:h-36
+                    h-280:w-24 h-280:h-36 h-280:lg:w-24 h-280:lg:h-36
+                    hidden tall-600:block
+                    max-w-full max-h-full"
+                  priority
+                />
+                {/* Square image - shown when vertical space is limited */}
+                <Image
+                  src="/profile_square.jpg"
+                  alt="Profile picture"
+                  width={150}
+                  height={150}
+                  className="rounded-full border-4 border-base02 flex-shrink-0
+                    w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-44 lg:h-44 xl:w-48 xl:h-48
+                    tall-650:w-52 tall-650:h-52
+                    tall:w-56 tall:h-56
+                    h-600:w-32 h-600:h-32 h-600:lg:w-36 h-600:lg:h-36
+                    h-550:w-28 h-550:h-28 h-550:lg:w-32 h-550:lg:h-32
+                    h-500:w-24 h-500:h-24 h-500:lg:w-28 h-500:lg:h-28
+                    h-452:w-20 h-452:h-20 h-452:lg:w-24 h-452:lg:h-24
+                    h-400:w-20 h-400:h-20 h-400:lg:w-20 h-400:lg:h-20
+                    h-350:w-20 h-350:h-20 h-350:lg:w-20 h-350:lg:h-20
+                    h-320:w-20 h-320:h-20 h-320:lg:w-20 h-320:lg:h-20
+                    h-280:w-20 h-280:h-20 h-280:lg:w-20 h-280:lg:h-20
+                    h-452:w-20 h-452:h-20 h-452:sm:w-24 h-452:sm:h-24
+                    block tall-600:hidden
+                    max-w-full max-h-full object-cover"
                   priority
                 />
               </div>
             </div>
 
             {/* Title and Description */}
-            <div className={`flex-grow ${useHorizontalLayout ? 'text-left' : 'text-center'}`}>
-              <h1 className={`font-bold text-base05 ${
-                useHorizontalLayout 
-                  ? 'text-lg sm:text-xl md:text-2xl mb-1' 
-                  : 'text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl mb-1 sm:mb-2 md:mb-4'
-              }`}>
+            <div className="flex-grow text-center h-452:text-left">
+              <h1 className="font-bold text-base05 
+                text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl
+                h-600:text-xl h-600:sm:text-2xl h-600:md:text-3xl
+                h-550:text-lg h-550:sm:text-xl h-550:md:text-2xl
+                h-500:text-base h-500:sm:text-lg h-500:md:text-xl
+                h-452:text-base h-452:sm:text-lg h-452:md:text-xl
+                h-400:text-sm h-400:sm:text-base h-400:md:text-lg
+                h-350:text-sm h-350:sm:text-base h-350:md:text-base
+                h-320:text-xs h-320:sm:text-sm h-320:md:text-base
+                h-280:text-xs h-280:sm:text-sm h-280:md:text-base
+                mb-1 sm:mb-2 md:mb-4 h-452:mb-1 h-280:mb-1">
                 Alex Spaulding
               </h1>
-              <p className={`text-base04 ${
-                useHorizontalLayout 
-                  ? 'text-xs sm:text-sm max-w-none px-0' 
-                  : 'text-xs sm:text-sm md:text-lg lg:text-xl max-w-xs sm:max-w-md md:max-w-2xl px-2'
-              }`}>
-                Software developer focused on building efficient, scalable solutions.
+              <p className="text-base04 
+                text-xs sm:text-sm md:text-lg lg:text-xl
+                h-600:text-xs h-600:sm:text-sm h-600:md:text-base
+                h-550:text-xs h-550:sm:text-xs h-550:md:text-sm
+                h-500:text-xs h-500:sm:text-xs h-500:md:text-sm
+                h-452:text-xs h-452:sm:text-xs h-452:md:text-sm
+                h-400:text-xs h-400:sm:text-xs h-400:md:text-xs
+                h-350:text-xs h-350:sm:text-xs h-350:md:text-xs
+                h-320:text-xs h-320:sm:text-xs h-320:md:text-xs
+                h-280:text-xs h-280:sm:text-xs h-280:md:text-xs
+                max-w-xs sm:max-w-md md:max-w-2xl
+                h-452:max-w-none h-280:max-w-none
+                px-2 h-452:px-0 h-280:px-0">
+                Computer Science student at Eastern Washington University currently exploring macOS reverse engineering and UI design tweaks.
               </p>
             </div>
           </div>
@@ -215,29 +163,41 @@ export default function Home() {
         {/* Buttons Section - Bootstrap-like responsive grid */}
         <div className="flex-shrink-0 w-full max-w-2xl mx-auto">
           {/* Grid container - adapts based on viewport constraints */}
-          <div className={`flex justify-center items-center ${
-            useHorizontalButtons 
-              ? 'flex-row gap-3 sm:gap-4 md:gap-6' // Horizontal with better spacing for visual separation
-              : 'flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 lg:gap-10' // Normal responsive behavior with progressive spacing
-          }`}>
+          <div className="flex justify-evenly items-center 
+            flex-col sm:flex-row
+            h-452:flex-row
+            wide-short:flex-row wide-short:items-center
+            gap-6 sm:gap-10 md:gap-14 lg:gap-18 xl:gap-24
+            h-600:gap-5 h-600:sm:gap-8 h-600:md:gap-10
+            h-550:gap-4 h-550:sm:gap-7 h-550:md:gap-9
+            h-500:gap-4 h-500:sm:gap-6 h-500:md:gap-8
+            h-452:gap-3 h-452:sm:gap-5 h-452:md:gap-7
+            h-400:gap-3 h-400:sm:gap-4 h-400:md:gap-6
+            h-350:gap-2 h-350:sm:gap-3 h-350:md:gap-5
+            h-320:gap-2 h-320:sm:gap-3 h-320:md:gap-4
+            h-280:gap-2 h-280:sm:gap-2 h-280:md:gap-3
+            wide-short:gap-4 wide-short:sm:gap-8 wide-short:md:gap-10
+            h-280:gap-2 h-320:gap-2">
             
             {/* Projects Button */}
-            <div className={`transform ${useHorizontalButtons ? 'rotate-0' : 'rotate-0 sm:-rotate-1'} ${useHorizontalButtons ? 'hover:-rotate-1' : 'hover:-rotate-1 sm:hover:rotate-0'} active:rotate-0 transition-transform duration-300 ${
-              useHorizontalButtons 
-                ? 'flex-1 min-w-0' // Flexible width with reduced spacing for horizontal layout
-                : 'w-full sm:w-auto sm:flex-1 max-w-xs' // Normal responsive sizing
-            }`}>
+            <div className="transform rotate-0 sm:-rotate-1 hover:-rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
+              w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
+              h-452:flex-1 h-452:min-w-0">
               <Link 
                 href="/projects"
-                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0D hover:bg-base0E text-base00 ${
-                  useCompactButtons 
-                    ? 'px-2 py-2 text-xs' 
-                    : useHorizontalButtons
-                    ? 'px-4 py-4 text-lg sm:text-xl'
-                    : 'px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg'
-                } ${
-                  useHorizontalButtons ? 'space-x-2' : 'space-x-2'
-                }`}
+                className="inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0D hover:bg-base0C text-base00 
+                  px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg
+                  h-600:px-3 h-600:py-2 h-600:text-xs
+                  h-550:px-2 h-550:py-1.5 h-550:text-xs
+                  h-500:px-2 h-500:py-1.5 h-500:text-xs
+                  h-452:px-2 h-452:py-1 h-452:text-xs
+                  h-400:px-2 h-400:py-1 h-400:text-xs
+                  h-350:px-2 h-350:py-1 h-350:text-xs
+                  h-320:px-2 h-320:py-1 h-320:text-xs
+                  h-280:px-2 h-280:py-1 h-280:text-xs
+                  wide-short:px-3 wide-short:py-2 wide-short:text-sm
+                  space-x-2 h-280:space-x-1 h-320:space-x-1 h-452:space-x-1 wide-short:space-x-1
+                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]"
               >
                 <span>Projects</span>
                 <svg
@@ -246,13 +206,18 @@ export default function Home() {
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                   stroke="currentColor"
-                  className={`flex-shrink-0 ${
-                    useCompactButtons 
-                      ? 'w-3 h-3' 
-                      : useHorizontalButtons
-                      ? 'w-6 h-6 sm:w-7 sm:h-7'
-                      : 'w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6'
-                  }`}
+                  className="flex-shrink-0 
+                    w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6
+                    h-600:w-3 h-600:h-3 h-600:sm:w-4 h-600:sm:h-4
+                    h-550:w-3 h-550:h-3 h-550:sm:w-3 h-550:sm:h-3
+                    h-500:w-3 h-500:h-3 h-500:sm:w-3 h-500:sm:h-3
+                    h-452:w-3 h-452:h-3
+                    h-400:w-2.5 h-400:h-2.5
+                    h-350:w-2.5 h-350:h-2.5
+                    h-320:w-2.5 h-320:h-2.5
+                    h-280:w-2.5 h-280:h-2.5
+
+                    wide-short:w-4 wide-short:h-4"
                 >
                   <path
                     strokeLinecap="round"
@@ -264,22 +229,24 @@ export default function Home() {
             </div>
 
             {/* Resume Button */}
-            <div className={`transform ${useHorizontalButtons ? 'rotate-0' : 'rotate-0 sm:rotate-0.5'} ${useHorizontalButtons ? 'hover:rotate-0.5' : 'hover:rotate-0.5 sm:hover:rotate-0'} active:rotate-0 transition-transform duration-300 ${
-              useHorizontalButtons 
-                ? 'flex-1 min-w-0' // Flexible width with reduced spacing for horizontal layout
-                : 'w-full sm:w-auto sm:flex-1 max-w-xs' // Normal responsive sizing
-            }`}>
+            <div className="transform rotate-0 sm:rotate-0.5 hover:rotate-0.5 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
+              w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
+              h-452:flex-1 h-452:min-w-0">
               <button
                 onClick={handleResumeClick}
-                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0B hover:bg-base0A text-base00 ${
-                  useCompactButtons 
-                    ? 'px-2 py-2 text-xs' 
-                    : useHorizontalButtons
-                    ? 'px-4 py-4 text-lg sm:text-xl'
-                    : 'px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg'
-                } ${
-                  useHorizontalButtons ? 'space-x-2' : 'space-x-2'
-                }`}
+                className="inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0B hover:bg-base0A text-base00 
+                  px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg
+                  h-600:px-3 h-600:py-2 h-600:text-xs
+                  h-550:px-2 h-550:py-1.5 h-550:text-xs
+                  h-500:px-2 h-500:py-1.5 h-500:text-xs
+                  h-452:px-2 h-452:py-1 h-452:text-xs
+                  h-400:px-2 h-400:py-1 h-400:text-xs
+                  h-350:px-2 h-350:py-1 h-350:text-xs
+                  h-320:px-2 h-320:py-1 h-320:text-xs
+                  h-280:px-2 h-280:py-1 h-280:text-xs
+                  wide-short:px-3 wide-short:py-2 wide-short:text-sm
+                  space-x-2 h-280:space-x-1 h-320:space-x-1 h-452:space-x-1 wide-short:space-x-1
+                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]"
               >
                 <span>Resume</span>
                 <svg
@@ -288,13 +255,18 @@ export default function Home() {
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                   stroke="currentColor"
-                  className={`flex-shrink-0 ${
-                    useCompactButtons 
-                      ? 'w-3 h-3' 
-                      : useHorizontalButtons
-                      ? 'w-6 h-6 sm:w-7 sm:h-7'
-                      : 'w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6'
-                  }`}
+                  className="flex-shrink-0 
+                    w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6
+                    h-600:w-3 h-600:h-3
+                    h-550:w-3 h-550:h-3
+                    h-500:w-3 h-500:h-3
+                    h-452:w-3 h-452:h-3
+                    h-400:w-2.5 h-400:h-2.5
+                    h-350:w-2.5 h-350:h-2.5
+                    h-320:w-2.5 h-320:h-2.5
+                    h-280:w-2.5 h-280:h-2.5
+
+                    wide-short:w-4 wide-short:h-4"
                 >
                   <path
                     strokeLinecap="round"
@@ -306,22 +278,24 @@ export default function Home() {
             </div>
 
             {/* Contact Button */}
-            <div className={`transform ${useHorizontalButtons ? 'rotate-0' : 'rotate-0 sm:rotate-1'} ${useHorizontalButtons ? 'hover:rotate-1' : 'hover:rotate-1 sm:hover:rotate-0'} active:rotate-0 transition-transform duration-300 ${
-              useHorizontalButtons 
-                ? 'flex-1 min-w-0' // Flexible width with reduced spacing for horizontal layout
-                : 'w-full sm:w-auto sm:flex-1 max-w-xs' // Normal responsive sizing
-            }`}>
+            <div className="transform rotate-0 sm:rotate-1 hover:rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
+              w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
+              h-452:flex-1 h-452:min-w-0">
               <button
                 onClick={handleContactClick}
-                className={`inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0C hover:bg-base0E text-base00 ${
-                  useCompactButtons 
-                    ? 'px-2 py-2 text-xs' 
-                    : useHorizontalButtons
-                    ? 'px-4 py-4 text-lg sm:text-xl'
-                    : 'px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg'
-                } ${
-                  useHorizontalButtons ? 'space-x-2' : 'space-x-2'
-                }`}
+                className="inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0E hover:bg-base0F text-base00 
+                  px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg
+                  h-600:px-3 h-600:py-2 h-600:text-xs
+                  h-550:px-2 h-550:py-1.5 h-550:text-xs
+                  h-500:px-2 h-500:py-1.5 h-500:text-xs
+                  h-452:px-2 h-452:py-1 h-452:text-xs
+                  h-400:px-2 h-400:py-1 h-400:text-xs
+                  h-350:px-2 h-350:py-1 h-350:text-xs
+                  h-320:px-2 h-320:py-1 h-320:text-xs
+                  h-280:px-2 h-280:py-1 h-280:text-xs
+                  wide-short:px-3 wide-short:py-2 wide-short:text-sm
+                  space-x-2 h-280:space-x-1 h-320:space-x-1 h-452:space-x-1 wide-short:space-x-1
+                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]"
               >
                 <span>Contact</span>
                 <svg
@@ -330,13 +304,18 @@ export default function Home() {
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                   stroke="currentColor"
-                  className={`flex-shrink-0 ${
-                    useCompactButtons 
-                      ? 'w-3 h-3' 
-                      : useHorizontalButtons
-                      ? 'w-6 h-6 sm:w-7 sm:h-7'
-                      : 'w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6'
-                  }`}
+                  className="flex-shrink-0 
+                    w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6
+                    h-600:w-3 h-600:h-3
+                    h-550:w-3 h-550:h-3
+                    h-500:w-3 h-500:h-3
+                    h-452:w-3 h-452:h-3
+                    h-400:w-2.5 h-400:h-2.5
+                    h-350:w-2.5 h-350:h-2.5
+                    h-320:w-2.5 h-320:h-2.5
+                    h-280:w-2.5 h-280:h-2.5
+
+                    wide-short:w-4 wide-short:h-4"
                 >
                   <path
                     strokeLinecap="round"
@@ -350,7 +329,16 @@ export default function Home() {
         </div>
 
         {/* Minimal spacer for very small screens - reduced when using horizontal layout */}
-        <div className={`flex-shrink-0 ${useHorizontalLayout ? 'h-1' : 'h-2 sm:h-4 md:h-6'}`}></div>
+        <div className="flex-shrink-0 h-2 sm:h-4 md:h-6
+            h-600:h-2 h-600:sm:h-3 h-600:md:h-4
+            h-550:h-2 h-550:sm:h-2 h-550:md:h-3
+            h-500:h-2 h-500:sm:h-2 h-500:md:h-2
+            h-452:h-1.5 h-452:sm:h-2 h-452:md:h-2
+            h-400:h-1.5 h-400:sm:h-1.5 h-400:md:h-2
+            h-350:h-1 h-350:sm:h-1 h-350:md:h-1.5
+            h-320:h-1 h-320:sm:h-1 h-320:md:h-1
+            h-280:h-1 h-280:sm:h-1 h-280:md:h-1
+            wide-short:h-3 wide-short:sm:h-4"></div>
       </div>
 
       <ThemeToggle />

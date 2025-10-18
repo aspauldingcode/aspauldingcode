@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Project } from '../app/projects/projectData';
 import Slider from 'react-slick';
 import Image from 'next/image';
@@ -8,36 +8,31 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
 // Custom styles for carousel dots and animations
-const customDotsStyle = `
-  .custom-dots {
-    bottom: 15px !important;
-  }
-  .custom-dots li button:before {
-    font-size: 10px !important;
-    color: rgba(255, 255, 255, 0.5) !important;
-  }
-  .custom-dots li.slick-active button:before {
-    color: rgba(255, 255, 255, 0.9) !important;
-  }
-  @keyframes horizontal-bounce {
-    0%, 20%, 50%, 80%, 100% {
-      transform: translateX(0) translateY(-50%);
-    }
-    40% {
-      transform: translateX(4px) translateY(-50%);
-    }
-    60% {
-      transform: translateX(2px) translateY(-50%);
-    }
-  }
-`;
+// const customDotsStyle = `
+//   .custom-dots {
+//     bottom: 15px !important;
+//   }
+//   .custom-dots li button:before {
+//     font-size: 10px !important;
+//     color: rgba(255, 255, 255, 0.5) !important;
+//   }
+//   .custom-dots li.slick-active button:before {
+//     color: rgba(255, 255, 255, 0.9) !important;
+//   }
+//   @keyframes horizontal-bounce {
+//     0%, 20%, 50%, 80%, 100% {
+//       transform: translateX(0) translateY(-50%);
+//     }
+//     40% {
+//       transform: translateX(4px) translateY(-50%);
+//     }
+//     60% {
+//       transform: translateX(2px) translateY(-50%);
+//     }
+//   }
+// `;
 
-// Inject custom styles
-if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
-  styleElement.textContent = customDotsStyle;
-  document.head.appendChild(styleElement);
-}
+
 
 import { GitHubRepoData } from '../lib/github';
 
@@ -129,6 +124,7 @@ export default function ProjectModal({
   onSwipe,
   githubData
 }: ProjectModalProps) {
+
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     startX: 0,
@@ -139,60 +135,16 @@ export default function ProjectModal({
     deltaY: 0,
   });
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
-  const [canScrollDown, setCanScrollDown] = useState(false);
+  // const [canScrollDown, setCanScrollDown] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [hasUserSwiped, setHasUserSwiped] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<Slider>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Prevent page scrolling when modal is open
-  useEffect(() => {
-    if (project) {
-      // Store the original overflow and position values
-      const originalOverflow = document.body.style.overflow;
-      const originalPosition = document.body.style.position;
-      const originalTop = document.body.style.top;
-      const originalWidth = document.body.style.width;
-      
-      // Get current scroll position
-      const scrollY = window.scrollY;
-      
-      // Disable scrolling completely
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      
-      // Cleanup function to restore original scrolling when modal closes
-      return () => {
-        document.body.style.overflow = originalOverflow || '';
-        document.body.style.position = originalPosition || '';
-        document.body.style.top = originalTop || '';
-        document.body.style.width = originalWidth || '';
-        
-        // Restore scroll position
-        window.scrollTo(0, scrollY);
-      };
-    }
-  }, [project]);
 
-  // Check if content can scroll down
-  useEffect(() => {
-    const checkScrollable = () => {
-      if (scrollContainerRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-        setCanScrollDown(scrollHeight > clientHeight && scrollTop < scrollHeight - clientHeight - 10);
-      }
-    };
 
-    const scrollContainer = scrollContainerRef.current;
-    if (scrollContainer) {
-      checkScrollable();
-      scrollContainer.addEventListener('scroll', checkScrollable);
-      return () => scrollContainer.removeEventListener('scroll', checkScrollable);
-    }
-  }, [project]);
+
 
   const handleStart = useCallback((clientX: number, clientY: number, target?: EventTarget | null) => {
     // Check if the swipe started within the carousel area
@@ -598,7 +550,7 @@ export default function ProjectModal({
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-base01 to-transparent pointer-events-none z-20"></div>
 
         {/* Scroll indicator - Fixed at modal bottom, behind pass/like buttons */}
-        {canScrollDown && (
+        {/* {canScrollDown && ( */}
           <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none z-30">
             <div className="flex items-center justify-center h-full pb-16">
               <div 
@@ -620,7 +572,7 @@ export default function ProjectModal({
               </div>
             </div>
           </div>
-        )}
+        {/* )} */}
       </div>
     </div>
   );

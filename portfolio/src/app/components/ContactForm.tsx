@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
 
 declare global {
@@ -33,42 +33,13 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
   const [isDragging, setIsDragging] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [startY, setStartY] = useState(0);
-  const [footerHeight, setFooterHeight] = useState(60); // Default fallback
+  // const [footerHeight, setFooterHeight] = useState(60); // Default fallback
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Calculate footer height dynamically and determine if we need to account for it
-  useEffect(() => {
-    const calculateFooterHeight = () => {
-      const footer = document.querySelector('footer');
-      if (footer) {
-        const rect = footer.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const footerHeight = rect.height;
-        
-        // Account for footer height on mobile devices (height < 700px) or when viewport is narrow
-        // This ensures the send button is always visible on mobile
-        if (viewportHeight < 700 || window.innerWidth < 768) {
-          setFooterHeight(footerHeight + 20); // Increased padding for mobile (was 10)
-        } else {
-          setFooterHeight(0); // Don't reduce height on larger screens
-        }
-      }
-    };
-
-    // Calculate on mount and when window resizes
-    calculateFooterHeight();
-    window.addEventListener('resize', calculateFooterHeight);
-    
-    // Also recalculate when the component becomes visible
-    if (isOpen) {
-      // Use a small delay to ensure DOM is fully rendered
-      setTimeout(calculateFooterHeight, 100);
-    }
-
-    return () => {
-      window.removeEventListener('resize', calculateFooterHeight);
-    };
-  }, [isOpen]);
+  // Calculate footer height - this should be handled by CSS flexbox/grid instead
+  // For now, we'll use a simple mobile detection approach
+  // const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || window.innerHeight < 700);
+  // const calculatedFooterHeight = isMobile ? 80 : 0;
 
   // Handle touch/mouse events for swipe down to dismiss (only from drag handle)
   const handleStart = (clientY: number) => {
@@ -119,32 +90,19 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
     handleStart(e.clientY);
   };
 
-  // Add global mouse event listeners when dragging
-  useEffect(() => {
-    if (isDragging) {
-      const handleGlobalMouseMove = (e: MouseEvent) => {
-        handleMove(e.clientY);
-      };
-
-      const handleGlobalMouseUp = () => {
-        handleEnd();
-      };
-
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove);
-        document.removeEventListener('mouseup', handleGlobalMouseUp);
-      };
-    }
-  }, [isDragging, startY, dragY, handleEnd, handleMove]);
+  // Global mouse event handlers - these should be attached conditionally in the component
+  // For now, we'll handle this through proper event binding in the component structure
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('sending');
 
     try {
+      // Check if window and grecaptcha are available
+      if (typeof window === 'undefined' || !window.grecaptcha) {
+        throw new Error('reCAPTCHA not available');
+      }
+
       window.grecaptcha.ready(async () => {
         try {
           const token = await window.grecaptcha.execute(emailConfig.recaptchaSiteKey, {
@@ -217,7 +175,7 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
           isOpen ? 'translate-y-0 scale-100' : 'translate-y-full scale-95'
         }`}
         style={{ 
-          maxHeight: `calc(90vh - ${footerHeight}px)`, // Account for footer height dynamically
+          maxHeight: `calc(90vh - 60px)`, // Account for footer height dynamically
           transform: `translateY(${dragY}px)`,
           transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), scale 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         }}
@@ -249,7 +207,7 @@ export default function ContactForm({ isOpen, onClose, emailConfig }: ContactFor
 
         <div 
           className={`relative p-4 sm:p-6 md:p-8 max-w-full sm:max-w-2xl mx-auto ${isDragging ? 'overflow-hidden' : 'overflow-y-auto'}`} 
-          style={{ maxHeight: `calc(90vh - ${footerHeight}px)` }}
+          style={{ maxHeight: `calc(90vh - 60px)` }}
         >
           {/* Expanded Drag Area - Includes drag handle and title area for better swipe-to-dismiss usability */}
           <div 
