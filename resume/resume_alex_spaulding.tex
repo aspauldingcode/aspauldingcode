@@ -1,6 +1,6 @@
 %-------------------------
 % Resume in Latex
-% Author
+% Author : Alex Spaulding
 % License : MIT
 %------------------------
 
@@ -23,10 +23,23 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage[T1]{fontenc}
+\usepackage{newunicodechar}
 \usepackage{tcolorbox}
+\usepackage[none]{hyphenat}
+\usepackage{fancyhdr}
+
+% Map Unicode superscript plus (U+207A) to LaTeX superscript plus
+\newunicodechar{⁺}{\textsuperscript{+}}
 
 % Adjust margins
-\geometry{left=0.5in, top=0.3in, right=0.5in, bottom=0.3in, footskip=.5cm}
+\geometry{margin=0.3in, includefoot, footskip=.35cm}
+
+% Footer: centered small text at bottom
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[C]{\footnotesize For references, please contact me}
 
 %\usepackage[skins, listings, breakable, theorems, most]{tcolorbox}
 \tcbset{
@@ -48,6 +61,12 @@
 
 \raggedright
 \setlength{\tabcolsep}{0in}
+\tolerance=10000
+\emergencystretch=10em
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\hyphenchar\font=-1
+\sloppy
 
 % Sections formatting
 \titleformat{\section}{
@@ -90,13 +109,15 @@
 
 \newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
 % \renewcommand{\labelitemii}{$\circ$}
-\renewcommand{\labelitemi}{$\vcenter{\hbox{\tiny$\bullet$}}$}
-\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*,labelsep=0mm]}
+% Use text-mode bullet for better kerning and spacing
+\renewcommand{\labelitemi}{\textbullet}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt,labelsep=0pt,labelwidth=0pt,label={}]} 
 \newcommand{\resumeHeadingSkillStart}{\begin{itemize}[leftmargin=*,itemsep=1.7mm, rightmargin=2ex]}
-\newcommand{\resumeItemListStart}{\begin{justify}\begin{itemize}[leftmargin=3ex, rightmargin=2ex, noitemsep,labelsep=1.2mm,itemsep=0mm]\small}
+% Increase label separation to improve spacing after the bullet
+\newcommand{\resumeItemListStart}{\sloppy\begin{justify}\begin{itemize}[leftmargin=3.4ex, rightmargin=2ex, noitemsep,labelsep=0.8em,itemsep=0mm]\small}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{2mm}}
 \newcommand{\resumeHeadingSkillEnd}{\end{itemize}\vspace{-2mm}}
-\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\vspace{-2mm}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\fussy\vspace{-2mm}}
 \newcommand{\cvsection}[1]{%
 \vspace{2mm}
 \begin{tcolorbox}
@@ -115,20 +136,19 @@
 \newcommand{\course}{Aspiring Software Engineer} % Your Program
 \newcommand{\roll}{Spokane, WA} % Your Location
 \newcommand{\phone}{406-240-9534} % Your Phone Number
+% RFC 3966 canonical phone string for tel: URI (no punctuation)
+\newcommand{\phonetel}{+14062409534}
 \newcommand{\emaila}{aspauldingcode@gmail.com} %Email 1
 
 \begin{document}
 \fontfamily{cmr}\selectfont
 %----------HEADING-----------------
-
-{
-\begin{tabularx}{\linewidth}{L r} \\
-  \textbf{\Large \name} & {\raisebox{0.0\height}{\footnotesize \faPhone}\ +1-\phone}\\
-  {\roll } & \href{mailto:\emaila}{\raisebox{0.0\height}{\footnotesize \faEnvelope}\ {\emaila}} \\
-  \course & \href{https://linkedin.com/in/aspauldingcode}{\raisebox{0.0\height}{\footnotesize \faLinkedin}\ {LinkedIn Profile}} \\
-  \href{https://www.aspauldingcode.com/}{\raisebox{0.0\height}{\footnotesize \faGlobe} {\texttt{https://www.aspauldingcode.com}}} & \href{https://github.com/aspauldingcode}{\raisebox{0.0\height}{\footnotesize \faGithub} {GitHub Profile}} \\
-\end{tabularx}
-}
+\noindent
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l r@{}}
+  \textbf{\Large \name} & \footnotesize{\href{tel:\phonetel}{\faPhone\ +1-\phone}\ |\ \faEnvelope\ \href{mailto:\emaila}{\emaila}} \\
+  \footnotesize{\faGlobe\ \href{https://www.aspauldingcode.com/}{aspauldingcode.com}} & \footnotesize{\faGithub\ \href{https://github.com/aspauldingcode}{github.com/aspauldingcode}\ |\ \faLinkedin\ \href{https://linkedin.com/in/aspauldingcode}{linkedin.com/in/aspauldingcode}} \\
+\end{tabular*}
+\vspace{-2mm}
 
 %-----------EDUCATION-----------
 \section{\textbf{Education}}
@@ -136,8 +156,13 @@
     \resumeSubheading
       {Bachelor of Science (BS) in Computer Science}{Expected May 2027}
       {Eastern Washington University}{Mathematics Minor}
+      \resumeItemListStart
+        \item {\textbf{Languages}{: Swift, Objective-C, C/C++, JavaScript, TypeScript, Python, Rust, Java, Nix}}
+        \item {\textbf{Core OS \& Systems}{: macOS/iOS, reverse engineering, kernels, operating systems, runtime mods}}
+        \item {\textbf{Technologies \& Tools}{: Xcode/xcodebuild, AppKit/SwiftUI, XPC, Unix, Makefile (custom recipes: \texttt{make build/test/crashlog}), GCD, async/await, Instruments, LLDB/Clang}}
+      \resumeItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-5.5mm}
+\vspace{-6mm}
 
 %-----------PROFESSIONAL EXPERIENCE-----------
 \section{\textbf{Professional Experience}}
@@ -146,67 +171,64 @@
       {Information Technology Specialist}{Jun 2025 - Present}
       {Eastern Washington University, Cheney, WA}{}
       \resumeItemListStart
-        \item {Provide Tier I remote IT support to students and faculty, resolving issues with logins, password resets, internet connectivity, software, and hardware}
-        \item {Manage support tickets using Freshservice and assist users via Webex phone support}
-        \item {Collaborate with team members through Slack to ensure timely and effective issue resolution}
+        \item {Tier I remote support; logins/passwords, connectivity, software/hardware; Freshservice tickets}
       \resumeItemListEnd
     \resumeSubheading
       {Information Technology (IT) Consultant}{Sep 2020 - Oct 2020 | Oct 2024 - Jan 2025}
       {University of Montana IT Help Desk, Missoula, MT}{}
       \resumeItemListStart
-        \item {Provide Tier I phone support, resolving support tickets on TeamDynamix related to logins, laptops, printers, internet issues, software, account setup, and technical configuration}
-        \item {Conduct weekly sprints to deliver on-site technical support to students and employees}
-        \item {Implement and maintain automated system monitoring solutions}
-      \resumeItemListEnd
-    \resumeSubheading
-      {Printed Circuit Board (PCB) Technician}{Jan 2022 - Mar 2025}
-      {Sunburst Sensors, Missoula, MT}{}
-      \resumeItemListStart
-        \item {Manufacture autonomous instruments measuring marine and freshwater inorganic carbon parameters (CO2 and pH) using patented drift-free technology}
-        \item {Solder components to printed circuit boards (PCB), craft cabling, adapters, and battery packs to facilitate product shipping and power provision}
-        \item {Optimize sensor calibration using statistical techniques}
-      \resumeItemListEnd
-    \resumeSubheading
-      {Sales Associate – Seasonal}{Jun 2023 - Aug 2023}
-      {Men's Wearhouse, Missoula, MT}{}
-      \resumeItemListStart
-        \item {Sized customers and sold tuxedos, suits, sport jackets, and wedding rentals}
-        \item {Utilized strong sales skills to ensure every customer left with a purchase, whether it was a suit, shirt, or accessory, enhancing their shopping experience}
-        \item {Utilized data-driven approaches to optimize sales strategies}
-      \resumeItemListEnd
-    \resumeSubheading
-      {Apple Sales – Seasonal}{Oct 2018 - Nov 2018}
-      {Simply Mac, Missoula, MT}{}
-      \resumeItemListStart
-        \item {Welcomed and assisted customers with professional support, sales, service, and phone repair}
-        \item {Exceeded monthly sales quotas for Macs, MacBook Pros, iPads, and new/used MacBooks}
-        \item {Provided technical support for applications and features}
-      \resumeItemListEnd
-    \resumeSubheading
-      {Web Developer}{Apr 2018 - Sep 2018}
-      {Wheelbound Productions, Missoula, MT}{}
-      \resumeItemListStart
-        \item {Provided personalized customer service to discuss business plans and website goals, resulting in the design of mobile-friendly dynamic websites}
-        \item {Utilized JavaScript, HTML, CSS, and SASS to create engaging homepages featuring multi-parallax scrolling, animations, and interactive elements}
-        \item {Integrated chat support and SEO optimization tools to enhance user engagement and search rankings}
+        \item {Tier I phone support; printers; Wi–Fi; TeamDynamix; shadowing; monitoring}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-5.5mm}
+\vspace{-6mm}
 
-%-----------SKILLSET-----------
-\section{\textbf{Skillset}}
-\begin{itemize}[leftmargin=0.05in, label={}]
-    \small{\item{
-     \textbf{Languages}{: JavaScript, TypeScript, Python, Rust, Swift, Objective-C, Java, Nix} \\
-     \textbf{System Programming Skills}{: Reverse Engineering, Operating Systems, Kernel Programming}\\
-     \textbf{Technologies \& Tools}{: Artificial Intelligence (AI/ML), Cloud Computing \& DevOps (Docker, Kubernetes, Terraform, CI/CD), Programming (Python, JavaScript, Java), Source Control (Git, GitHub, GitLab), Databases (SQL/NoSQL, Hadoop, Spark), Cybersecurity (Secure Coding, Pen Testing), API Design (REST, GraphQL, Swagger), Testing \& Debugging, Agile/Scrum, Collaboration \& Communication} \\
-     }}
- \end{itemize}
- \vspace{-16pt}
-
-%-----------REFERENCES-----------
-\section{\textbf{References}}
-\textit{Available upon request.}
+%-----------PROJECTS-----------
+\section{\textbf{Projects}}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {\href{https://github.com/aspauldingcode/apple-sharpener}{Apple Sharpener (100⁺ \faStar{})}}{2024 - Present}
+      {macOS Window/Dock Corner Radius Tweak}{\href{https://github.com/aspauldingcode/apple-sharpener}{\faGlobe GitHub}}
+      \resumeItemListStart
+        \item {Universal builds (\texttt{x86\_64}, \texttt{arm64}, \texttt{arm64e}); CLI · robust debugging · Instruments profiling}
+        \item {Objective-C/AppKit method swizzling (corners/titlebar)}
+        \item {Early runtime arbitrary code injection}
+      \resumeItemListEnd
+    \resumeSubheading
+      {\href{https://github.com/aspauldingcode/macwmfx}{macwmfx (30⁺ \faStar{})}}{2024 - Present}
+      {macOS Window Manager Effects Framework}{\href{https://github.com/aspauldingcode/macwmfx}{\faGlobe GitHub}}
+      \resumeItemListStart
+        \item {Client–server: injected agent · XPC CLI}
+        \item {JSON config; whitelist/blacklist; one-command \texttt{--reload}}
+        \item {Configurable borders/transparency/blur/shadows · GCD worker queues; profiled with Instruments}
+      \resumeItemListEnd
+    \resumeSubheading
+      {\href{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}{2024 - Present}
+      {Swift Package: Base16/Base24 Theming API}{\href{https://github.com/aspauldingcode/TintedThemingSwift}{\faGlobe GitHub}}
+      \resumeItemListStart
+        \item {Cross-platform targets (iOS, macOS, watchOS, tvOS)}
+        \item {Async/await theme loading; network/local cache; profiled with Instruments}
+        \item {Semantic color API; composable theme maps}
+      \resumeItemListEnd
+    
+    \resumeSubheading
+      {\href{https://github.com/aspauldingcode/Whisperer}{Whisperer}}{2023 - Present}
+      {Apple Watch Application (App Store submission in progress)}{\href{https://github.com/aspauldingcode/Whisperer}{\faLock GitHub}}
+      \resumeItemListStart
+        \item {Secure proxy + client–server API (Vercel/NodeJS)}
+        \item {Async/await streaming speech pipeline: Whisper STT and TTS}
+        \item {GCD worker queues; UI updates on main}
+        \item {Theming via \href{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift} (Base16/Base24)}
+      \resumeItemListEnd
+    \resumeSubheading
+      {\href{https://github.com/aspauldingcode/TintedMac}{TintedMac}}{2025 - Present}
+      {macOS System-Wide Color Scheme Tweak}{\href{https://github.com/aspauldingcode/TintedMac}{\faGlobe GitHub}}
+      \resumeItemListStart
+        \item {SwiftUI/AppKit theming via \href{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}; async config load; main-thread UI updates}
+        \item {Opt-in tinting; TOML config; app filtering}
+        \item {Base16/Base24 semantic mapping}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+\vspace{-6mm}
 %-------------------------------------------
 \end{document}
 
