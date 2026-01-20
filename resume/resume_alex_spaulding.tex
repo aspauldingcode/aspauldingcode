@@ -128,6 +128,9 @@
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}%
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
 \newcolumntype{C}{>{\centering\arraybackslash}X}%
+
+% Custom command for blue underlined links with external link icon
+\newcommand{\link}[2]{\href{#1}{\textcolor{blue}{\underline{#2}}\ \raisebox{0.1ex}{\tiny\faExternalLink}}}
 %---- End of Packages and Functions ------
 
 %-------------------------------------------
@@ -145,8 +148,8 @@
 %----------HEADING-----------------
 \noindent
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l r@{}}
-  \textbf{\Large \name} & \footnotesize{\href{tel:\phonetel}{\faPhone\ +1-\phone}\ |\ \faEnvelope\ \href{mailto:\emaila}{\emaila}} \\
-  \footnotesize{\faGlobe\ \href{https://www.aspauldingcode.com/}{aspauldingcode.com}} & \footnotesize{\faGithub\ \href{https://github.com/aspauldingcode}{github.com/aspauldingcode}\ |\ \faLinkedin\ \href{https://linkedin.com/in/aspauldingcode}{linkedin.com/in/aspauldingcode}} \\
+  \textbf{\Large \name} & \footnotesize{\href{tel:\phonetel}{\faPhone\ +1-\phone}\ |\ \faEnvelope\ \link{mailto:\emaila}{\emaila}} \\
+  \footnotesize{\faGlobe\ \link{https://www.aspauldingcode.com/}{aspauldingcode.com}} & \footnotesize{\faGithub\ \link{https://github.com/aspauldingcode}{github.com/aspauldingcode}\ |\ \faLinkedin\ \link{https://linkedin.com/in/aspauldingcode}{linkedin.com/in/aspauldingcode}} \\
 \end{tabular*}
 \vspace{-2mm}
 
@@ -160,6 +163,7 @@
         \item {\textbf{Languages}{: Swift, Objective-C, C/C++, JavaScript, TypeScript, Python, Rust, Java, Nix}}
         \item {\textbf{Core OS \& Systems}{: macOS/iOS, reverse engineering, kernels, operating systems, runtime mods}}
         \item {\textbf{Tools}{: \mbox{Xcode/xcodebuild, AppKit/SwiftUI, XPC, Unix, Makefile with custom targets, LLDB/Clang}}}
+        \item {\textbf{Relevant Coursework}{: C and UNIX Programming (CSCD 240), Algorithms (CSCD 320), Data Structures (CSCD 300), Cybersecurity Fundamentals (CYBR 101)}}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
 \vspace{-6mm}
@@ -171,13 +175,13 @@
       {Information Technology Specialist}{Jun 2025 - Present}
       {Eastern Washington University, Cheney, WA}{}
       \resumeItemListStart
-        \item {Tier I remote support; logins/passwords, connectivity, software/hardware; Freshservice tickets}
+        \item {Tier I remote support; logins/passwords, connectivity, software/hardware; Freshservice tickets; average resolution time 5–20 minutes}
       \resumeItemListEnd
     \resumeSubheading
       {Information Technology (IT) Consultant}{Sep 2020 - Oct 2020 | Oct 2024 - Jan 2025}
       {University of Montana IT Help Desk, Missoula, MT}{}
       \resumeItemListStart
-        \item {Tier I phone support; printers; Wi–Fi; TeamDynamix; shadowing; monitoring}
+        \item {Tier I phone support; printers; Wi–Fi; TeamDynamix; shadowing; monitoring; helped ~20 people/week; closed 600+ tickets}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
 \vspace{-6mm}
@@ -186,24 +190,24 @@
 \section{\textbf{Projects}}
   \resumeSubHeadingListStart
     \resumeSubheading
-      {\href{https://github.com/aspauldingcode/apple-sharpener}{Apple Sharpener (100⁺ \faStar{})}}{2024 - Present}
-      {macOS Window/Dock Corner Radius Tweak}{\href{https://github.com/aspauldingcode/apple-sharpener}{\faGlobe GitHub}}
+      {\link{https://github.com/aspauldingcode/apple-sharpener}{Apple Sharpener (137 \faStar{})}}{2024 - Present}
+      {macOS Window/Dock Corner Radius Tweak}{\link{https://github.com/aspauldingcode/apple-sharpener}{GitHub}}
       \resumeItemListStart
         \item {Universal builds (\texttt{x86\_64}, \texttt{arm64}, \texttt{arm64e}); CLI · robust debugging}
         \item {Objective-C/AppKit method swizzling (corners/titlebar)}
         \item {Early runtime arbitrary code injection}
       \resumeItemListEnd
     \resumeSubheading
-      {\href{https://github.com/aspauldingcode/macwmfx}{macwmfx (30⁺ \faStar{})}}{2024 - Present}
-      {macOS Window Manager Effects Framework}{\href{https://github.com/aspauldingcode/macwmfx}{\faGlobe GitHub}}
+      {\link{https://github.com/aspauldingcode/macwmfx}{macwmfx (43 \faStar{})}}{2024 - Present}
+      {macOS Window Manager Effects Framework}{\link{https://github.com/aspauldingcode/macwmfx}{GitHub}}
       \resumeItemListStart
         \item {Client–server: injected agent · XPC CLI}
         \item {JSON config; whitelist/blacklist; one-command \texttt{--reload}}
         \item {Configurable borders/transparency/blur/shadows}
       \resumeItemListEnd
     \resumeSubheading
-      {\href{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}{2024 - Present}
-      {Swift Package: Base16/Base24 Theming API}{\href{https://github.com/aspauldingcode/TintedThemingSwift}{\faGlobe GitHub}}
+      {\link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}{2024 - Present}
+      {Swift Package: Base16/Base24 Theming API}{\link{https://github.com/aspauldingcode/TintedThemingSwift}{GitHub}}
       \resumeItemListStart
         \item {Cross-platform targets (iOS, macOS, watchOS, tvOS)}
         \item {Theme loading; network/local cache}
@@ -211,19 +215,19 @@
       \resumeItemListEnd
     
     \resumeSubheading
-      {\href{https://github.com/aspauldingcode/Whisperer}{Whisperer}}{2023 - Present}
-      {Apple Watch Application (App Store submission in progress)}{\href{https://github.com/aspauldingcode/Whisperer}{\faLock GitHub}}
+      {\link{https://github.com/aspauldingcode/Whisperer}{Whisperer}}{2023 - Present}
+      {Apple Watch Application (App Store submission in progress)}{\link{https://github.com/aspauldingcode/Whisperer}{GitHub}}
       \resumeItemListStart
         \item {Secure proxy + client–server API (Vercel/NodeJS)}
         \item {Async/await streaming speech pipeline: Whisper STT and TTS}
         \item {GCD worker queues; UI updates on main}
-        \item {Theming via \href{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift} (Base16/Base24)}
+        \item {Theming via \link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift} (Base16/Base24)}
       \resumeItemListEnd
     \resumeSubheading
-      {\href{https://github.com/aspauldingcode/TintedMac}{TintedMac}}{2025 - Present}
-      {macOS System-Wide Color Scheme Tweak}{\href{https://github.com/aspauldingcode/TintedMac}{\faGlobe GitHub}}
+      {\link{https://github.com/aspauldingcode/TintedMac}{TintedMac}}{2025 - Present}
+      {macOS System-Wide Color Scheme Tweak}{\link{https://github.com/aspauldingcode/TintedMac}{GitHub}}
       \resumeItemListStart
-        \item {SwiftUI/AppKit theming via \href{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}
+        \item {SwiftUI/AppKit theming via \link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}
         \item {Opt-in tinting; TOML config; app filtering}
         \item {Base16/Base24 semantic mapping}
       \resumeItemListEnd
