@@ -18,7 +18,7 @@ export function useCardStack(
   // Build deck synchronously so visible cards render on first paint
   // Recreate deck whenever cards or external swiped IDs change
   const effectiveSwipedCardIds = externalSwipedCardIds || state.swipedCardIds;
-  const deck = useMemo(() => new FILOCardDeck(cards, effectiveSwipedCardIds), [cards, externalSwipedCardIds, state.swipedCardIds]);
+  const deck = useMemo(() => new FILOCardDeck(cards, effectiveSwipedCardIds), [cards, effectiveSwipedCardIds]);
 
   // Handle swipe completion with animations
   const handleSwipeComplete = useCallback((card: CardData, direction: 'left' | 'right') => {
@@ -200,12 +200,12 @@ export function useResponsiveLayout(dispatch: React.Dispatch<CardStackAction>) {
   // For now, we'll provide a simple utility function that can be called when needed
   const updateLayout = useCallback(() => {
     if (typeof window === 'undefined') return;
-    
+
     const { layout, scaleFactor } = calculateResponsiveLayout(
       window.innerWidth,
       window.innerHeight
     );
-    
+
     dispatch({ type: 'SET_CARD_LAYOUT', payload: layout });
     dispatch({ type: 'SET_SCALE_FACTOR', payload: scaleFactor });
   }, [dispatch]);

@@ -64,10 +64,10 @@ const MAX_LANDSCAPE_HEIGHT = MAX_LANDSCAPE_WIDTH / CARD_ASPECT_RATIO; // ~700px,
 // Threshold for switching to overlay mode when cards become too small
 const OVERLAY_MODE_THRESHOLD = 200; // Switch to overlay when height < 200px
 
-export default function CardStack({ 
-  cards, 
-  onSwipe, 
-  onStackEmpty, 
+export default function CardStack({
+  cards,
+  onSwipe,
+  onStackEmpty,
   onSeeMore,
   onViewProject,
   dismissedCount = 0,
@@ -96,11 +96,11 @@ export default function CardStack({
   const [contentScale, setContentScale] = useState(1);
   const [actualCardDimensions, setActualCardDimensions] = useState({ width: 0, height: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
-  
+
   // Add refs for opaque blur elements
   const landscapeDescRef = useRef<HTMLDivElement>(null);
   const portraitDescRef = useRef<HTMLDivElement>(null);
-  
+
   // Use advanced opaque blur hooks
   const landscapeBlur = useBackdropBlur(/*landscapeDescRef*/);
   const portraitBlur = useBackdropBlur(/*portraitDescRef*/);
@@ -116,34 +116,34 @@ export default function CardStack({
     const updateLayout = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      
+
       // Dynamic margin calculation based on screen size
       const horizontalMargin = Math.max(20, Math.min(60, vw * 0.05)); // 2-6% of width, min 20px, max 60px
       const verticalReserved = Math.max(120, Math.min(200, vh * 0.25)); // 12-25% of height for UI elements
-      
+
       const availableWidth = vw - (horizontalMargin * 2);
       const availableHeight = vh - verticalReserved;
-      
+
       // Calculate how each orientation would fit
       const portraitWidthScale = availableWidth / BASE_CARD_WIDTH;
       const portraitHeightScale = availableHeight / BASE_CARD_HEIGHT;
       const portraitScale = Math.min(portraitWidthScale, portraitHeightScale);
-      
+
       // For landscape, we swap dimensions (card becomes wider than tall)
       const landscapeWidthScale = availableWidth / BASE_CARD_HEIGHT; // Landscape card is wider
       const landscapeHeightScale = availableHeight / BASE_CARD_WIDTH; // Landscape card is shorter
       const landscapeScale = Math.min(landscapeWidthScale, landscapeHeightScale);
-      
+
       // Determine the best layout based on which gives better utilization
       let newLayout: 'portrait' | 'landscape' | 'compact' = 'portrait';
       let newScaleFactor = portraitScale;
-      
+
       // Key conditions for layout selection
       const heightConstrained = portraitHeightScale < portraitWidthScale; // Height is the limiting factor
       const hasWideSpace = vw >= 640; // Minimum width for landscape to make sense
       const spaceAspectRatio = availableWidth / availableHeight;
       const isWideSpace = spaceAspectRatio > 1.4; // Space is significantly wider than tall
-      
+
       // Enhanced height constraint detection - more aggressive switching when height is limited
       const heightSeverelyConstrained = portraitHeightScale < 0.8; // Lowered from 0.7 for earlier detection
       const heightCriticallyConstrained = portraitHeightScale < 0.6; // More critical threshold
@@ -152,26 +152,26 @@ export default function CardStack({
       const landscapeOffersSignificantImprovement = landscapeScale > portraitScale * 1.3; // Increased for truly significant cases
       const minimumViableWidth = vw >= 400; // Reduced from 480 for more aggressive switching
       const reasonableWidth = vw >= 320; // Even more lenient for very constrained scenarios
-      
+
       // Add hysteresis to prevent rapid switching between layouts
       const currentLayout = cardLayout;
       const LAYOUT_SWITCH_THRESHOLD = 0.15; // 15% better to switch layouts
       const HEIGHT_PRIORITY_THRESHOLD = 0.08; // Reduced threshold when height is constrained
-      
+
       // Use different thresholds based on height constraints
-      const activeThreshold = (heightSeverelyConstrained || heightCriticallyConstrained) 
-        ? HEIGHT_PRIORITY_THRESHOLD 
+      const activeThreshold = (heightSeverelyConstrained || heightCriticallyConstrained)
+        ? HEIGHT_PRIORITY_THRESHOLD
         : LAYOUT_SWITCH_THRESHOLD;
-      
+
       // Calculate thresholds based on current layout to add stability
-      const landscapeThreshold = currentLayout === 'landscape' 
+      const landscapeThreshold = currentLayout === 'landscape'
         ? portraitScale * (1 - activeThreshold) // Stay in landscape unless portrait is significantly better
         : portraitScale * (1 + activeThreshold); // Switch to landscape only if significantly better
-      
+
       const portraitThreshold = currentLayout === 'portrait'
         ? landscapeScale * (1 - activeThreshold) // Stay in portrait unless landscape is significantly better
         : landscapeScale * (1 + activeThreshold); // Switch to portrait only if significantly better
-      
+
       // Layout decision with enhanced height-priority logic
       if (heightCriticallyConstrained && reasonableWidth && landscapeOffersImprovement) {
         // Critical height constraint: switch to landscape even with very limited width
@@ -231,10 +231,10 @@ export default function CardStack({
         newLayout = 'portrait';
         newScaleFactor = portraitScale;
       }
-      
+
       // Clamp scale factor to reasonable bounds
       newScaleFactor = Math.max(0.35, Math.min(1.8, newScaleFactor));
-      
+
       // Only update when values actually change to avoid re-render loops
       setCardLayout(prev => (prev !== newLayout ? newLayout : prev));
       setScaleFactor(prev => (Math.abs(prev - newScaleFactor) > 0.0001 ? newScaleFactor : prev));
@@ -243,7 +243,7 @@ export default function CardStack({
     updateLayout();
     window.addEventListener('resize', updateLayout);
     return () => window.removeEventListener('resize', updateLayout);
-  }, []);
+  }, [cardLayout]);
 
   // Filter out swiped cards and get visible cards
   const effectiveSwipedCardIds = externalSwipedCardIds || swipedCardIds;
@@ -268,7 +268,7 @@ export default function CardStack({
 
     document.addEventListener('touchmove', preventScroll, { passive: false });
     document.addEventListener('wheel', preventScrollWheel, { passive: false });
-    
+
     return () => {
       document.removeEventListener('touchmove', preventScroll);
       document.removeEventListener('wheel', preventScrollWheel);
@@ -340,7 +340,7 @@ export default function CardStack({
   const getOptimalDescription = (card: CardData, containerWidth: number, containerHeight: number, isLandscape: boolean) => {
     const fullDesc = card.description;
     const shortDesc = card.shortDescription || card.description;
-    
+
     // Calculate available space for text content
     const textAreaWidth = containerWidth * 0.8; // Only 80% of container width for text
     const textAreaHeight = containerHeight * 0.3; // Only 30% of container height for text
@@ -349,10 +349,10 @@ export default function CardStack({
     const maxLinesAvailable = Math.floor(textAreaHeight / lineHeight);
     const maxCharsPerLine = Math.floor(textAreaWidth / avgCharWidth);
     const maxCharsAvailable = maxLinesAvailable * maxCharsPerLine;
-    
+
     // Different thresholds for landscape vs portrait cards
     const threshold = isLandscape ? 125 : 150;
-    
+
     // Use long description if we have space for threshold+ chars AND long desc has threshold+ chars
     // Otherwise use short description
     // Let CSS handle all visual truncation with line clamping
@@ -370,7 +370,7 @@ export default function CardStack({
     if (cardEl) {
       initialCardRect = cardEl.getBoundingClientRect();
     }
-    
+
     setDragState({
       isDragging: true,
       startX: clientX,
@@ -407,7 +407,7 @@ export default function CardStack({
     if (absDeltaX > SWIPE_THRESHOLD) {
       const direction = deltaX > 0 ? 'right' : 'left';
       setSwipeDirection(direction);
-      
+
       // Call onSwipe callback
       if (onSwipe && visibleCards[0]) {
         onSwipe(visibleCards[0], direction);
@@ -420,7 +420,7 @@ export default function CardStack({
           setSwipedCardIds(prev => new Set([...prev, visibleCards[0].id]));
         }
         setSwipeDirection(null);
-        
+
         // Check if all available cards are swiped - only trigger when no cards remain
         const remainingCards = availableCards.filter(card => card.id !== visibleCards[0]?.id);
         if (remainingCards.length === 0 && onStackEmpty) {
@@ -494,7 +494,7 @@ export default function CardStack({
         // Exit animation
         const exitX = swipeDirection === 'right' ? 400 : -400;
         const exitRotation = swipeDirection === 'right' ? 30 : -30;
-        
+
         return {
           transform: `translateX(${exitX}px) translateY(-100px) rotate(${exitRotation}deg) scale(0.8)`,
           opacity: 0,
@@ -506,14 +506,14 @@ export default function CardStack({
       if (isDragging) {
         // Dragging state with fixed positioning to overlay everything
         const rotation = Math.max(-MAX_ROTATION, Math.min(MAX_ROTATION, deltaX * ROTATION_FACTOR));
-        
+
         // Use the initial card position captured at drag start for consistent positioning
         const initialRect = dragState.initialCardRect;
         if (initialRect) {
           // Calculate position based on initial card position plus drag offset
           const finalX = initialRect.left + deltaX;
           const finalY = initialRect.top + deltaY * 0.5;
-          
+
           return {
             position: 'fixed',
             left: `${finalX}px`,
@@ -527,7 +527,7 @@ export default function CardStack({
             pointerEvents: 'auto',
           };
         }
-        
+
         // Fallback to previous method if initialRect is not available
         const cardEl = cardRef.current;
         let cardRect = { left: 0, top: 0, width: 0, height: 0 };
@@ -540,15 +540,15 @@ export default function CardStack({
             height: rect.height
           };
         }
-        
+
         // Calculate the center position for the card
         const centerX = cardRect.left + cardRect.width / 2;
         const centerY = cardRect.top + cardRect.height / 2;
-        
+
         // Apply drag offset from the center position
         const finalX = centerX + deltaX - cardRect.width / 2;
         const finalY = centerY + deltaY * 0.5 - cardRect.height / 2;
-        
+
         return {
           position: 'fixed',
           left: `${finalX}px`,
@@ -573,7 +573,7 @@ export default function CardStack({
     // Cards behind the top card
     const moveUp = swipeDirection && !isDragging ? -8 : 0;
     const scaleUp = swipeDirection && !isDragging ? 0.05 : 0;
-    
+
     return {
       transform: `translateY(${baseY + moveUp}px) rotate(${baseRotation}deg) scale(${baseScale + scaleUp})`,
       zIndex: baseZIndex,
@@ -584,7 +584,7 @@ export default function CardStack({
   if (visibleCards.length === 0) {
     // Calculate remaining dismissed cards that haven't been viewed yet
     const remainingDismissedCards = dismissedCount > 0 ? dismissedCount : 0;
-    
+
     return (
       <div className={`flex flex-col items-center justify-center h-96 ${className}`}>
         <p className="text-base04 text-lg mb-4">No more projects</p>
@@ -613,7 +613,7 @@ export default function CardStack({
   // Dynamic container sizing based on layout and playing card ratio
   const getContainerClasses = () => {
     const baseClasses = "relative mx-auto";
-    
+
     // Remove fixed max-width constraints to allow better space utilization
     if (cardLayout === 'landscape') {
       return `${baseClasses} w-full`;
@@ -629,11 +629,11 @@ export default function CardStack({
     const isLandscapeCard = cardLayout === 'landscape';
     const baseWidth = isLandscapeCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH; // Swap for landscape
     const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT; // Swap for landscape
-    
+
     // Apply max size caps based on orientation - both orientations max out at 330px
     const maxWidth = isLandscapeCard ? MAX_LANDSCAPE_WIDTH : MAX_PORTRAIT_WIDTH;
     const maxHeight = isLandscapeCard ? MAX_LANDSCAPE_HEIGHT : MAX_PORTRAIT_HEIGHT;
-    
+
     const maxScaleByWidth = maxWidth / baseWidth;
     const maxScaleByHeight = maxHeight / baseHeight;
     const effectiveScale = Math.min(scaleFactor, maxScaleByWidth, maxScaleByHeight);
@@ -664,14 +664,14 @@ export default function CardStack({
     const maxScaleByHeight = maxHeight / baseHeight;
     const effectiveScale = Math.min(scaleFactor, maxScaleByHeight);
     const actualHeight = baseHeight * effectiveScale;
-    
+
     return { shouldUse: actualHeight < OVERLAY_MODE_THRESHOLD, actualHeight };
   };
 
   const { shouldUse: isOverlayMode, actualHeight } = shouldUseOverlayMode();
 
   return (
-    <div 
+    <div
       className={`${getContainerClasses()} ${className} card-stack-container`}
       style={getContainerStyle()}
       onMouseMove={handleMouseMove}
@@ -694,13 +694,13 @@ export default function CardStack({
           onTouchEnd={index === 0 ? handleTouchEnd : undefined}
         >
           {/* Gradient Overlay for Swiping Effect - Applied to all card types */}
-          <div 
+          <div
             className="absolute inset-0 pointer-events-none z-50"
             style={{
               background: (() => {
                 const { deltaX } = dragState;
                 const isTopCard = index === 0;
-                
+
                 if (isTopCard && swipeDirection) {
                   // Exit animation gradient
                   if (isOverlayMode) {
@@ -752,14 +752,14 @@ export default function CardStack({
                     }
                   }
                 }
-                
+
                 return 'transparent';
               })(),
               borderRadius: '1rem',
               opacity: (() => {
                 const { deltaX } = dragState;
                 const isTopCard = index === 0;
-                
+
                 if (isTopCard && swipeDirection) return 0.6; // Reduced from 1 to 0.6 for more subtle exit animation
                 if (isTopCard && Math.abs(deltaX) > 30) {
                   return Math.min(Math.abs(deltaX) / 100, 1);
@@ -768,21 +768,21 @@ export default function CardStack({
               })()
             }}
           />
-          
+
           {/* Card Content - Dynamic Layout */}
           {isOverlayMode ? (
             // Overlay Mode: Text and button overlaid on image for small cards
-            <div className="card-content w-full h-full relative" style={{ 
-              transform: `scale(${contentScale})`, 
-              transformOrigin: 'center center', 
+            <div className="card-content w-full h-full relative" style={{
+              transform: `scale(${contentScale})`,
+              transformOrigin: 'center center',
               padding: '6px',
               boxSizing: 'border-box'
             }}>
               {/* Background Image */}
               {card.image && (
                 <div className="absolute inset-0 w-full h-full rounded-lg overflow-hidden" style={{ margin: '6px', width: 'calc(100% - 12px)', height: 'calc(100% - 12px)' }}>
-                  <Image 
-                    src={card.image} 
+                  <Image
+                    src={card.image}
                     alt={card.title}
                     width={320}
                     height={448}
@@ -793,11 +793,11 @@ export default function CardStack({
                   <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>
                 </div>
               )}
-              
+
               {/* Overlaid Content - Simple overlay without glass effects for mini cards */}
-              <div 
-                className="absolute inset-0 flex flex-col text-white" 
-                style={{ 
+              <div
+                className="absolute inset-0 flex flex-col text-white"
+                style={{
                   padding: '12px',
                   position: 'absolute',
                   borderRadius: '12px',
@@ -809,15 +809,15 @@ export default function CardStack({
                   {(() => {
                     // Calculate dynamic sizing based on available space
                     const spaceFactor = actualHeight / OVERLAY_MODE_THRESHOLD;
-                    const hasMetaContent = (card.tags && card.tags.length > 0) || 
-                                         (card.githubRepo && githubData?.[card.githubRepo] && 
-                                          (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
-                    
+                    const hasMetaContent = (card.tags && card.tags.length > 0) ||
+                      (card.githubRepo && githubData?.[card.githubRepo] &&
+                        (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
+
                     // Dynamic title sizing - keep original smaller sizes for overlay
                     const titleSize = spaceFactor >= 1.5 ? 'text-lg' : spaceFactor >= 1.2 ? 'text-base' : 'text-sm';
                     const titleCentered = spaceFactor >= 1.3 && !hasMetaContent;
                     // No multi-line titles for overlay style
-                    
+
                     return (
                       <>
                         <h3 className={`${titleSize} font-bold line-clamp-1 mb-1 drop-shadow-sm ${titleCentered ? 'text-center' : ''}`} style={{
@@ -855,7 +855,7 @@ export default function CardStack({
                   }}>
                     {truncateWords(card.threeWordDescriptor || card.description, actualHeight > 200 ? 5 : 3)}
                   </p>
-                  
+
                   {/* Badges Row - Show to the left under description when card is large enough (>140px) */}
                   {actualHeight > 140 && card.tags && card.tags.length > 0 && (
                     <div className="flex justify-start mt-1">
@@ -872,9 +872,9 @@ export default function CardStack({
                                 return 'bg-base0A text-base00'; // Green for other tags
                             }
                           };
-                          
+
                           return (
-                            <span 
+                            <span
                               key={tagIndex}
                               className={`${getTagColor(tag)} rounded-full text-xs drop-shadow-lg flex-shrink-0`}
                               style={{ padding: '2px 6px' }}
@@ -887,10 +887,10 @@ export default function CardStack({
                     </div>
                   )}
                 </div>
-                
+
                 {/* Flexible spacer to push content down when needed */}
                 <div className="flex-1 min-h-0"></div>
-                
+
                 {/* Bottom Section - GitHub Stats and Badges above View Project Button */}
                 <div className="flex-shrink-0">
                   {/* GitHub Stats Row - Always show when available (no height restriction) */}
@@ -899,20 +899,20 @@ export default function CardStack({
                       <div className="flex items-center text-white font-mono text-xs drop-shadow-lg" style={{ gap: '8px' }}>
                         {githubData[card.githubRepo].stargazers_count > 0 && (
                           <div className="flex items-center" style={{ gap: '3px' }}>
-                            <span style={{fontFamily: 'NerdFont, monospace'}}>󓎕</span>
-                            <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].stargazers_count}</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>󓎕</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>{githubData[card.githubRepo].stargazers_count}</span>
                           </div>
                         )}
                         {githubData[card.githubRepo].forks_count > 0 && (
                           <div className="flex items-center" style={{ gap: '3px' }}>
-                            <span style={{fontFamily: 'NerdFont, monospace'}}>󰘬</span>
-                            <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].forks_count}</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>󰘬</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>{githubData[card.githubRepo].forks_count}</span>
                           </div>
                         )}
                       </div>
                     </div>
                   )}
-                  
+
                   {/* View Project Button - Normal flow positioning */}
                   <div className="flex justify-center">
                     <button
@@ -921,7 +921,7 @@ export default function CardStack({
                         onViewProject?.(card);
                       }}
                       className="bg-base0D hover:bg-base0C px-4 py-2 rounded-lg text-xs font-medium transition-colors duration-200 shadow-lg flex items-center"
-                      style={{ 
+                      style={{
                         gap: '8px',
                         color: (() => {
                           // Dynamically choose the lightest base16 color available
@@ -944,586 +944,586 @@ export default function CardStack({
             </div>
           ) : cardLayout === 'landscape' ? (
             // Landscape Layout: Horizontal layout with guaranteed space for all elements
-            <div className="card-content w-full h-full" style={{ 
-              transform: `scale(${contentScale})`, 
-              transformOrigin: 'center center', 
+            <div className="card-content w-full h-full" style={{
+              transform: `scale(${contentScale})`,
+              transformOrigin: 'center center',
               padding: '6px',
               boxSizing: 'border-box'
             }}>
-              <div className="h-full flex min-h-0 overflow-hidden" style={{ 
+              <div className="h-full flex min-h-0 overflow-hidden" style={{
                 gap: '6px',
                 margin: '0',
                 padding: '0',
                 width: '100%',
                 height: '100%'
               }}>
-              {/* Image Section - Responsive width maintaining aspect ratio */}
-              {card.image && (
-                <div className="flex-shrink-0" style={{ 
-                  width: (() => {
-                    // Calculate image width based on card scale and maintain proper aspect ratio
-                    // For landscape cards, image should be proportional to card size
-                    const baseImageWidthPercent = 45; // Base percentage for smaller cards
-                    const maxImageWidthPercent = 55; // Max percentage for larger cards
-                    
-                    // Scale image width percentage based on contentScale
-                    const scaleRange = Math.max(0, Math.min(1, (contentScale - 0.8) / 0.6)); // Normalize 0.8-1.4 to 0-1
-                    const imageWidthPercent = baseImageWidthPercent + (maxImageWidthPercent - baseImageWidthPercent) * scaleRange;
-                    
-                    return `${imageWidthPercent}%`;
-                  })(),
-                  height: '100%',
-                  margin: '0',
-                  padding: '0'
-                }}>
-                  <div className="w-full h-full bg-base02 rounded-lg overflow-hidden" style={{
+                {/* Image Section - Responsive width maintaining aspect ratio */}
+                {card.image && (
+                  <div className="flex-shrink-0" style={{
+                    width: (() => {
+                      // Calculate image width based on card scale and maintain proper aspect ratio
+                      // For landscape cards, image should be proportional to card size
+                      const baseImageWidthPercent = 45; // Base percentage for smaller cards
+                      const maxImageWidthPercent = 55; // Max percentage for larger cards
+
+                      // Scale image width percentage based on contentScale
+                      const scaleRange = Math.max(0, Math.min(1, (contentScale - 0.8) / 0.6)); // Normalize 0.8-1.4 to 0-1
+                      const imageWidthPercent = baseImageWidthPercent + (maxImageWidthPercent - baseImageWidthPercent) * scaleRange;
+
+                      return `${imageWidthPercent}%`;
+                    })(),
+                    height: '100%',
                     margin: '0',
                     padding: '0'
                   }}>
-                    <Image 
-                      src={card.image} 
-                      alt={card.title}
-                      width={500} // Use reasonable fixed size for Next.js optimization
-                      height={350} // Maintain aspect ratio
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                    />
+                    <div className="w-full h-full bg-base02 rounded-lg overflow-hidden" style={{
+                      margin: '0',
+                      padding: '0'
+                    }}>
+                      <Image
+                        src={card.image}
+                        alt={card.title}
+                        width={500} // Use reasonable fixed size for Next.js optimization
+                        height={350} // Maintain aspect ratio
+                        className="w-full h-full object-cover"
+                        draggable={false}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {/* Content Section - Flexible but structured */}
-              <div className="flex-1 min-h-0 flex flex-col" style={{ 
-                gap: '6px',
-                margin: '0',
-                padding: '0',
-                width: '100%',
-                height: '100%'
-              }}>
-                {/* Header Section - Title and Date with dynamic sizing and centering */}
-                <div className="flex-shrink-0" style={{ 
-                  margin: '0', 
-                  padding: '0',
-                  textAlign: (() => {
-                    // Center title when there's plenty of vertical space
-                    // Note: isLandscapeCard calculated but not used in current implementation
-                    // const isLandscapeCard = cardLayout === 'landscape';
-                    // Note: baseHeight calculated but not used in current implementation
-                    // const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
-                    // Note: availableHeight calculated but not used in current implementation
-                    // const availableHeight = baseHeight * scaleFactor;
-                    const hasMetaContent = (card.tags && card.tags.length > 0) || 
-                      (card.githubRepo && githubData?.[card.githubRepo] && 
-                        (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
-                    const spaceFactor = contentScale * (hasMetaContent ? 0.8 : 1.0);
-                    return spaceFactor >= 1.2 ? 'center' : 'left';
-                  })()
-                }}>
-                  <h3 className={`font-bold text-base05 ${(() => {
-                    // Dynamic title sizing based on available space - increased base sizes
-                    const isLandscapeCard = cardLayout === 'landscape';
-                    const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
-                    const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                    
-                    let sizeClass = '';
-                    if (spaceFactor >= 1.4) sizeClass = 'text-xl';
-                    else if (spaceFactor >= 1.2) sizeClass = 'text-lg';
-                    else sizeClass = 'text-base';
-                    
-                    return sizeClass;
-                })()}`} style={{ 
+                )}
+
+                {/* Content Section - Flexible but structured */}
+                <div className="flex-1 min-h-0 flex flex-col" style={{
+                  gap: '6px',
                   margin: '0',
                   padding: '0',
-                  wordBreak: 'break-all',
-                  overflowWrap: 'break-word',
-                  whiteSpace: 'normal',
-                  hyphens: 'none',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 1,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
+                  width: '100%',
+                  height: '100%'
                 }}>
-                    {card.title}
-                  </h3>
-                  
-                  {/* Dynamic separator line when space is available */}
-                  {(() => {
-                    const isLandscapeCard = cardLayout === 'landscape';
-                    const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
-                    const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                    return spaceFactor >= 1.3 ? (
-                      <div 
-                        className="bg-base0D opacity-30" 
-                        style={{
-                          height: '1px',
-                          width: '60%',
-                          margin: '8px auto',
-                          borderRadius: '1px'
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  
-                  {getDateLabel(card) && (
-                    <div className={`${contentScale < 0.8 ? 'text-[10px]' : 'text-xs'} text-base0D font-medium opacity-80`} style={{
+                  {/* Header Section - Title and Date with dynamic sizing and centering */}
+                  <div className="flex-shrink-0" style={{
+                    margin: '0',
+                    padding: '0',
+                    textAlign: (() => {
+                      // Center title when there's plenty of vertical space
+                      // Note: isLandscapeCard calculated but not used in current implementation
+                      // const isLandscapeCard = cardLayout === 'landscape';
+                      // Note: baseHeight calculated but not used in current implementation
+                      // const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
+                      // Note: availableHeight calculated but not used in current implementation
+                      // const availableHeight = baseHeight * scaleFactor;
+                      const hasMetaContent = (card.tags && card.tags.length > 0) ||
+                        (card.githubRepo && githubData?.[card.githubRepo] &&
+                          (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
+                      const spaceFactor = contentScale * (hasMetaContent ? 0.8 : 1.0);
+                      return spaceFactor >= 1.2 ? 'center' : 'left';
+                    })()
+                  }}>
+                    <h3 className={`font-bold text-base05 ${(() => {
+                      // Dynamic title sizing based on available space - increased base sizes
+                      const isLandscapeCard = cardLayout === 'landscape';
+                      const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
+                      const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+
+                      let sizeClass = '';
+                      if (spaceFactor >= 1.4) sizeClass = 'text-xl';
+                      else if (spaceFactor >= 1.2) sizeClass = 'text-lg';
+                      else sizeClass = 'text-base';
+
+                      return sizeClass;
+                    })()}`} style={{
                       margin: '0',
                       padding: '0',
-                      marginTop: (() => {
-                        const isLandscapeCard = cardLayout === 'landscape';
-                        const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
-                        const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                        return spaceFactor >= 1.3 ? '8px' : '6px';
-                      })()
+                      wordBreak: 'break-all',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'normal',
+                      hyphens: 'none',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 1,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}>
-                      {getDateLabel(card)}
-                    </div>
-                  )}
-                </div>
-                
-                {/* Description - Flexbox-based dynamic sizing */}
-                <div className="flex-1 min-h-0" style={{ 
-                  margin: '0', 
-                  padding: '0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: (() => {
-                    // Center content when there's ample vertical space
-                    const isLandscapeCard = cardLayout === 'landscape';
-                    const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
-                    const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                    const hasMetaContent = (card.tags && card.tags.length > 0) || 
-                      (card.githubRepo && githubData?.[card.githubRepo] && 
-                       (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
-                    return (spaceFactor >= 1.3 && !hasMetaContent) ? 'center' : 'flex-start';
-                  })()
-                }}>
-                  <div 
-                    className="flex-1 overflow-hidden"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minHeight: 0
-                    }}
-                  >
-                    <div 
-                      ref={landscapeDescRef}
-                      className="text-base04 text-xs flex-1 overflow-hidden glass-overlay-advanced"
-                      style={{ 
+                      {card.title}
+                    </h3>
+
+                    {/* Dynamic separator line when space is available */}
+                    {(() => {
+                      const isLandscapeCard = cardLayout === 'landscape';
+                      const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
+                      const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+                      return spaceFactor >= 1.3 ? (
+                        <div
+                          className="bg-base0D opacity-30"
+                          style={{
+                            height: '1px',
+                            width: '60%',
+                            margin: '8px auto',
+                            borderRadius: '1px'
+                          }}
+                        />
+                      ) : null;
+                    })()}
+
+                    {getDateLabel(card) && (
+                      <div className={`${contentScale < 0.8 ? 'text-[10px]' : 'text-xs'} text-base0D font-medium opacity-80`} style={{
                         margin: '0',
                         padding: '0',
-                        border: '1px solid var(--base02)',
-                        borderRadius: '0.5rem',
-                        ...landscapeBlur
+                        marginTop: (() => {
+                          const isLandscapeCard = cardLayout === 'landscape';
+                          const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
+                          const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+                          return spaceFactor >= 1.3 ? '8px' : '6px';
+                        })()
+                      }}>
+                        {getDateLabel(card)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description - Flexbox-based dynamic sizing */}
+                  <div className="flex-1 min-h-0" style={{
+                    margin: '0',
+                    padding: '0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: (() => {
+                      // Center content when there's ample vertical space
+                      const isLandscapeCard = cardLayout === 'landscape';
+                      const baseHeight = isLandscapeCard ? BASE_CARD_WIDTH : BASE_CARD_HEIGHT;
+                      const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+                      const hasMetaContent = (card.tags && card.tags.length > 0) ||
+                        (card.githubRepo && githubData?.[card.githubRepo] &&
+                          (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
+                      return (spaceFactor >= 1.3 && !hasMetaContent) ? 'center' : 'flex-start';
+                    })()
+                  }}>
+                    <div
+                      className="flex-1 overflow-hidden"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        minHeight: 0
                       }}
                     >
-                      <p 
-                        style={{ 
+                      <div
+                        ref={landscapeDescRef}
+                        className="text-base04 text-xs flex-1 overflow-hidden glass-overlay-advanced"
+                        style={{
                           margin: '0',
-                          padding: '6px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'flex-start',
-                          lineHeight: '1.3',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word',
-                          textAlign: 'left',
-                          letterSpacing: '-0.02em',
-                          wordSpacing: '0.01em',
-                          position: 'relative',
-                          zIndex: 10
+                          padding: '0',
+                          border: '1px solid var(--base02)',
+                          borderRadius: '0.5rem',
+                          ...landscapeBlur
                         }}
                       >
-                      {(() => {
-                          // Use actual card dimensions for more accurate description calculation
-                          const containerWidth = actualCardDimensions.width || (BASE_CARD_HEIGHT * contentScale);
-                          const containerHeight = actualCardDimensions.height || (BASE_CARD_WIDTH * contentScale);
-                          const description = getOptimalDescription(card, containerWidth, containerHeight, true);
-                          const isShortDescription = description === (card.shortDescription || card.description) && description !== card.description;
-                          
-                          return (
-                            <span style={{
-                              textAlign: isShortDescription ? 'left' : 'justify'
-                            }}>
-                              {description}
-                            </span>
-                          );
-                        })()}
-                      </p>
+                        <p
+                          style={{
+                            margin: '0',
+                            padding: '6px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'flex-start',
+                            lineHeight: '1.3',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            textAlign: 'left',
+                            letterSpacing: '-0.02em',
+                            wordSpacing: '0.01em',
+                            position: 'relative',
+                            zIndex: 10
+                          }}
+                        >
+                          {(() => {
+                            // Use actual card dimensions for more accurate description calculation
+                            const containerWidth = actualCardDimensions.width || (BASE_CARD_HEIGHT * contentScale);
+                            const containerHeight = actualCardDimensions.height || (BASE_CARD_WIDTH * contentScale);
+                            const description = getOptimalDescription(card, containerWidth, containerHeight, true);
+                            const isShortDescription = description === (card.shortDescription || card.description) && description !== card.description;
+
+                            return (
+                              <span style={{
+                                textAlign: isShortDescription ? 'left' : 'justify'
+                              }}>
+                                {description}
+                              </span>
+                            );
+                          })()}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* View Project Button - Above badges and stats */}
-                <div className="flex-shrink-0" style={{ margin: '0', padding: '0' }}>
-                  {onViewProject && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewProject(card);
-                      }}
-                      className="w-full bg-base0C hover:bg-base0D text-base00 transition-colors font-medium text-xs py-1.5 px-3"
-                      style={{
-                        margin: '0',
-                        borderRadius: '0.5rem'
-                      }}
-                    >
-                      {contentScale >= 0.95 ? 'View Project' : 'View'}
-                    </button>
-                  )}
-                </div>
 
-                {/* Meta Row - Badges left, Stats right (below button) */}
-                <div className="flex-shrink-0 flex items-center justify-between min-w-0 overflow-hidden" style={{
-                  margin: '0',
-                  padding: '0'
-                }}>
-                  <div className="flex flex-wrap flex-shrink min-w-0" style={{
-                    gap: '6px',
+                  {/* View Project Button - Above badges and stats */}
+                  <div className="flex-shrink-0" style={{ margin: '0', padding: '0' }}>
+                    {onViewProject && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewProject(card);
+                        }}
+                        className="w-full bg-base0C hover:bg-base0D text-base00 transition-colors font-medium text-xs py-1.5 px-3"
+                        style={{
+                          margin: '0',
+                          borderRadius: '0.5rem'
+                        }}
+                      >
+                        {contentScale >= 0.95 ? 'View Project' : 'View'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Meta Row - Badges left, Stats right (below button) */}
+                  <div className="flex-shrink-0 flex items-center justify-between min-w-0 overflow-hidden" style={{
                     margin: '0',
                     padding: '0'
                   }}>
-                    {card.tags && card.tags.slice(0, 2).map((tag, tagIndex) => {
-                      // Different colors for different tag types
-                      const getTagColor = (tagName: string) => {
-                        switch (tagName.toLowerCase()) {
-                          case 'github':
-                            return 'bg-base0E text-base00'; // Purple for GitHub
-                          case 'live site':
-                            return 'bg-base0B text-base00'; // Cyan for Live Site
-                          default:
-                            return 'bg-base0A text-base00'; // Green for other tags
-                        }
-                      };
-                      
-                      return (
-                        <span 
-                          key={tagIndex}
-                          className={`${getTagColor(tag)} rounded-full flex-shrink-0`}
-                          style={{
-                            fontSize: contentScale < 0.75 ? '8px' : '10px',
-                            padding: '4px 8px',
-                            margin: '0'
-                          }}
-                        >
-                          {tag}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  {card.githubRepo && githubData?.[card.githubRepo] && (
-                    <div className="flex items-center text-base04 font-mono flex-shrink-0" style={{
-                      fontSize: contentScale < 0.75 ? '10px' : '12px',
+                    <div className="flex flex-wrap flex-shrink min-w-0" style={{
                       gap: '6px',
                       margin: '0',
                       padding: '0'
                     }}>
-                      {githubData[card.githubRepo].stargazers_count > 0 && (
-                        <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>󓎕</span>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].stargazers_count}</span>
-                        </div>
-                      )}
-                      {githubData[card.githubRepo].forks_count > 0 && (
-                        <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>󰘬</span>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].forks_count}</span>
-                        </div>
-                      )}
+                      {card.tags && card.tags.slice(0, 2).map((tag, tagIndex) => {
+                        // Different colors for different tag types
+                        const getTagColor = (tagName: string) => {
+                          switch (tagName.toLowerCase()) {
+                            case 'github':
+                              return 'bg-base0E text-base00'; // Purple for GitHub
+                            case 'live site':
+                              return 'bg-base0B text-base00'; // Cyan for Live Site
+                            default:
+                              return 'bg-base0A text-base00'; // Green for other tags
+                          }
+                        };
+
+                        return (
+                          <span
+                            key={tagIndex}
+                            className={`${getTagColor(tag)} rounded-full flex-shrink-0`}
+                            style={{
+                              fontSize: contentScale < 0.75 ? '8px' : '10px',
+                              padding: '4px 8px',
+                              margin: '0'
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        );
+                      })}
                     </div>
-                  )}
+                    {card.githubRepo && githubData?.[card.githubRepo] && (
+                      <div className="flex items-center text-base04 font-mono flex-shrink-0" style={{
+                        fontSize: contentScale < 0.75 ? '10px' : '12px',
+                        gap: '6px',
+                        margin: '0',
+                        padding: '0'
+                      }}>
+                        {githubData[card.githubRepo].stargazers_count > 0 && (
+                          <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>󓎕</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>{githubData[card.githubRepo].stargazers_count}</span>
+                          </div>
+                        )}
+                        {githubData[card.githubRepo].forks_count > 0 && (
+                          <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>󰘬</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>{githubData[card.githubRepo].forks_count}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
           ) : (
             // Portrait Layout: Vertical layout with guaranteed space allocation
-            <div className="card-content w-full h-full" style={{ 
-              transform: `scale(${contentScale})`, 
-              transformOrigin: 'center center', 
+            <div className="card-content w-full h-full" style={{
+              transform: `scale(${contentScale})`,
+              transformOrigin: 'center center',
               padding: '6px',
               boxSizing: 'border-box'
             }}>
-              <div className="h-full flex flex-col min-h-0 overflow-hidden" style={{ 
+              <div className="h-full flex flex-col min-h-0 overflow-hidden" style={{
                 gap: '6px',
                 margin: '0',
                 padding: '0',
                 width: '100%',
                 height: '100%'
               }}>
-              {/* Image Section - Responsive height maintaining aspect ratio */}
-              {card.image && (
-                <div className="w-full flex-shrink-0" style={{ 
-                  height: (() => {
-                    // Calculate image height based on card scale and maintain proper aspect ratio
-                    // For portrait cards, image should be proportional to card size
-                    const baseImageHeightPercent = 35; // Base percentage for smaller cards
-                    const maxImageHeightPercent = 60; // Max percentage for larger cards
-                    
-                    // Scale image height percentage based on contentScale
-                    const scaleRange = Math.max(0, Math.min(1, (contentScale - 0.8) / 0.6)); // Normalize 0.8-1.4 to 0-1
-                    const imageHeightPercent = baseImageHeightPercent + (maxImageHeightPercent - baseImageHeightPercent) * scaleRange;
-                    
-                    return `${imageHeightPercent}%`;
-                  })(),
-                  margin: '0',
-                  padding: '0'
-                }}>
-                  <div className="w-full h-full bg-base02 rounded-lg overflow-hidden" style={{
+                {/* Image Section - Responsive height maintaining aspect ratio */}
+                {card.image && (
+                  <div className="w-full flex-shrink-0" style={{
+                    height: (() => {
+                      // Calculate image height based on card scale and maintain proper aspect ratio
+                      // For portrait cards, image should be proportional to card size
+                      const baseImageHeightPercent = 35; // Base percentage for smaller cards
+                      const maxImageHeightPercent = 60; // Max percentage for larger cards
+
+                      // Scale image height percentage based on contentScale
+                      const scaleRange = Math.max(0, Math.min(1, (contentScale - 0.8) / 0.6)); // Normalize 0.8-1.4 to 0-1
+                      const imageHeightPercent = baseImageHeightPercent + (maxImageHeightPercent - baseImageHeightPercent) * scaleRange;
+
+                      return `${imageHeightPercent}%`;
+                    })(),
                     margin: '0',
                     padding: '0'
                   }}>
-                    <Image 
-                      src={card.image} 
-                      alt={card.title}
-                      width={400} // Use reasonable fixed size for Next.js optimization
-                      height={300} // Maintain aspect ratio
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                    />
+                    <div className="w-full h-full bg-base02 rounded-lg overflow-hidden" style={{
+                      margin: '0',
+                      padding: '0'
+                    }}>
+                      <Image
+                        src={card.image}
+                        alt={card.title}
+                        width={400} // Use reasonable fixed size for Next.js optimization
+                        height={300} // Maintain aspect ratio
+                        className="w-full h-full object-cover"
+                        draggable={false}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {/* Content Section - Remaining 60% of height */}
-              <div className="flex-1 min-h-0 flex flex-col" style={{ 
-                gap: '6px',
-                margin: '0',
-                padding: '0',
-                width: '100%',
-                height: '100%'
-              }}>
-                {/* Header Section - Title and Date */}
-                <div className="flex-shrink-0" style={{ 
-                  margin: '0', 
-                  padding: '0',
-                  textAlign: (() => {
-                    // Center title when there's plenty of vertical space
-                    const isPortraitCard = cardLayout === 'portrait';
-                    const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
-                    const availableHeight = baseHeight * scaleFactor;
-                    const hasMetaContent = (card.tags && card.tags.length > 0) || 
-                      (card.githubRepo && githubData?.[card.githubRepo] && 
-                       (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
-                    const spaceFactor = contentScale * (availableHeight / BASE_CARD_HEIGHT);
-                    return (spaceFactor >= 1.3 && !hasMetaContent) ? 'center' : 'left';
-                  })()
-                }}>
-                  <h3 className={`font-bold text-base05 ${(() => {
-                    // Dynamic title sizing based on available space - increased base sizes
-                    const isPortraitCard = cardLayout === 'portrait';
-                    const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
-                    const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                    
-                    let sizeClass = '';
-                    if (spaceFactor >= 1.4) sizeClass = 'text-xl';
-                    else if (spaceFactor >= 1.2) sizeClass = 'text-lg';
-                    else sizeClass = 'text-base';
-                    
-                    return sizeClass;
-                })()}`} style={{ 
+                )}
+
+                {/* Content Section - Remaining 60% of height */}
+                <div className="flex-1 min-h-0 flex flex-col" style={{
+                  gap: '6px',
                   margin: '0',
                   padding: '0',
-                  wordBreak: 'break-all',
-                  overflowWrap: 'break-word',
-                  whiteSpace: 'normal',
-                  hyphens: 'none',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 1,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
+                  width: '100%',
+                  height: '100%'
                 }}>
-                    {card.title}
-                  </h3>
-                  
-                  {/* Dynamic separator line when space is available */}
-                  {(() => {
-                    const isPortraitCard = cardLayout === 'portrait';
-                    const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
-                    const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                    return spaceFactor >= 1.3 ? (
-                      <div 
-                        className="bg-base04 opacity-30"
-                        style={{
-                          height: '1px',
-                          width: '60%',
-                          margin: '8px auto',
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  
-                  {getDateLabel(card) && (
-                    <div className={`${contentScale < 0.8 ? 'text-[10px]' : 'text-xs'} text-base0D font-medium opacity-80`} style={{
+                  {/* Header Section - Title and Date */}
+                  <div className="flex-shrink-0" style={{
+                    margin: '0',
+                    padding: '0',
+                    textAlign: (() => {
+                      // Center title when there's plenty of vertical space
+                      const isPortraitCard = cardLayout === 'portrait';
+                      const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
+                      const availableHeight = baseHeight * scaleFactor;
+                      const hasMetaContent = (card.tags && card.tags.length > 0) ||
+                        (card.githubRepo && githubData?.[card.githubRepo] &&
+                          (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
+                      const spaceFactor = contentScale * (availableHeight / BASE_CARD_HEIGHT);
+                      return (spaceFactor >= 1.3 && !hasMetaContent) ? 'center' : 'left';
+                    })()
+                  }}>
+                    <h3 className={`font-bold text-base05 ${(() => {
+                      // Dynamic title sizing based on available space - increased base sizes
+                      const isPortraitCard = cardLayout === 'portrait';
+                      const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
+                      const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+
+                      let sizeClass = '';
+                      if (spaceFactor >= 1.4) sizeClass = 'text-xl';
+                      else if (spaceFactor >= 1.2) sizeClass = 'text-lg';
+                      else sizeClass = 'text-base';
+
+                      return sizeClass;
+                    })()}`} style={{
                       margin: '0',
                       padding: '0',
-                      marginTop: (() => {
-                        const isPortraitCard = cardLayout === 'portrait';
-                        const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
-                        const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                        return spaceFactor >= 1.3 ? '8px' : '6px';
-                      })()
+                      wordBreak: 'break-all',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'normal',
+                      hyphens: 'none',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 1,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}>
-                      {getDateLabel(card)}
-                    </div>
-                  )}
-                </div>
-                
-                {/* Description - Takes available middle space with dynamic line clamping */}
-                <div className="flex-1 min-h-0" style={{ 
-                  margin: '0', 
-                  padding: '0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: (() => {
-                    // Center content when there's ample vertical space
-                    const isPortraitCard = cardLayout === 'portrait';
-                    const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
-                    const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
-                    const hasMetaContent = (card.tags && card.tags.length > 0) || 
-                      (card.githubRepo && githubData?.[card.githubRepo] && 
-                       (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
-                    return (spaceFactor >= 1.3 && !hasMetaContent) ? 'center' : 'flex-start';
-                  })()
-                }}>
-                  <div 
-                    className="flex-1 overflow-hidden"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minHeight: 0
-                    }}
-                  >
-                    <div 
-                      ref={portraitDescRef}
-                      className="text-base04 text-xs flex-1 overflow-hidden glass-overlay-advanced"
-                      style={{ 
+                      {card.title}
+                    </h3>
+
+                    {/* Dynamic separator line when space is available */}
+                    {(() => {
+                      const isPortraitCard = cardLayout === 'portrait';
+                      const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
+                      const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+                      return spaceFactor >= 1.3 ? (
+                        <div
+                          className="bg-base04 opacity-30"
+                          style={{
+                            height: '1px',
+                            width: '60%',
+                            margin: '8px auto',
+                          }}
+                        />
+                      ) : null;
+                    })()}
+
+                    {getDateLabel(card) && (
+                      <div className={`${contentScale < 0.8 ? 'text-[10px]' : 'text-xs'} text-base0D font-medium opacity-80`} style={{
                         margin: '0',
                         padding: '0',
-                        border: '1px solid var(--base02)',
-                        borderRadius: '0.5rem',
-                        ...portraitBlur
+                        marginTop: (() => {
+                          const isPortraitCard = cardLayout === 'portrait';
+                          const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
+                          const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+                          return spaceFactor >= 1.3 ? '8px' : '6px';
+                        })()
+                      }}>
+                        {getDateLabel(card)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description - Takes available middle space with dynamic line clamping */}
+                  <div className="flex-1 min-h-0" style={{
+                    margin: '0',
+                    padding: '0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: (() => {
+                      // Center content when there's ample vertical space
+                      const isPortraitCard = cardLayout === 'portrait';
+                      const baseHeight = isPortraitCard ? BASE_CARD_HEIGHT : BASE_CARD_WIDTH;
+                      const spaceFactor = contentScale * (baseHeight * scaleFactor / BASE_CARD_HEIGHT);
+                      const hasMetaContent = (card.tags && card.tags.length > 0) ||
+                        (card.githubRepo && githubData?.[card.githubRepo] &&
+                          (githubData[card.githubRepo].stargazers_count > 0 || githubData[card.githubRepo].forks_count > 0));
+                      return (spaceFactor >= 1.3 && !hasMetaContent) ? 'center' : 'flex-start';
+                    })()
+                  }}>
+                    <div
+                      className="flex-1 overflow-hidden"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        minHeight: 0
                       }}
                     >
-                      
-                      <p 
-                        style={{ 
+                      <div
+                        ref={portraitDescRef}
+                        className="text-base04 text-xs flex-1 overflow-hidden glass-overlay-advanced"
+                        style={{
                           margin: '0',
-                          padding: '6px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'flex-start',
-                          lineHeight: '1.3',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word',
-                          textAlign: 'left',
-                          letterSpacing: '-0.02em',
-                          wordSpacing: '0.01em',
-                          position: 'relative',
-                          zIndex: 10
+                          padding: '0',
+                          border: '1px solid var(--base02)',
+                          borderRadius: '0.5rem',
+                          ...portraitBlur
                         }}
                       >
-                        {(() => {
-                          // Use actual card dimensions for more accurate description calculation
-                          const containerWidth = actualCardDimensions.width || (BASE_CARD_WIDTH * contentScale);
-                          const containerHeight = actualCardDimensions.height || (BASE_CARD_HEIGHT * contentScale);
-                          const description = getOptimalDescription(card, containerWidth, containerHeight, false);
-                          const isShortDescription = description === (card.shortDescription || card.description) && description !== card.description;
-                          
-                          return (
-                            <span style={{
-                              textAlign: isShortDescription ? 'left' : 'justify'
-                            }}>
-                              {description}
-                            </span>
-                          );
-                        })()}
-                      </p>
+
+                        <p
+                          style={{
+                            margin: '0',
+                            padding: '6px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'flex-start',
+                            lineHeight: '1.3',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            textAlign: 'left',
+                            letterSpacing: '-0.02em',
+                            wordSpacing: '0.01em',
+                            position: 'relative',
+                            zIndex: 10
+                          }}
+                        >
+                          {(() => {
+                            // Use actual card dimensions for more accurate description calculation
+                            const containerWidth = actualCardDimensions.width || (BASE_CARD_WIDTH * contentScale);
+                            const containerHeight = actualCardDimensions.height || (BASE_CARD_HEIGHT * contentScale);
+                            const description = getOptimalDescription(card, containerWidth, containerHeight, false);
+                            const isShortDescription = description === (card.shortDescription || card.description) && description !== card.description;
+
+                            return (
+                              <span style={{
+                                textAlign: isShortDescription ? 'left' : 'justify'
+                              }}>
+                                {description}
+                              </span>
+                            );
+                          })()}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* View Project Button - Above badges and stats */}
-                <div className="flex-shrink-0" style={{ margin: '0', padding: '0' }}>
-                  {onViewProject && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewProject(card);
-                      }}
-                      className="w-full bg-base0C hover:bg-base0D text-base00 transition-colors font-medium text-xs py-1.5 px-3"
-                      style={{
-                        margin: '0',
-                        borderRadius: '0.5rem'
-                      }}
-                    >
-                      {contentScale >= 0.95 ? 'View Project' : 'View'}
-                    </button>
-                  )}
-                </div>
 
-                {/* Meta Row - Badges left, Stats right (below button) */}
-                <div className="flex-shrink-0 flex items-center justify-between min-w-0 overflow-hidden" style={{
-                  margin: '0',
-                  padding: '0'
-                }}>
-                  <div className="flex flex-wrap flex-shrink min-w-0" style={{
-                    gap: '6px',
+                  {/* View Project Button - Above badges and stats */}
+                  <div className="flex-shrink-0" style={{ margin: '0', padding: '0' }}>
+                    {onViewProject && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewProject(card);
+                        }}
+                        className="w-full bg-base0C hover:bg-base0D text-base00 transition-colors font-medium text-xs py-1.5 px-3"
+                        style={{
+                          margin: '0',
+                          borderRadius: '0.5rem'
+                        }}
+                      >
+                        {contentScale >= 0.95 ? 'View Project' : 'View'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Meta Row - Badges left, Stats right (below button) */}
+                  <div className="flex-shrink-0 flex items-center justify-between min-w-0 overflow-hidden" style={{
                     margin: '0',
                     padding: '0'
                   }}>
-                    {card.tags && card.tags.slice(0, 2).map((tag, tagIndex) => {
-                      // Different colors for different tag types
-                      const getTagColor = (tagName: string) => {
-                        switch (tagName.toLowerCase()) {
-                          case 'github':
-                            return 'bg-base0E text-base00'; // Purple for GitHub
-                          case 'live site':
-                            return 'bg-base0B text-base00'; // Cyan for Live Site
-                          default:
-                            return 'bg-base0A text-base00'; // Green for other tags
-                        }
-                      };
-                      
-                      return (
-                        <span 
-                          key={tagIndex}
-                          className={`${getTagColor(tag)} rounded-full flex-shrink-0`}
-                          style={{
-                            fontSize: contentScale < 0.75 ? '8px' : '10px',
-                            padding: '4px 8px',
-                            margin: '0'
-                          }}
-                        >
-                          {tag}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  {card.githubRepo && githubData?.[card.githubRepo] && (
-                    <div className="flex items-center text-base04 font-mono flex-shrink-0" style={{
-                      fontSize: contentScale < 0.75 ? '10px' : '12px',
+                    <div className="flex flex-wrap flex-shrink min-w-0" style={{
                       gap: '6px',
                       margin: '0',
                       padding: '0'
                     }}>
-                      {githubData[card.githubRepo].stargazers_count > 0 && (
-                        <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>󓎕</span>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].stargazers_count}</span>
-                        </div>
-                      )}
-                      {githubData[card.githubRepo].forks_count > 0 && (
-                        <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>󰘬</span>
-                          <span style={{fontFamily: 'NerdFont, monospace'}}>{githubData[card.githubRepo].forks_count}</span>
-                        </div>
-                      )}
+                      {card.tags && card.tags.slice(0, 2).map((tag, tagIndex) => {
+                        // Different colors for different tag types
+                        const getTagColor = (tagName: string) => {
+                          switch (tagName.toLowerCase()) {
+                            case 'github':
+                              return 'bg-base0E text-base00'; // Purple for GitHub
+                            case 'live site':
+                              return 'bg-base0B text-base00'; // Cyan for Live Site
+                            default:
+                              return 'bg-base0A text-base00'; // Green for other tags
+                          }
+                        };
+
+                        return (
+                          <span
+                            key={tagIndex}
+                            className={`${getTagColor(tag)} rounded-full flex-shrink-0`}
+                            style={{
+                              fontSize: contentScale < 0.75 ? '8px' : '10px',
+                              padding: '4px 8px',
+                              margin: '0'
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        );
+                      })}
                     </div>
-                  )}
+                    {card.githubRepo && githubData?.[card.githubRepo] && (
+                      <div className="flex items-center text-base04 font-mono flex-shrink-0" style={{
+                        fontSize: contentScale < 0.75 ? '10px' : '12px',
+                        gap: '6px',
+                        margin: '0',
+                        padding: '0'
+                      }}>
+                        {githubData[card.githubRepo].stargazers_count > 0 && (
+                          <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>󓎕</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>{githubData[card.githubRepo].stargazers_count}</span>
+                          </div>
+                        )}
+                        {githubData[card.githubRepo].forks_count > 0 && (
+                          <div className="flex items-center" style={{ margin: '0', padding: '0', gap: '6px' }}>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>󰘬</span>
+                            <span style={{ fontFamily: 'NerdFont, monospace' }}>{githubData[card.githubRepo].forks_count}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
           )}
@@ -1531,21 +1531,19 @@ export default function CardStack({
           {/* Swipe indicators */}
           {index === 0 && dragState.isDragging && (
             <>
-              <div 
-                className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-bold transition-opacity ${
-                  dragState.deltaX > 50 
-                    ? 'bg-base0B text-base00 opacity-100' 
+              <div
+                className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-bold transition-opacity ${dragState.deltaX > 50
+                    ? 'bg-base0B text-base00 opacity-100'
                     : 'bg-base02 text-base04 opacity-50'
-                }`}
+                  }`}
               >
                 LIKE
               </div>
-              <div 
-                className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold transition-opacity ${
-                  dragState.deltaX < -50 
-                    ? 'bg-base08 text-base00 opacity-100' 
+              <div
+                className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold transition-opacity ${dragState.deltaX < -50
+                    ? 'bg-base08 text-base00 opacity-100'
                     : 'bg-base02 text-base04 opacity-50'
-                }`}
+                  }`}
               >
                 PASS
               </div>
