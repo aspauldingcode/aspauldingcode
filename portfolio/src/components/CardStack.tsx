@@ -92,6 +92,13 @@ export default function CardStack({
   });
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [cardLayout, setCardLayout] = useState<'portrait' | 'landscape' | 'compact'>('portrait');
+  const layoutRef = useRef(cardLayout);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    layoutRef.current = cardLayout;
+  }, [cardLayout]);
+
   const [scaleFactor, setScaleFactor] = useState(1);
   const [contentScale, setContentScale] = useState(1);
   const [actualCardDimensions, setActualCardDimensions] = useState({ width: 0, height: 0 });
@@ -154,7 +161,7 @@ export default function CardStack({
       const reasonableWidth = vw >= 320; // Even more lenient for very constrained scenarios
 
       // Add hysteresis to prevent rapid switching between layouts
-      const currentLayout = cardLayout;
+      const currentLayout = layoutRef.current;
       const LAYOUT_SWITCH_THRESHOLD = 0.15; // 15% better to switch layouts
       const HEIGHT_PRIORITY_THRESHOLD = 0.08; // Reduced threshold when height is constrained
 
@@ -243,7 +250,7 @@ export default function CardStack({
     updateLayout();
     window.addEventListener('resize', updateLayout);
     return () => window.removeEventListener('resize', updateLayout);
-  }, [cardLayout]);
+  }, []);
 
   // Filter out swiped cards and get visible cards
   const effectiveSwipedCardIds = externalSwipedCardIds || swipedCardIds;
@@ -1533,16 +1540,16 @@ export default function CardStack({
             <>
               <div
                 className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-bold transition-opacity ${dragState.deltaX > 50
-                    ? 'bg-base0B text-base00 opacity-100'
-                    : 'bg-base02 text-base04 opacity-50'
+                  ? 'bg-base0B text-base00 opacity-100'
+                  : 'bg-base02 text-base04 opacity-50'
                   }`}
               >
                 LIKE
               </div>
               <div
                 className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold transition-opacity ${dragState.deltaX < -50
-                    ? 'bg-base08 text-base00 opacity-100'
-                    : 'bg-base02 text-base04 opacity-50'
+                  ? 'bg-base08 text-base00 opacity-100'
+                  : 'bg-base02 text-base04 opacity-50'
                   }`}
               >
                 PASS
