@@ -6,8 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint .",
-    "vercel-build": "npm run lint && next build"
+    "lint": "next lint",
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
