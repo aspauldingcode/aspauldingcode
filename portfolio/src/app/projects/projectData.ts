@@ -17,7 +17,7 @@ export const projects: Project[] = [
     title: "Dumonds.com",
     images: [
       '/dumonds_slider/about.png',
-      '/dumonds_slider/footer.png', 
+      '/dumonds_slider/footer.png',
       '/dumonds_slider/home.png',
       '/dumonds_slider/products.png',
       '/dumonds_slider/search.png',
@@ -32,10 +32,10 @@ export const projects: Project[] = [
   },
   {
     id: 2,
-    title: "Whisperer", 
+    title: "Whisperer",
     images: [
       '/whisperer_slider/appearence.png',
-      '/whisperer_slider/chatGreen.png', 
+      '/whisperer_slider/chatGreen.png',
       '/whisperer_slider/homeRedFlatUI.png',
       '/whisperer_slider/homeSlateGlowUI.png',
       '/whisperer_slider/inputTimeout.png',
@@ -47,7 +47,8 @@ export const projects: Project[] = [
     description: "An innovative Apple Watch application leveraging advanced AI technology to enable natural conversation through whispered speech. Built with Swift and SwiftUI, this app combines OpenAI's Whisper for accurate speech recognition with ChatGPT for intelligent responses, allowing users to interact with AI through quiet voice commands. Perfect for discrete AI interactions on the go.",
     shortDescription: "Apple Watch app using AI for whispered speech recognition and ChatGPT responses, perfect for discrete conversations.",
     threeWordDescriptor: "Apple Watch App",
-    startYear: 2023
+    startYear: 2023,
+    githubRepo: "https://github.com/aspauldingcode/Whisperer"
   },
   {
     id: 3,

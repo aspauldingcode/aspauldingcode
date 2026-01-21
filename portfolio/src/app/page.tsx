@@ -1,39 +1,120 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import ContactForm from './components/ContactForm';
-import ThemeToggle from './components/ThemeToggle';
+import ResumeViewer from './components/ResumeViewer';
 import { emailConfig } from '@/config/email';
+import { projects } from './projects/projectData';
 
 export default function Home() {
+  const router = useRouter();
+
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isResumeOpen, setIsResumeOpen] = useState(false);
+  const [cachedResume, setCachedResume] = useState<string | null>(null);
 
-  const handleContactClick = () => {
-    console.log('Contact button clicked');
-    // Add 0.2 second delay for animation to complete
-    setTimeout(() => {
-      setIsContactOpen(true);
-    }, 200);
-  };
+  // Resume Pre-fetching and Caching
+  useEffect(() => {
+    const fetchAndCacheResume = async () => {
+      try {
+        // 1. Check localStorage first
+        const cached = localStorage.getItem('resume_base64');
+        if (cached) {
+          setCachedResume(cached);
+          console.log('Resume loaded from cache');
+          return;
+        }
 
-  const handleResumeClick = () => {
-    console.log('Resume button clicked');
-    // Add 0.2 second delay for animation to complete
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        window.open('/resume_alex_spaulding.pdf', '_blank');
+        // 2. If not cached, fetch and convert
+        console.log('Pre-fetching resume...');
+        const response = await fetch('/resume_alex_spaulding.pdf');
+        const blob = await response.blob();
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          localStorage.setItem('resume_base64', base64data);
+          setCachedResume(base64data);
+          console.log('Resume cached successfully');
+        };
+        reader.readAsDataURL(blob);
+      } catch (error) {
+        console.error('Failed to pre-fetch resume:', error);
       }
+    };
+
+    fetchAndCacheResume();
+  }, []);
+
+  // Project Images Pre-loading
+  useEffect(() => {
+    // Delay pre-loading to prioritize initial landing page performance
+    const timer = setTimeout(() => {
+      console.log('Starting background pre-loading of project images...');
+
+      // Pre-load project images
+      projects.forEach(project => {
+        project.images.forEach(imageUrl => {
+          const img = new window.Image();
+          img.src = imageUrl;
+        });
+      });
+
+      // Pre-fetch GitHub stars to ensure sorted order is ready
+      const repos = projects.filter(p => p.githubRepo).map(p => p.githubRepo!);
+      if (repos.length > 0) {
+        console.log('Pre-fetching GitHub stars...');
+        fetch(`/api/github-stars?repos=${encodeURIComponent(repos.join(','))}`).catch(err => {
+          console.error('Failed to pre-fetch GitHub stars:', err);
+        });
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const [isPending, setIsPending] = useState(false);
+
+  // Centralized, robust handler for all home page actions
+  const handleAction = (action: () => void) => {
+    if (isPending) return;
+    setIsPending(true);
+
+    // Consistent delay to allow button animations into the 'pressed' state
+    setTimeout(() => {
+      action();
+
+      // Cooldown to prevent accidental double-taps on the same button
+      setTimeout(() => setIsPending(false), 400);
     }, 200);
   };
 
+  const handleContactClick = () => handleAction(() => setIsContactOpen(true));
+  const handleResumeClick = () => handleAction(() => setIsResumeOpen(true));
+  const handleProjectsClick = () => handleAction(() => router.push('/projects'));
 
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if input/textarea is focused or modifiers are used
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-
+      const key = e.key.toLowerCase();
+      if (key === 'p') handleProjectsClick();
+      if (key === 'r') handleResumeClick();
+      if (key === 'c') handleContactClick();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [router, isPending]); // Added isPending to dependencies for safety
 
   return (
-    <main className="fixed inset-0 flex flex-col items-center justify-center bg-base00 overflow-hidden">
+    <main className="fixed inset-0 min-h-[100dvh] min-h-[100svh] flex flex-col items-center justify-center bg-base00 overflow-hidden touch-none">
       <div className="flex flex-col items-center justify-center h-full w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 sm:py-8
                 h-600:py-4
                 h-550:py-3
@@ -178,14 +259,16 @@ export default function Home() {
             h-280:gap-2 h-280:sm:gap-2 h-280:md:gap-3
             wide-short:gap-4 wide-short:sm:gap-8 wide-short:md:gap-10
             h-280:gap-2 h-320:gap-2">
-            
+
             {/* Projects Button */}
             <div className="transform rotate-0 sm:-rotate-1 hover:-rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
               w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
               h-452:flex-1 h-452:min-w-0">
-              <Link 
-                href="/projects"
-                className="inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0D hover:bg-base0C text-base00 
+              <motion.button
+                onTap={handleProjectsClick}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0D hover:bg-base0C transition-colors duration-300 text-base00 
                   px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg
                   h-600:px-3 h-600:py-2 h-600:text-xs
                   h-550:px-2 h-550:py-1.5 h-550:text-xs
@@ -197,7 +280,8 @@ export default function Home() {
                   h-280:px-2 h-280:py-1 h-280:text-xs
                   wide-short:px-3 wide-short:py-2 wide-short:text-sm
                   space-x-2 h-280:space-x-1 h-320:space-x-1 h-452:space-x-1 wide-short:space-x-1
-                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]"
+                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]
+                  touch-manipulation"
               >
                 <span>Projects</span>
                 <svg
@@ -225,16 +309,18 @@ export default function Home() {
                     d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
                   />
                 </svg>
-              </Link>
+              </motion.button>
             </div>
 
             {/* Resume Button */}
             <div className="transform rotate-0 sm:rotate-0.5 hover:rotate-0.5 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
               w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
               h-452:flex-1 h-452:min-w-0">
-              <button
-                onClick={handleResumeClick}
-                className="inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0B hover:bg-base0A text-base00 
+              <motion.button
+                onTap={handleResumeClick}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0B hover:bg-base0A transition-colors duration-300 text-base00 
                   px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg
                   h-600:px-3 h-600:py-2 h-600:text-xs
                   h-550:px-2 h-550:py-1.5 h-550:text-xs
@@ -246,7 +332,8 @@ export default function Home() {
                   h-280:px-2 h-280:py-1 h-280:text-xs
                   wide-short:px-3 wide-short:py-2 wide-short:text-sm
                   space-x-2 h-280:space-x-1 h-320:space-x-1 h-452:space-x-1 wide-short:space-x-1
-                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]"
+                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]
+                  touch-manipulation"
               >
                 <span>Resume</span>
                 <svg
@@ -271,19 +358,21 @@ export default function Home() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
                   />
                 </svg>
-              </button>
+              </motion.button>
             </div>
 
             {/* Contact Button */}
             <div className="transform rotate-0 sm:rotate-1 hover:rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
               w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
               h-452:flex-1 h-452:min-w-0">
-              <button
-                onClick={handleContactClick}
-                className="inline-flex w-full justify-center rounded-lg shadow-lg transition-all duration-300 items-center hover:scale-105 active:scale-100 bg-base0E hover:bg-base0F text-base00 
+              <motion.button
+                onTap={handleContactClick}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0E hover:bg-base0F transition-colors duration-300 text-base00 
                   px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 text-sm sm:text-base md:text-lg
                   h-600:px-3 h-600:py-2 h-600:text-xs
                   h-550:px-2 h-550:py-1.5 h-550:text-xs
@@ -295,7 +384,8 @@ export default function Home() {
                   h-280:px-2 h-280:py-1 h-280:text-xs
                   wide-short:px-3 wide-short:py-2 wide-short:text-sm
                   space-x-2 h-280:space-x-1 h-320:space-x-1 h-452:space-x-1 wide-short:space-x-1
-                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]"
+                  min-h-[40px] h-452:min-h-[36px] h-400:min-h-[32px] h-350:min-h-[28px] h-280:min-h-[24px]
+                  touch-manipulation"
               >
                 <span>Contact</span>
                 <svg
@@ -323,7 +413,7 @@ export default function Home() {
                     d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
                   />
                 </svg>
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
@@ -341,13 +431,23 @@ export default function Home() {
             wide-short:h-3 wide-short:sm:h-4"></div>
       </div>
 
-      <ThemeToggle />
-
-      <ContactForm 
-        isOpen={isContactOpen} 
-        onClose={() => setIsContactOpen(false)} 
-        emailConfig={emailConfig}
-      />
+      <AnimatePresence>
+        {isContactOpen && (
+          <ContactForm
+            key="contact-form"
+            isOpen={isContactOpen}
+            onClose={() => setIsContactOpen(false)}
+            emailConfig={emailConfig}
+          />
+        )}
+        {isResumeOpen && (
+          <ResumeViewer
+            key="resume-viewer"
+            onCheckClose={() => setIsResumeOpen(false)}
+            cachedResume={cachedResume}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

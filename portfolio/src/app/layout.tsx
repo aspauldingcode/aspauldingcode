@@ -1,7 +1,6 @@
 import './globals.css';
 import ClientLayout from './components/ClientLayout';
 import Script from 'next/script';
-import Footer from './components/Footer';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
 
@@ -10,6 +9,9 @@ export const metadata = {
   description: 'My portfolio website',
   other: {
     'overscroll-behavior': 'none',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'color-scheme': 'light dark',
   },
 };
 
@@ -18,6 +20,11 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fefbec' },
+    { media: '(prefers-color-scheme: dark)', color: '#181818' },
+  ],
 };
 
 function ThemeScript() {
@@ -53,14 +60,21 @@ function ThemeScript() {
                 effectiveTheme = theme;
               }
               document.documentElement.classList.toggle('dark', effectiveTheme === 'dark');
+              document.documentElement.style.colorScheme = effectiveTheme;
               
               // Set CSS custom properties for immediate theme application
               const root = document.documentElement;
-              if (effectiveTheme === 'dark') {
-                root.style.setProperty('--current-theme', 'dark');
-              } else {
-                root.style.setProperty('--current-theme', 'light');
+              root.style.setProperty('--current-theme', effectiveTheme);
+              
+              // Update theme-color meta tag for WebKit
+              const themeColor = effectiveTheme === 'dark' ? '#181818' : '#fefbec';
+              let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+              if (!metaThemeColor) {
+                metaThemeColor = document.createElement('meta');
+                metaThemeColor.setAttribute('name', 'theme-color');
+                document.head.appendChild(metaThemeColor);
               }
+              metaThemeColor.setAttribute('content', themeColor);
               
               return effectiveTheme;
             }
@@ -140,21 +154,67 @@ function ThemeScript() {
   );
 }
 
+function GuardScript() {
+  return (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            const ignoreErrors = [
+              'window.ethereum',
+              'selectedAddress',
+              'ethereum.selectedAddress'
+            ];
+            
+            // Handle console errors
+            const originalError = console.error;
+            console.error = function() {
+              const msg = Array.from(arguments).join(' ');
+              if (ignoreErrors.some(err => msg.includes(err))) return;
+              originalError.apply(console, arguments);
+            };
+
+            // Handle runtime exceptions before Next.js overlay
+            window.addEventListener('error', function(event) {
+              const msg = event.message || '';
+              if (ignoreErrors.some(err => msg.includes(err))) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+              }
+            }, true);
+
+            // Handle unhandled promise rejections
+            window.addEventListener('unhandledrejection', function(event) {
+              const msg = (event.reason && event.reason.message) || '';
+              if (ignoreErrors.some(err => msg.includes(err))) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+            }, true);
+          })();
+        `,
+      }}
+    />
+  );
+}
+
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="overflow-hidden">
       <head>
+        <GuardScript />
         <ThemeScript />
         <Script src={`https://www.google.com/recaptcha/api.js?render=${SITE_KEY}&badge=bottomright&size=invisible`} />
       </head>
-      <body>
+      <body className="overflow-hidden overscroll-none touch-none">
         <ClientLayout>
           {children}
-          <Footer />
         </ClientLayout>
       </body>
     </html>

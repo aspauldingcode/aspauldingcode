@@ -3,61 +3,65 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const repo = searchParams.get('repo');
+  const repos = searchParams.get('repos');
 
-  if (!repo) {
-    return NextResponse.json({ error: 'Repository parameter is required' }, { status: 400 });
+  if (!repo && !repos) {
+    return NextResponse.json({ error: 'Repository or repos parameter is required' }, { status: 400 });
   }
 
-  try {
-    // Extract owner and repo name from GitHub URL or repo string
-    let owner: string;
-    let repoName: string;
+  const fetchRepo = async (repoStr: string) => {
+    try {
+      let owner: string;
+      let repoName: string;
 
-    if (repo.includes('github.com')) {
-      // Handle full GitHub URLs like "https://github.com/owner/repo"
-      const urlParts = repo.replace('https://github.com/', '').split('/');
-      owner = urlParts[0];
-      repoName = urlParts[1];
-    } else if (repo.includes('/')) {
-      // Handle "owner/repo" format
-      const parts = repo.split('/');
-      owner = parts[0];
-      repoName = parts[1];
-    } else {
-      return NextResponse.json({ error: 'Invalid repository format' }, { status: 400 });
-    }
-
-    // Fetch repository data from GitHub API
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, {
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'User-Agent': 'Portfolio-App',
-      },
-      // Cache for 5 minutes to avoid hitting rate limits
-      next: { revalidate: 300 }
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return NextResponse.json({ error: 'Repository not found' }, { status: 404 });
+      if (repoStr.includes('github.com')) {
+        const urlParts = repoStr.replace('https://github.com/', '').split('/');
+        owner = urlParts[0];
+        repoName = urlParts[1];
+      } else if (repoStr.includes('/')) {
+        const parts = repoStr.split('/');
+        owner = parts[0];
+        repoName = parts[1];
+      } else {
+        return null;
       }
-      throw new Error(`GitHub API responded with status: ${response.status}`);
+
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, {
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'User-Agent': 'Portfolio-App',
+        },
+        next: { revalidate: 3600 } // Cache for 1 hour
+      });
+
+      if (!response.ok) return null;
+      const data = await response.json();
+      return {
+        stargazers_count: data.stargazers_count,
+        forks_count: data.forks_count,
+        full_name: data.full_name,
+        html_url: data.html_url,
+        id: repoStr // Include the original string as ID for mapping
+      };
+    } catch (error) {
+      console.error(`Error fetching repo ${repoStr}:`, error);
+      return null;
     }
+  };
 
-    const data = await response.json();
-    
-    return NextResponse.json({
-      stargazers_count: data.stargazers_count,
-      forks_count: data.forks_count,
-      full_name: data.full_name,
-      html_url: data.html_url
-    });
-
-  } catch (error) {
-    console.error('Error fetching GitHub stars:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch repository data' }, 
-      { status: 500 }
-    );
+  if (repos) {
+    const repoList = repos.split(',').filter(Boolean);
+    const results = await Promise.all(repoList.map(fetchRepo));
+    const indexedResults = results.reduce((acc: any, curr) => {
+      if (curr) acc[curr.id] = curr;
+      return acc;
+    }, {});
+    return NextResponse.json(indexedResults);
   }
+
+  const result = await fetchRepo(repo!);
+  if (!result) {
+    return NextResponse.json({ error: 'Failed to fetch repository data' }, { status: 500 });
+  }
+  return NextResponse.json(result);
 }

@@ -24,6 +24,9 @@ export interface CardStackProps {
   cardClassName?: string;
   swipedCardIds?: Set<string>;
   githubData?: Record<string, GitHubRepoData>;
+  onUndo?: (card: CardData) => void;
+  inputDisabled?: boolean;
+  onReset?: () => void;
 }
 
 export interface DragState {
@@ -49,13 +52,11 @@ export interface CardStackState {
   pendingCards: CardData[];
 }
 
-export interface GitHubRepoData {
-  stargazers_count: number;
-  forks_count: number;
-  [key: string]: unknown;
-}
+import { GitHubRepoData } from '../../lib/github';
 
-export type CardStackAction = 
+export type { GitHubRepoData };
+
+export type CardStackAction =
   | { type: 'SET_CURRENT_INDEX'; payload: number }
   | { type: 'SET_SWIPED_CARDS'; payload: Set<string> }
   | { type: 'SET_DRAG_STATE'; payload: DragState }

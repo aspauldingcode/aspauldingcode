@@ -6,16 +6,20 @@
 @font-face {
   font-family: 'NerdFont';
   src: url('/fonts/JetBrainsMonoNLNerdFont-Regular.ttf') format('truetype'),
-       url('/fonts/JetBrainsMonoNerdFont-Regular.ttf') format('truetype'),
-       local('JetBrainsMono Nerd Font'), 
-       local('JetBrains Mono NL Nerd Font Complete'), 
-       local('Hack Nerd Font'), 
-       local('FiraCode Nerd Font'), 
-       local('Inconsolata Nerd Font'),
-       local('monospace');
+    url('/fonts/JetBrainsMonoNerdFont-Regular.ttf') format('truetype'),
+    local('JetBrainsMono Nerd Font'),
+    local('JetBrains Mono NL Nerd Font Complete'),
+    local('Hack Nerd Font'),
+    local('FiraCode Nerd Font'),
+    local('Inconsolata Nerd Font'),
+    local('monospace');
   font-weight: normal;
   font-style: normal;
   unicode-range: U+E000-U+F8FF, U+F0000-U+FFFFD, U+100000-U+10FFFD, U+23FB-U+23FE, U+2665, U+26A1, U+2B58, U+E000-U+E00A, U+E0A0-U+E0A2, U+E0B0-U+E0B3, U+E0B4-U+E0C8, U+E0CA, U+E0CC-U+E0D2, U+E0D4, U+E200-U+E2A9, U+E300-U+E3EB, U+E5FA-U+E62B, U+E700-U+E7C5, U+F000-U+F2E0, U+F300-U+F313, U+F400-U+F4A8, U+F500-U+F8FF;
+}
+
+.font-nerd {
+  font-family: 'NerdFont', monospace !important;
 }
 
 /* Animation Keyframes */
@@ -23,6 +27,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -33,6 +38,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -42,46 +48,81 @@
 /* Base16 Theme Variables */
 :root {
   /* Base16 Default Dark Theme */
-  --base00: #181818; /* Default Background */
-  --base01: #282828; /* Lighter Background */
-  --base02: #383838; /* Selection Background */
-  --base03: #585858; /* Comments, Invisibles */
-  --base04: #b8b8b8; /* Dark Foreground */
-  --base05: #d8d8d8; /* Default Foreground */
-  --base06: #e8e8e8; /* Light Foreground */
-  --base07: #f8f8f8; /* Light Background */
-  --base08: #ab4642; /* Variables, XML Tags */
-  --base09: #dc9656; /* Integers, Boolean */
-  --base0A: #f7ca88; /* Classes, Markup Bold */
-  --base0B: #a1b56c; /* Strings, Inherited Class */
-  --base0C: #86c1b9; /* Support, Regular Expressions */
-  --base0D: #7cafc2; /* Functions, Methods */
-  --base0E: #ba8baf; /* Keywords, Storage */
-  --base0F: #a16946; /* Deprecated */
+  --base00: #181818;
+  /* Default Background */
+  --base01: #282828;
+  /* Lighter Background */
+  --base02: #383838;
+  /* Selection Background */
+  --base03: #585858;
+  /* Comments, Invisibles */
+  --base04: #b8b8b8;
+  /* Dark Foreground */
+  --base05: #d8d8d8;
+  /* Default Foreground */
+  --base06: #e8e8e8;
+  /* Light Foreground */
+  --base07: #f8f8f8;
+  /* Light Background */
+  --base08: #ab4642;
+  /* Variables, XML Tags */
+  --base09: #dc9656;
+  /* Integers, Boolean */
+  --base0A: #f7ca88;
+  /* Classes, Markup Bold */
+  --base0B: #a1b56c;
+  /* Strings, Inherited Class */
+  --base0C: #86c1b9;
+  /* Support, Regular Expressions */
+  --base0D: #7cafc2;
+  /* Functions, Methods */
+  --base0E: #ba8baf;
+  /* Keywords, Storage */
+  --base0F: #a16946;
+  /* Deprecated */
+  color-scheme: dark;
 }
 
 /* Base16 Light Theme */
 :root:not(.dark) {
-  --base00: #fefbec; /* Default Background */
-  --base01: #f5f2e3; /* Lighter Background */
-  --base02: #d5d2c3; /* Selection Background */
-  --base03: #b5b2a3; /* Comments, Invisibles */
-  --base04: #878580; /* Dark Foreground */
-  --base05: #585853; /* Default Foreground */
-  --base06: #282825; /* Light Foreground */
-  --base07: #181815; /* Light Background */
-  --base08: #d73737; /* Variables, XML Tags */
-  --base09: #b65611; /* Integers, Boolean */
-  --base0A: #ae9513; /* Classes, Markup Bold */
-  --base0B: #60ac39; /* Strings, Inherited Class */
-  --base0C: #1fad83; /* Support, Regular Expressions */
-  --base0D: #6684e1; /* Functions, Methods */
-  --base0E: #b854d4; /* Keywords, Storage */
-  --base0F: #d43552; /* Deprecated */
+  --base00: #fefbec;
+  /* Default Background */
+  --base01: #f5f2e3;
+  /* Lighter Background */
+  --base02: #d5d2c3;
+  /* Selection Background */
+  --base03: #b5b2a3;
+  /* Comments, Invisibles */
+  --base04: #878580;
+  /* Dark Foreground */
+  --base05: #585853;
+  /* Default Foreground */
+  --base06: #282825;
+  /* Light Foreground */
+  --base07: #181815;
+  /* Light Background */
+  --base08: #d73737;
+  /* Variables, XML Tags */
+  --base09: #b65611;
+  /* Integers, Boolean */
+  --base0A: #ae9513;
+  /* Classes, Markup Bold */
+  --base0B: #60ac39;
+  /* Strings, Inherited Class */
+  --base0C: #1fad83;
+  /* Support, Regular Expressions */
+  --base0D: #6684e1;
+  /* Functions, Methods */
+  --base0E: #b854d4;
+  /* Keywords, Storage */
+  --base0F: #d43552;
+  /* Deprecated */
+  color-scheme: light;
 }
 
 /* Prevent pull-to-refresh */
-html, body {
+html,
+body {
   overscroll-behavior-y: none;
 }
 
@@ -98,8 +139,12 @@ body {
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow: hidden !important;
   scroll-behavior: smooth;
+  height: 100%;
+  position: fixed;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* reCAPTCHA badge styling */

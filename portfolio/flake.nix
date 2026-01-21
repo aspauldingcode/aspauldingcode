@@ -1,5 +1,5 @@
 {
-  description = "Convert profile_square.jpg to favicon.ico using ImageMagick";
+  description = "Portfolio development environment and tools";
 
   outputs = { self, nixpkgs }:
     let
@@ -77,8 +77,23 @@
               echo "   ✅ favicon.ico - updated with your profile photo"
               echo ""
               echo "🌐 The new favicon should appear in your browser after a refresh or cache clear."
-              echo ""
-              echo "💡 To use the new favicon, run: nix run .#favicon-converter"
+            '';
+          };
+
+          dev = pkgs.writeShellApplication {
+            name = "dev";
+            runtimeInputs = [ pkgs.nodejs_22 ];
+            text = ''
+              echo "� Starting development server..."
+              npm run dev
+            '';
+          };
+
+          vercel = pkgs.writeShellApplication {
+            name = "vercel";
+            runtimeInputs = [ pkgs.nodePackages_latest.vercel ];
+            text = ''
+              vercel "$@"
             '';
           };
         }
@@ -87,6 +102,18 @@
       apps = nixpkgs.lib.genAttrs systems (system:
         {
           default = {
+            type    = "app";
+            program = "${self.packages.${system}.dev}/bin/dev";
+          };
+          dev = {
+            type    = "app";
+            program = "${self.packages.${system}.dev}/bin/dev";
+          };
+          vercel = {
+            type    = "app";
+            program = "${self.packages.${system}.vercel}/bin/vercel";
+          };
+          favicon-converter = {
             type    = "app";
             program = "${self.packages.${system}.favicon-converter}/bin/favicon-converter";
           };
@@ -99,7 +126,21 @@
         in
         {
           default = pkgs.mkShell {
-            buildInputs = [ pkgs.imagemagick ];
+            buildInputs = [ 
+              pkgs.imagemagick 
+              pkgs.nodejs_22
+              pkgs.nodePackages_latest.vercel
+            ];
+            
+            shellHook = ''
+              echo "🛠️ Portfolio development shell"
+              echo "Available commands:"
+              echo "  - npm: Node.js package manager"
+              echo "  - vercel: Vercel CLI"
+              echo "  - magick: ImageMagick (used for favicon conversion)"
+              echo ""
+              echo "Run 'nix run' for the default development server."
+            '';
           };
         }
       );

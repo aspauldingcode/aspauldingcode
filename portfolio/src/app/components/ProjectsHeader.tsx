@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useTheme } from '../context/ThemeContext';
 
 interface ProjectsHeaderProps {
   onViewLiked?: () => void;
@@ -10,20 +9,19 @@ interface ProjectsHeaderProps {
   showingLiked?: boolean;
 }
 
-export default function ProjectsHeader({ 
-  onViewLiked, 
-  onBackToStack, 
-  likedCount = 0, 
-  showingLiked = false 
+export default function ProjectsHeader({
+  onViewLiked,
+  onBackToStack,
+  likedCount = 0,
+  showingLiked = false
 }: ProjectsHeaderProps) {
-  const { theme, toggleTheme, mounted } = useTheme();
   // Simplified: no scroll-based opacity changes to avoid useEffect
 
   return (
     <>
       {/* Fixed Header Bar with Navigation and Title */}
-      <div 
-        className="fixed top-4 left-4 right-4 sm:top-5 sm:left-5 sm:right-5 lg:top-6 lg:left-6 lg:right-6 z-30 flex items-center justify-between"
+      <div
+        className="fixed top-4 left-4 right-4 sm:top-5 sm:left-5 sm:right-5 lg:top-6 lg:left-6 lg:right-6 z-30 flex items-center justify-between pr-12 sm:pr-14 lg:pr-16"
         style={{
           transform: 'translate3d(0,0,0)', // Force hardware acceleration for mobile
           WebkitTransform: 'translate3d(0,0,0)', // Safari-specific
@@ -31,9 +29,9 @@ export default function ProjectsHeader({
         }}
       >
         {/* Back Button */}
-        <Link 
-          href="/" 
-          className="p-2 rounded-lg bg-base0B hover:bg-base0A transition-all duration-300 shadow-lg active:scale-95"
+        <Link
+          href="/"
+          className="p-2 rounded-lg bg-base0B hover:bg-base0A transition-all duration-300 shadow-lg active:scale-95 touch-manipulation"
           aria-label="Back to Home"
         >
           <svg
@@ -64,7 +62,7 @@ export default function ProjectsHeader({
           {showingLiked ? (
             <button
               onClick={onBackToStack}
-              className="p-2 rounded-lg bg-base0E hover:bg-base0F transition-all duration-300 shadow-lg active:scale-95"
+              className="p-2 rounded-lg bg-base0E hover:bg-base0F transition-all duration-300 shadow-lg active:scale-95 touch-manipulation"
               aria-label="Back to card stack"
               title="Back to card stack"
             >
@@ -86,7 +84,7 @@ export default function ProjectsHeader({
             likedCount > 0 && (
               <button
                 onClick={onViewLiked}
-                className="p-2 rounded-lg bg-base0C hover:bg-base0D transition-all duration-300 shadow-lg active:scale-95 relative"
+                className="p-2 rounded-lg bg-base0C hover:bg-base0D transition-all duration-300 shadow-lg active:scale-95 relative touch-manipulation"
                 aria-label={`View liked projects (${likedCount})`}
                 title={`View liked projects (${likedCount})`}
               >
@@ -97,7 +95,7 @@ export default function ProjectsHeader({
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 {likedCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-base08 text-base00 text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
@@ -107,72 +105,6 @@ export default function ProjectsHeader({
               </button>
             )
           )}
-
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95"
-            aria-label={`Current: ${theme} mode`}
-            title={`Current: ${theme} mode`}
-          >
-            <svg
-              className="w-5 h-5 text-base00"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {!mounted ? (
-                <>
-                  {/* Auto icon - half sun, half moon (default during initial render) */}
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8a4 4 0 100 8V8z"
-                    fill="currentColor"
-                  />
-                </>
-              ) : theme === 'light' ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              ) : theme === 'dark' ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                />
-              ) : (
-                <>
-                  {/* Auto icon - half sun, half moon */}
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8a4 4 0 100 8V8z"
-                    fill="currentColor"
-                  />
-                </>
-              )}
-            </svg>
-          </button>
         </div>
       </div>
     </>
