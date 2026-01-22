@@ -263,7 +263,7 @@ export default function Home() {
             {/* Projects Button */}
             <div className="transform rotate-0 sm:-rotate-1 hover:-rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
               w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
-              h-452:flex-1 h-452:min-w-0">
+              h-452:flex-1 h-452:min-w-0 flex flex-col items-center gap-1">
               <motion.button
                 onTap={handleProjectsClick}
                 whileHover={{ scale: 1.05 }}
@@ -310,12 +310,13 @@ export default function Home() {
                   />
                 </svg>
               </motion.button>
+              <span className="text-[10px] font-mono opacity-50 text-base04 hidden sm:block">(p)</span>
             </div>
 
             {/* Resume Button */}
             <div className="transform rotate-0 sm:rotate-0.5 hover:rotate-0.5 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
               w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
-              h-452:flex-1 h-452:min-w-0">
+              h-452:flex-1 h-452:min-w-0 flex flex-col items-center gap-1">
               <motion.button
                 onTap={handleResumeClick}
                 whileHover={{ scale: 1.05 }}
@@ -362,12 +363,13 @@ export default function Home() {
                   />
                 </svg>
               </motion.button>
+              <span className="text-[10px] font-mono opacity-50 text-base04 hidden sm:block">(r)</span>
             </div>
 
             {/* Contact Button */}
             <div className="transform rotate-0 sm:rotate-1 hover:rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 
               w-full sm:w-auto sm:flex-1 sm:basis-0 sm:max-w-none
-              h-452:flex-1 h-452:min-w-0">
+              h-452:flex-1 h-452:min-w-0 flex flex-col items-center gap-1">
               <motion.button
                 onTap={handleContactClick}
                 whileHover={{ scale: 1.05 }}
@@ -404,7 +406,6 @@ export default function Home() {
                     h-350:w-2.5 h-350:h-2.5
                     h-320:w-2.5 h-320:h-2.5
                     h-280:w-2.5 h-280:h-2.5
-
                     wide-short:w-4 wide-short:h-4"
                 >
                   <path
@@ -414,6 +415,7 @@ export default function Home() {
                   />
                 </svg>
               </motion.button>
+              <span className="text-[10px] font-mono opacity-50 text-base04 hidden sm:block">(c)</span>
             </div>
           </div>
         </div>

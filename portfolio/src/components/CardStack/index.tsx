@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { CardData, GitHubRepoData } from './types';
 import { useCardDeck } from './useCardDeck';
 import SwipeableCard from './SwipeableCard';
@@ -24,6 +24,7 @@ interface CardStackProps {
   onReset?: () => void;
   onSwipeRefReady?: (swipeFn: (direction: 'left' | 'right') => void) => void;
   initialIndex?: number;
+  cardHeightClass?: string;
 }
 
 export default function CardStack({
@@ -38,6 +39,7 @@ export default function CardStack({
   inputDisabled = false,
   onSwipeRefReady,
   initialIndex = 0,
+  cardHeightClass = "h-[65vh] max-h-[700px] min-h-[400px]",
 }: CardStackProps) {
   // --- 1. Robust State Machine ---
   const {
@@ -50,8 +52,9 @@ export default function CardStack({
     reset
   } = useCardDeck(cards, initialIndex);
 
-  const [sliderValue, setSliderValue] = React.useState(10);
+  const [sliderValue, setSliderValue] = React.useState(25);
   const [isReseting, setIsReseting] = React.useState(false);
+  const sliderValueAtPointerDown = React.useRef(25);
 
   // --- 2. Check for Completion ---
   useEffect(() => {
@@ -61,6 +64,30 @@ export default function CardStack({
       return () => clearTimeout(timer);
     }
   }, [isFinished, onStackEmpty]);
+
+  const triggerReset = useCallback(() => {
+    setIsReseting(true);
+    setTimeout(() => {
+      if (onReset) onReset();
+      reset();
+      setIsReseting(false);
+      setSliderValue(25);
+    }, 1500); // Cinematic delay
+  }, [onReset, reset]);
+
+  // --- 2b. R key restart when at end of stack (same behavior as slider) ---
+  useEffect(() => {
+    if (!isFinished || inputDisabled) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+      if (e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        triggerReset();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFinished, inputDisabled, triggerReset]);
 
   // --- 3. Handle Swipe Action ---
   const handleSwipe = (direction: 'left' | 'right') => {
@@ -79,7 +106,6 @@ export default function CardStack({
     }
   }, [onSwipeRefReady]);
 
-
   const handleUndo = () => {
     if (inputDisabled) return;
 
@@ -96,19 +122,13 @@ export default function CardStack({
     setSliderValue(Number(e.target.value));
   };
 
-  const triggerReset = () => {
-    setIsReseting(true);
-    setTimeout(() => {
-      if (onReset) onReset();
-      reset();
-      setIsReseting(false);
-      setSliderValue(10);
-    }, 1500); // Cinematic delay
+  const handleSliderPointerDown = () => {
+    sliderValueAtPointerDown.current = sliderValue;
   };
 
   const handleSliderRelease = () => {
-    // Trigger reset if moved significantly
-    if (sliderValue > 15) {
+    // Restart if slider was moved at all (more or less)
+    if (sliderValue !== sliderValueAtPointerDown.current) {
       triggerReset();
     }
   };
@@ -120,6 +140,33 @@ export default function CardStack({
   if (isFinished) {
     return (
       <div className={`flex flex-col items-center justify-center h-full w-full ${className} text-center p-6`}>
+        {/* Helper styles for slider thumb */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          .custom-range::-webkit-slider-thumb {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: currentColor;
+            cursor: pointer;
+            margin-top: -8px; /* vertically center */
+          }
+          .custom-range::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: currentColor;
+            cursor: pointer;
+            border: none;
+          }
+          /* Track styles for alignment (optional, but helps compatibility) */
+          .custom-range::-webkit-slider-runnable-track {
+            height: 8px;
+            border-radius: 8px;
+          }
+        `}} />
+
         {isReseting ? (
           <div className="flex flex-col items-center animate-pulse">
             <div className="relative w-20 h-20 mb-6">
@@ -159,9 +206,11 @@ export default function CardStack({
                 max="100"
                 value={sliderValue}
                 onChange={handleSliderChange}
+                onMouseDown={handleSliderPointerDown}
+                onTouchStart={handleSliderPointerDown}
                 onMouseUp={handleSliderRelease}
                 onTouchEnd={handleSliderRelease}
-                className="w-full h-2 bg-base02 rounded-lg appearance-none cursor-pointer accent-base0D hover:accent-base0C transition-all"
+                className="custom-range w-full h-2 bg-base02 rounded-lg appearance-none cursor-pointer text-base0D hover:text-base0C transition-all"
               />
               <div className="flex justify-between text-[10px] text-base04 mt-2 font-mono uppercase">
                 <span>10 mi</span>
@@ -171,14 +220,38 @@ export default function CardStack({
                 this slider doesn&apos;t do anything lol
               </span>
             </div>
+
+            {/* Added small restart hint text */}
+            <div className="mt-8 text-xs text-base04 font-mono opacity-50">
+              (r) restart
+            </div>
           </>
         )}
+
+        {/* Keyboard listener specific to this view state is handled by the main listener prop */}
       </div>
     );
   }
 
   return (
     <div className={`relative w-full h-full flex items-center justify-center p-4 overflow-hidden ${className}`}>
+
+      {/* Keyboard Controls Hint (Positioned to sit behind the stack) */}
+      <div className="hidden md:flex absolute bottom-4 gap-6 text-xs text-base04 font-mono z-0 pointer-events-none select-none">
+        <div className="flex items-center gap-1 opacity-60">
+          <span className="bg-base02 px-1.5 py-0.5 rounded text-base0D font-bold">←</span>
+          <span>undo</span>
+        </div>
+        <div className="flex items-center gap-1 opacity-60">
+          <span className="bg-base02 px-1.5 py-0.5 rounded text-base05 font-bold">space</span>
+          <span>view</span>
+        </div>
+        <div className="flex items-center gap-1 opacity-60">
+          <span className="bg-base02 px-1.5 py-0.5 rounded text-base0B font-bold">→</span>
+          <span>like</span>
+        </div>
+      </div>
+
       {/* 
         The Card Container 
         - Max width restricted for larger screens to maintain "Card" aspect
@@ -186,8 +259,8 @@ export default function CardStack({
         - Aspect ratio roughly maintained for aesthetics, but flexible
       */}
       <div
-        className="relative w-full max-w-md h-[65vh] max-h-[700px] min-h-[400px]"
-        style={{ perspective: 1000 }}
+        className={`relative w-full max-w-md ${cardHeightClass}`}
+        style={{ perspective: 1000, zIndex: 40 }}
       >
         {/* 
           Render Strategy:
@@ -238,12 +311,7 @@ export default function CardStack({
         </AnimatePresence>
       </div>
 
-      {/* Optional: Keyboard Controls Hint (Hidden on mobile) */}
-      <div className="hidden md:flex absolute bottom-8 gap-4 text-xs text-base04 font-mono opacity-50">
-        <span>← Undo</span>
-        <span>Space to View</span>
-        <span>Like →</span>
-      </div>
+
 
       {/* 
         Keyboard Listeners 
@@ -253,7 +321,7 @@ export default function CardStack({
         onSwipe={handleSwipe}
         onView={() => !inputDisabled && currentCard && onViewProject?.(currentCard)}
         onUndo={handleUndo}
-        onReset={triggerReset}
+        onReset={isFinished ? triggerReset : undefined}
         disabled={inputDisabled}
       />
     </div>
@@ -281,16 +349,16 @@ function KeyboardListener({
 
       const key = e.key.toLowerCase();
 
-      // Navigation / Action Keys
+      // Navigation / Action Keys: Left = Undo, Right = Like
       if (e.key === 'ArrowLeft') onUndo();
-      if (e.key === 'ArrowRight') onSwipe('right');
+      if (e.key === 'ArrowRight') onSwipe('right'); // Like (swipe right = like)
       if (e.key === ' ') {
         e.preventDefault(); // Prevent scrolling
         onView();
       }
       if (e.key === 'Backspace') onUndo();
 
-      // Projects Interaction Keys (User Requested)
+      // Letter shortcuts
       if (key === 'l') onSwipe('right'); // Like
       if (key === 'p') onSwipe('left');  // Pass
       if (key === 'r') onReset?.();      // Restart

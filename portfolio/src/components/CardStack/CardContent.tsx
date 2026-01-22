@@ -91,18 +91,24 @@ export default function CardContent({ card, onViewProject, githubData, inputDisa
 
                     {/* Action Button */}
                     {onViewProject && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation(); // Prevent drag start
-                                if (!inputDisabled) onViewProject(card);
-                            }}
-                            onPointerDown={(e) => e.stopPropagation()} // Stop drag interaction
-                            disabled={inputDisabled}
-                            className={`px-5 py-2 bg-base0D hover:bg-base0C text-base00 font-bold rounded-lg transition-colors shadow-md active:scale-95 transform ${inputDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            View
-                            <span className="hidden sm:inline font-normal opacity-75 text-xs ml-1">(Space)</span>
-                        </button>
+                        <div className="flex flex-col items-center gap-1">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent drag start
+                                    if (!inputDisabled) onViewProject(card);
+                                }}
+                                onPointerDown={(e) => e.stopPropagation()} // Stop drag interaction
+                                disabled={inputDisabled}
+                                className={`px-5 py-2 bg-base0D hover:bg-base0C text-base00 font-bold rounded-lg transition-colors shadow-md active:scale-95 transform ${inputDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                View
+                            </button>
+                            <span className="hidden sm:inline-flex items-center justify-center opacity-75 text-base04 mt-1" aria-label="Spacebar">
+                                <svg className="w-4 h-2" viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M4 4V8H20V4" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>

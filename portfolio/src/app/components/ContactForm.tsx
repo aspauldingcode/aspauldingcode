@@ -198,7 +198,7 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center pointer-events-none">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center pointer-events-none">
       {/* Backdrop Container - Handles entry/exit animation */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -211,7 +211,7 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
         {/* Real-time Backdrop - Syncs with dragY */}
         <motion.div
           style={{ opacity: backdropOpacity }}
-          className="absolute inset-0 bg-black"
+          className="absolute top-0 left-0 right-0 bottom-7 sm:bottom-9 bg-black/50 backdrop-blur-sm"
         />
       </motion.div>
 
@@ -224,39 +224,48 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
         dragControls={dragControls}
         dragListener={false}
         dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={{ top: 0, bottom: 0.5 }}
+        dragElastic={{ top: 0, bottom: 1 }}
         style={{ y: dragY }}
         onDragEnd={handleDragEnd}
         className="relative w-full sm:max-w-xl bg-base01 rounded-t-3xl sm:rounded-2xl shadow-2xl pointer-events-auto overflow-hidden flex flex-col max-h-[90vh]"
       >
-        {/* Drag Handle */}
+        {/* Draggable Header Area */}
         <div
           onPointerDown={(e) => dragControls.start(e)}
-          className="w-full h-10 flex items-center justify-center cursor-grab active:cursor-grabbing shrink-0 mt-1 touch-none"
+          className="w-full relative pt-2 pb-6 cursor-grab active:cursor-grabbing shrink-0 touch-none px-4"
         >
-          <div className="w-12 h-1.5 bg-base03 rounded-full opacity-50" />
+          {/* Drag Handle Indicator */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-1.5 bg-base03 rounded-full opacity-50" />
+          </div>
+
+          {/* Close Button - Pulled into header area */}
+          <div className="absolute top-2 right-4 flex flex-col items-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
+              title="Close (esc)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">(esc)</span>
+          </div>
+
+          {/* Title Area - Center Aligned */}
+          <div className="flex flex-col items-center pointer-events-none">
+            <h2 className="text-xl font-bold text-base05">Contact Alex</h2>
+            <p className="text-base04 text-xs mt-0.5 opacity-70">Leave a message and I&apos;ll get back to you.</p>
+          </div>
         </div>
 
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 z-20 touch-manipulation"
-          style={{
-            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
-          }}
-          title="Close (Esc)"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
         {/* Form Content */}
-        <div className="p-6 sm:p-8 custom-scrollbar overflow-y-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-base05">Contact Me</h2>
-            <p className="text-base04 text-sm mt-1">Leave a message and I&apos;ll get back to you.</p>
-          </div>
+        <div className="px-6 sm:px-8 py-0 custom-scrollbar overflow-y-auto">
 
           <form onSubmit={handleInitialSubmit} className="space-y-4">
             <div className="space-y-1">
@@ -312,9 +321,8 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
                 disabled={status === 'sending'}
               />
               {!isMobile && (
-                <div className="flex justify-between px-1">
+                <div className="flex justify-start px-1">
                   <span className="text-[10px] text-base03">Shift+Enter for new line</span>
-                  <span className="text-[10px] text-base03">Enter to send</span>
                 </div>
               )}
             </div>
@@ -339,6 +347,12 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
                 </>
               ) : status === 'success' ? 'Sent!' : status === 'error' ? 'Error - Try Again' : 'Send Message'}
             </motion.button>
+
+            {!isMobile && (
+              <div className="flex justify-center mt-2">
+                <span className="text-[10px] font-mono text-base04 opacity-50 uppercase tracking-widest">(Enter) to send</span>
+              </div>
+            )}
           </form>
 
           {/* Safe Area Padding - Increased for mobile to allow scrolling past keyboard */}

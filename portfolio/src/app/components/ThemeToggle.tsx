@@ -91,31 +91,36 @@ export default function ThemeToggle() {
   };
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="fixed top-4 right-4 sm:top-5 sm:right-5 lg:top-6 lg:right-6 p-2 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95 z-50 overflow-hidden touch-manipulation"
-      aria-label={getAriaLabel()}
-      title={`Current: ${theme} mode`}
+    <div
+      className="fixed top-4 right-4 sm:top-5 sm:right-5 lg:top-6 lg:right-6 z-50 flex flex-col items-center"
       style={{
         transform: 'translate3d(0,0,0)',
         WebkitTransform: 'translate3d(0,0,0)'
       }}
     >
-      <svg
-        className="w-5 h-5 text-base00"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          opacity: 1,
-          transition: 'none',
-          transform: 'translate3d(0,0,0)',
-          WebkitTransform: 'translate3d(0,0,0)'
-        }}
+      <button
+        onClick={toggleTheme}
+        className="p-2 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95 touch-manipulation overflow-hidden"
+        aria-label={getAriaLabel()}
+        title={`Cycle theme (t)`}
       >
-        {getThemeIcon()}
-      </svg>
-    </button>
+        <svg
+          className="w-5 h-5 text-base00"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            opacity: 1,
+            transition: 'none',
+            transform: 'translate3d(0,0,0)',
+            WebkitTransform: 'translate3d(0,0,0)'
+          }}
+        >
+          {getThemeIcon()}
+        </svg>
+      </button>
+      <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(t)</span>
+    </div>
   );
 }

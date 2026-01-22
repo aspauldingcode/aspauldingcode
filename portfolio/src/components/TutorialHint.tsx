@@ -65,17 +65,17 @@ export default function TutorialHint({
   return (
     <AnimatePresence>
       {isVisible && targetPosition && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
+        <div className="fixed inset-0 z-[100] pointer-events-none">
           {/* Dimmed overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, pointerEvents: 'none' }}
             transition={{ duration: 0.3 }}
-            className="absolute inset-0 pointer-events-auto cursor-pointer"
+            className="absolute inset-0 pointer-events-auto cursor-pointer backdrop-blur-[2px]"
             onClick={onDismiss}
             style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
               mask: `radial-gradient(circle ${Math.max(targetPosition.width, targetPosition.height) / 2 + 12}px at ${targetPosition.left + targetPosition.width / 2}px ${targetPosition.top + targetPosition.height / 2}px, transparent ${Math.max(targetPosition.width, targetPosition.height) / 2 + 8}px, black ${Math.max(targetPosition.width, targetPosition.height) / 2 + 10}px)`,
               WebkitMask: `radial-gradient(circle ${Math.max(targetPosition.width, targetPosition.height) / 2 + 12}px at ${targetPosition.left + targetPosition.width / 2}px ${targetPosition.top + targetPosition.height / 2}px, transparent ${Math.max(targetPosition.width, targetPosition.height) / 2 + 8}px, black ${Math.max(targetPosition.width, targetPosition.height) / 2 + 10}px)`
             }}
@@ -182,12 +182,15 @@ export default function TutorialHint({
                 <p className="text-base04 text-sm leading-relaxed mb-4">
                   Tap the heart in the header anytime to browse your collection of saved projects.
                 </p>
-                <button
-                  onClick={onDismiss}
-                  className="w-full sm:w-auto px-6 py-2 bg-base0B hover:bg-base0A text-base00 rounded-lg transition-all font-bold text-sm shadow-md active:scale-95"
-                >
-                  Got it!
-                </button>
+                <div className="flex flex-col items-start gap-1 w-full sm:w-auto">
+                  <button
+                    onClick={onDismiss}
+                    className="w-full sm:w-auto px-6 py-2 bg-base0B hover:bg-base0A text-base00 rounded-lg transition-all font-bold text-sm shadow-md active:scale-95"
+                  >
+                    Got it!
+                  </button>
+                  <span className="font-normal opacity-50 text-[10px] w-full text-center sm:text-left text-base04">(esc)</span>
+                </div>
               </div>
             </div>
           </motion.div>

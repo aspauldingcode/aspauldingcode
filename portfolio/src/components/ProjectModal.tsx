@@ -7,7 +7,7 @@ import Image from 'next/image';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useTheme } from '../app/context/ThemeContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 
 // Custom styles for carousel dots and animations
 // const customDotsStyle = `
@@ -47,15 +47,6 @@ interface ProjectModalProps {
   githubData?: Record<string, GitHubRepoData>;
 }
 
-interface DragState {
-  isDragging: boolean;
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-  deltaX: number;
-  deltaY: number;
-}
 
 const SWIPE_THRESHOLD = 40;
 const ROTATION_FACTOR = 0.1;
@@ -66,25 +57,28 @@ const CustomPrevArrow = ({ onClick, currentSlide }: { onClick?: () => void; curr
   if (currentSlide === 0) return null;
 
   return (
-    <button
-      onClick={onClick}
-      title="Previous Image (Arrow Left)"
-      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full transition-all duration-200 shadow-2xl"
-      style={{
-        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
-      }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={2}
-        stroke="currentColor"
-        className="w-5 h-5 text-base05"
+    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+      <button
+        onClick={onClick}
+        title="Previous Image (Arrow Left)"
+        className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
+        style={{
+          filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
+        }}
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-      </svg>
-    </button>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-5 h-5"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(←)</span>
+    </div>
   );
 };
 
@@ -95,28 +89,31 @@ const CustomNextArrow = ({ onClick, currentSlide, slideCount }: { onClick?: () =
   const isFirstSlide = currentSlide === 0;
 
   return (
-    <button
-      onClick={onClick}
-      title="Next Image (Arrow Right)"
-      className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full transition-all duration-200 shadow-2xl ${isFirstSlide ? 'animate-pulse' : ''}`}
-      style={{
-        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
-        ...(isFirstSlide && {
-          animation: 'horizontal-bounce 2s infinite'
-        })
-      }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={2}
-        stroke="currentColor"
-        className="w-5 h-5 text-base05"
+    <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+      <button
+        onClick={onClick}
+        title="Next Image (Arrow Right)"
+        className={`p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation ${isFirstSlide ? 'animate-pulse' : ''}`}
+        style={{
+          filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+          ...(isFirstSlide && {
+            animation: 'horizontal-bounce 2s infinite'
+          })
+        }}
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-      </svg>
-    </button>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-5 h-5"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+      <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(→)</span>
+    </div>
   );
 };
 
@@ -129,16 +126,6 @@ export default function ProjectModal({
   githubData
 }: ProjectModalProps) {
 
-  const [dragState, setDragState] = useState<DragState>({
-    isDragging: false,
-    startX: 0,
-    startY: 0,
-    currentX: 0,
-    currentY: 0,
-    deltaX: 0,
-    deltaY: 0,
-  });
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [hasUserSwiped, setHasUserSwiped] = useState(false);
@@ -215,10 +202,10 @@ export default function ProjectModal({
         scrollContainerRef.current?.scrollBy({ top: 100, behavior: 'smooth' });
       }
 
-      // Like / Pass shortcuts
+      // Like / Pass shortcuts (L = like = left swipe, P = pass = right swipe)
       if (e.key.toLowerCase() === 'l') {
         if (onSwipe) {
-          onSwipe('right');
+          onSwipe('left');
         } else if (onLike && project) {
           onLike(project);
           onClose();
@@ -226,7 +213,7 @@ export default function ProjectModal({
       }
       if (e.key.toLowerCase() === 'p') {
         if (onSwipe) {
-          onSwipe('left');
+          onSwipe('right');
         } else if (onPass && project) {
           onPass(project);
           onClose();
@@ -241,138 +228,61 @@ export default function ProjectModal({
     }
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, onLike, onPass, project]);
+  }, [onClose, onLike, onPass, project, onSwipe]);
 
+  // Framer Motion values for drag
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 200], [-15, 15]);
+  const scale = useTransform(x, [-200, 0, 200], [0.95, 1, 0.95]);
+  const opacity = useTransform(x, [-300, -200, 0, 200, 300], [0, 1, 1, 1, 0]);
 
+  // Indicators opacity and colors
+  const { effectiveTheme } = useTheme();
+  const dimmedColor = effectiveTheme === 'dark' ? '#282828' : '#585853';
+  const green = '#a1b56c';
+  const red = '#ab4642';
 
+  const indicatorOpacity = useTransform(x, [-60, -20, 0, 20, 60], [1, 0, 0, 0, 1]);
+  const likeColor = useTransform(x, [0, 40], [dimmedColor, green]);
+  const passColor = useTransform(x, [-40, 0], [red, dimmedColor]);
+  const likeBorderColor = useTransform(x, [0, 40], [dimmedColor, green]);
+  const passBorderColor = useTransform(x, [-40, 0], [red, dimmedColor]);
 
+  const handleDragEnd = useCallback((_event: any, info: any) => {
+    const { offset, velocity } = info;
+    const absX = Math.abs(offset.x);
+    const absY = Math.abs(offset.y);
 
-  const handleStart = useCallback((clientX: number, clientY: number, target?: EventTarget | null) => {
-    // Check if the swipe started within the carousel area
-    if (target && target instanceof Element) {
-      const carouselElement = target.closest('.slick-slider, .slick-list, .slick-track');
-      if (carouselElement) {
-        // Don't start modal swipe if it's within the carousel
-        return;
-      }
-
-      // Check if the swipe started within the scrollable content area
-      const scrollableElement = target.closest('.modal-scrollable-content');
-      if (scrollableElement) {
-        // Don't start modal swipe if it's within the scrollable content
-        return;
-      }
-    }
-
-    setDragState({
-      isDragging: true,
-      startX: clientX,
-      startY: clientY,
-      currentX: clientX,
-      currentY: clientY,
-      deltaX: 0,
-      deltaY: 0,
-    });
-  }, []);
-
-  const handleMove = useCallback((clientX: number, clientY: number) => {
-    if (!dragState.isDragging) return;
-
-    const deltaX = clientX - dragState.startX;
-    const deltaY = clientY - dragState.startY;
-
-    setDragState(prev => ({
-      ...prev,
-      currentX: clientX,
-      currentY: clientY,
-      deltaX,
-      deltaY,
-    }));
-  }, [dragState.isDragging, dragState.startX, dragState.startY]);
-
-  const handleEnd = useCallback(() => {
-    if (!dragState.isDragging || !project) return;
-
-    const { deltaX, deltaY } = dragState;
-    const absDeltaX = Math.abs(deltaX);
-    const absDeltaY = Math.abs(deltaY);
-
-    // If vertical movement is significant, treat it as scrolling and don't trigger swipe
-    if (absDeltaY > absDeltaX || absDeltaY > 30) {
-      setDragState({
-        isDragging: false,
-        startX: 0,
-        startY: 0,
-        currentX: 0,
-        currentY: 0,
-        deltaX: 0,
-        deltaY: 0,
-      });
+    // Swipe down to dismiss
+    const isAtTop = scrollContainerRef.current ? scrollContainerRef.current.scrollTop <= 5 : true;
+    if (offset.y > 100 && velocity.y > 0 && isAtTop && absY > absX) {
+      onClose();
       return;
     }
 
-    if (absDeltaX > SWIPE_THRESHOLD) {
-      const direction = deltaX > 0 ? 'right' : 'left';
-      setSwipeDirection(direction);
-
-      // Execute action after animation
-      setTimeout(() => {
-        if (onSwipe) {
-          onSwipe(direction);
-        } else {
-          if (direction === 'right' && onLike && project) {
-            onLike(project);
-          } else if (direction === 'left' && onPass && project) {
-            onPass(project);
-          }
+    // Swipe horizontal
+    if (absX > 100 || (absX > 50 && Math.abs(velocity.x) > 500)) {
+      const direction = offset.x > 0 ? 'right' : 'left';
+      if (onSwipe) {
+        onSwipe(direction);
+      } else {
+        if (direction === 'right' && onLike && project) {
+          onLike(project);
+        } else if (direction === 'left' && onPass && project) {
+          onPass(project);
         }
-        onClose();
-        setSwipeDirection(null);
-      }, 300);
+      }
+      onClose();
     }
+  }, [project, onLike, onPass, onClose, onSwipe]);
 
-    setDragState({
-      isDragging: false,
-      startX: 0,
-      startY: 0,
-      currentX: 0,
-      currentY: 0,
-      deltaX: 0,
-      deltaY: 0,
-    });
-  }, [dragState, project, onLike, onPass, onClose, onSwipe]);
 
-  // Mouse events
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    handleStart(e.clientX, e.clientY, e.target);
-  };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleMove(e.clientX, e.clientY);
-  };
 
-  const handleMouseUp = () => {
-    handleEnd();
-  };
 
-  // Touch events
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleStart(touch.clientX, touch.clientY, e.target);
-  };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (dragState.isDragging) {
-      e.preventDefault();
-    }
-    const touch = e.touches[0];
-    handleMove(touch.clientX, touch.clientY);
-  };
 
-  const handleTouchEnd = () => {
-    handleEnd();
-  };
 
   // Slick slider settings
   const sliderSettings = {
@@ -393,43 +303,12 @@ export default function ProjectModal({
     },
   };
 
-  const getModalStyle = (): React.CSSProperties => {
-    const { deltaX, deltaY, isDragging } = dragState;
-
-    if (swipeDirection) {
-      // Exit animation
-      const exitX = swipeDirection === 'right' ? 400 : -400;
-      const exitRotation = swipeDirection === 'right' ? 20 : -20;
-
-      return {
-        transform: `translateX(${exitX}px) translateY(-50px) rotate(${exitRotation}deg) scale(0.9)`,
-        opacity: 0,
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      };
-    }
-
-    if (isDragging) {
-      // Dragging state
-      const rotation = Math.max(-MAX_ROTATION, Math.min(MAX_ROTATION, deltaX * ROTATION_FACTOR));
-
-      return {
-        transform: `translateX(${deltaX}px) translateY(${deltaY * 0.3}px) rotate(${rotation}deg)`,
-        transition: 'none',
-      };
-    }
-
-    // Default state
-    return {
-      transform: 'translateX(0px) translateY(0px) rotate(0deg)',
-      transition: 'transform 0.2s ease-out',
-    };
-  };
 
   if (!project) return null;
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -437,51 +316,44 @@ export default function ProjectModal({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+        className="absolute top-0 left-0 right-0 bottom-7 sm:bottom-9 bg-black bg-opacity-50 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
       <motion.div
         ref={modalRef}
-        className="relative w-full max-w-md h-[80vh] bg-base01 rounded-2xl shadow-2xl border border-base02 overflow-hidden select-none flex flex-col"
-        style={getModalStyle()}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        drag
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        dragElastic={0.8}
+        onDragEnd={handleDragEnd}
+        style={{ x, y, rotate, scale }}
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{
+          type: "spring",
+          damping: 25,
+          stiffness: 300
+        }}
+        className="relative w-full max-w-md h-[80vh] bg-base01 rounded-2xl shadow-2xl border border-base02 overflow-hidden select-none flex flex-col"
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          title="Close (Esc)"
-          className="absolute top-4 right-4 z-30 p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full transition-all duration-200 shadow-2xl"
-          style={{
-            filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4))'
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5 text-base05"
+        {/* Close button - matches Contact / Resume modal style */}
+        <div className="absolute top-4 right-4 z-30 flex flex-col items-center">
+          <button
+            onClick={onClose}
+            className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
+            style={{
+              filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
+            }}
+            title="Close (Esc)"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(esc)</span>
+        </div>
 
         {/* Scrollable content container */}
         <div
@@ -492,8 +364,12 @@ export default function ProjectModal({
           {/* Image carousel */}
           <div
             className="relative h-80 bg-base02 flex-shrink-0"
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
+            onPointerDown={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.closest('.slick-slider, .slick-list, .slick-track')) {
+                e.stopPropagation();
+              }
+            }}
           >
             {/* Vignette overlay */}
             <div className="absolute inset-0 pointer-events-none z-10 rounded-lg" style={{
@@ -603,60 +479,70 @@ export default function ProjectModal({
         </div>
 
         {/* Action buttons - Fixed at bottom */}
-        <div className="flex-shrink-0 p-6 pt-0 relative z-40">
+        <div
+          className="flex-shrink-0 p-6 pt-0 relative z-40"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
           <div className="flex space-x-4">
-            <button
-              onClick={() => {
-                if (onSwipe) {
-                  onSwipe('left');
-                } else if (onPass) {
-                  onPass(project);
-                  onClose();
-                }
-              }}
-              className="flex-1 py-2 bg-base08 hover:bg-base09 text-base00 rounded-lg font-semibold transition-colors flex flex-col items-center justify-center"
-            >
-              <span>Pass</span>
-              <span className="text-[10px] opacity-75 font-normal hidden sm:inline">P</span>
-            </button>
-            <button
-              onClick={() => {
-                if (onSwipe) {
-                  onSwipe('right');
-                } else if (onLike) {
-                  onLike(project);
-                  onClose();
-                }
-              }}
-              className="flex-1 py-2 bg-base0B hover:bg-base0A text-base00 rounded-lg font-semibold transition-colors flex flex-col items-center justify-center"
-            >
-              <span>Like</span>
-              <span className="text-[10px] opacity-75 font-normal hidden sm:inline">L</span>
-            </button>
+            <div className="flex-1 flex flex-col items-center gap-1">
+              <button
+                onClick={() => {
+                  if (onSwipe) {
+                    onSwipe('left');
+                  } else if (onPass) {
+                    onPass(project);
+                    onClose();
+                  }
+                }}
+                className="w-full py-2 bg-base08 hover:bg-base09 text-base00 rounded-lg font-semibold transition-colors flex items-center justify-center shadow-md active:scale-95"
+              >
+                <span>Pass</span>
+              </button>
+              <span className="text-[10px] text-base04 font-mono opacity-50 hidden sm:block">(p)</span>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center gap-1">
+              <button
+                onClick={() => {
+                  if (onSwipe) {
+                    onSwipe('right');
+                  } else if (onLike) {
+                    onLike(project);
+                    onClose();
+                  }
+                }}
+                className="w-full py-2 bg-base0B hover:bg-base0A text-base00 rounded-lg font-semibold transition-colors flex items-center justify-center shadow-md active:scale-95"
+              >
+                <span>Like</span>
+              </button>
+              <span className="text-[10px] text-base04 font-mono opacity-50 hidden sm:block">(l)</span>
+            </div>
           </div>
         </div>
 
-        {/* Swipe indicators */}
-        {dragState.isDragging && (
-          <>
-            <div
-              className={`absolute top-8 left-8 px-4 py-2 rounded-full text-lg font-bold transition-opacity z-40 ${dragState.deltaX > 50
-                ? 'bg-base0B text-base00 opacity-100'
-                : 'bg-base02 text-base04 opacity-50'
-                }`}
-            >
-              LIKE
-            </div>
-            <div
-              className={`absolute top-8 right-8 px-4 py-2 rounded-full text-lg font-bold transition-opacity z-40 ${dragState.deltaX < -50
-                ? 'bg-base08 text-base00 opacity-100'
-                : 'bg-base02 text-base04 opacity-50'
-                }`}
-            >
-              PASS
-            </div>
-          </>
-        )}
+        {/* Swipe indicators - show only after significant horizontal movement */}
+        <motion.div
+          className="absolute top-8 left-8 border-4 px-4 py-1 rounded text-3xl font-bold z-50 pointer-events-none transform -rotate-12 bg-base00/40 backdrop-blur-sm"
+          style={{ opacity: indicatorOpacity, color: likeColor, borderColor: likeBorderColor }}
+        >
+          LIKE
+        </motion.div>
+        <motion.div
+          className="absolute top-8 right-8 border-4 px-4 py-1 rounded text-3xl font-bold z-50 pointer-events-none transform rotate-12 bg-base00/40 backdrop-blur-sm"
+          style={{ opacity: indicatorOpacity, color: passColor, borderColor: passBorderColor }}
+        >
+          PASS
+        </motion.div>
+
+        {/* Edge Glow Overlays */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-base0B via-transparent to-transparent pointer-events-none z-40"
+          style={{ opacity: useTransform(x, [0, 200], [0, 0.5]) }}
+        />
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-l from-base08 via-transparent to-transparent pointer-events-none z-40"
+          style={{ opacity: useTransform(x, [0, -200], [0, 0.5]) }}
+        />
 
         {/* Bottom gradient fade */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-base01 to-transparent pointer-events-none z-20"></div>
@@ -665,7 +551,6 @@ export default function ProjectModal({
         {canScrollDown && (
           <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none z-30">
             <div className="flex flex-col items-center justify-center h-full pb-16 gap-2">
-              <span className="text-[10px] uppercase tracking-widest opacity-40 font-bold hidden sm:block">Scroll: ↑ / ↓</span>
               <div
                 className="animate-bounce relative"
                 style={{
@@ -683,6 +568,7 @@ export default function ProjectModal({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
               </div>
+              <span className="text-[10px] uppercase tracking-widest opacity-40 font-bold hidden sm:block">Scroll: ↑ / ↓</span>
             </div>
           </div>
         )}

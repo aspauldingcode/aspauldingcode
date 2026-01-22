@@ -31,7 +31,7 @@ export default function ProjectsHeader({
         {/* Back Button */}
         <Link
           href="/"
-          className="p-2 rounded-lg bg-base0B hover:bg-base0A transition-all duration-300 shadow-lg active:scale-95 touch-manipulation"
+          className="p-2 rounded-lg bg-base0B hover:bg-base0A transition-all duration-300 shadow-lg active:scale-95 touch-manipulation relative group"
           aria-label="Back to Home"
         >
           <svg
@@ -47,13 +47,18 @@ export default function ProjectsHeader({
               d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5"
             />
           </svg>
+          <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[10px] font-mono opacity-50 text-base04 bg-base01/80 px-1 rounded pointer-events-none hidden sm:block whitespace-nowrap z-50">
+            (h)
+          </span>
         </Link>
 
-        {/* Projects Title - Centered */}
-        <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-base05 whitespace-nowrap">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center pointer-events-none">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-base05 whitespace-nowrap pointer-events-auto leading-none">
             Alex&apos;s Projects
           </h1>
+          <p className="text-[10px] sm:text-xs text-base04 mt-1 opacity-70 font-mono hidden sm:block leading-none">
+            Swipe Right to Like • Swipe Left to Pass
+          </p>
         </div>
 
         {/* Right side buttons */}
@@ -62,7 +67,7 @@ export default function ProjectsHeader({
           {showingLiked ? (
             <button
               onClick={onBackToStack}
-              className="p-2 rounded-lg bg-base0E hover:bg-base0F transition-all duration-300 shadow-lg active:scale-95 touch-manipulation"
+              className="p-2 rounded-lg bg-base0E hover:bg-base0F transition-all duration-300 shadow-lg active:scale-95 touch-manipulation group relative"
               aria-label="Back to card stack"
               title="Back to card stack"
             >
@@ -79,12 +84,15 @@ export default function ProjectsHeader({
                   d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
                 />
               </svg>
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[10px] font-mono opacity-50 text-base04 bg-base01/80 px-1 rounded pointer-events-none hidden sm:block whitespace-nowrap z-50">
+                (b)
+              </span>
             </button>
           ) : (
             likedCount > 0 && (
               <button
                 onClick={onViewLiked}
-                className="p-2 rounded-lg bg-base0C hover:bg-base0D transition-all duration-300 shadow-lg active:scale-95 relative touch-manipulation"
+                className="p-2 rounded-lg bg-base0C hover:bg-base0D transition-all duration-300 shadow-lg active:scale-95 relative touch-manipulation group"
                 aria-label={`View liked projects (${likedCount})`}
                 title={`View liked projects (${likedCount})`}
               >
@@ -102,6 +110,9 @@ export default function ProjectsHeader({
                     {likedCount}
                   </span>
                 )}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[10px] font-mono opacity-50 text-base04 bg-base01/80 px-1 rounded pointer-events-none hidden sm:block whitespace-nowrap z-50">
+                  (f)
+                </span>
               </button>
             )
           )}

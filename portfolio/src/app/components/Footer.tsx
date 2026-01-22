@@ -31,10 +31,10 @@ export default function Footer() {
           const containerWidth = containerRef.current.clientWidth;
           // Measure using hidden element that's always in unwrapped state
           const textWidth = measureRef.current.scrollWidth;
-          
+
           // Scroll if text can't fit on a single line (not enough width to read it all)
           const needsScroll = textWidth > containerWidth;
-          
+
           // Only update state if it actually changed to prevent unnecessary re-renders
           setShouldScroll(prev => prev !== needsScroll ? needsScroll : prev);
         });
@@ -43,10 +43,10 @@ export default function Footer() {
 
     // Check immediately after a brief delay to ensure refs are set
     const initialTimeout = setTimeout(checkOverflow, 0);
-    
+
     // Watch for window resize
     window.addEventListener('resize', checkOverflow);
-    
+
     // Use ResizeObserver to watch for container size changes
     let resizeObserver: ResizeObserver | null = null;
     const setupObserver = () => {
@@ -55,10 +55,10 @@ export default function Footer() {
         resizeObserver.observe(containerRef.current);
       }
     };
-    
+
     // Setup observer after a brief delay to ensure ref is available
     const observerTimeout = setTimeout(setupObserver, 0);
-    
+
     return () => {
       clearTimeout(initialTimeout);
       clearTimeout(observerTimeout);
@@ -250,8 +250,8 @@ export default function Footer() {
           className="text-base0D hover:text-base0C transition-colors"
         >
           X
-          </a>
-        </span>
+        </a>
+      </span>
     </>
   );
 
@@ -261,7 +261,7 @@ export default function Footer() {
   return (
     <>
       <footer
-        className="fixed bottom-0 left-0 w-full py-1 sm:py-2 text-center text-base04 text-[10px] xs:text-xs sm:text-xs bg-base00/80 backdrop-blur-sm z-10 border-t border-base02 transition-opacity duration-300 overflow-hidden"
+        className="fixed bottom-0 left-0 w-full py-1 sm:py-2 text-center text-base04 text-[10px] xs:text-xs sm:text-xs bg-base00/80 backdrop-blur-sm z-[60] border-t border-base02 transition-opacity duration-300 overflow-hidden"
         style={{
           opacity: mounted ? 1 : 0,
           transform: 'translate3d(0,0,0)',
