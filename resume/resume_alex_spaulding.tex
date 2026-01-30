@@ -93,7 +93,7 @@
 \vspace{0.3mm}\item
     \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
         \textbf{#1} & \textit{\footnotesize{#4}} \\
-        \textit{\footnotesize{#3}} &  \underline{\footnotesize{#2}}\\
+        \textit{\footnotesize{#3}}\strut & \underline{\smash{\footnotesize{#2}}}\strut \\
     \end{tabular*}
     \vspace{-2.6mm}
 }
@@ -154,35 +154,35 @@
 \end{tabular*}
 \vspace{-3mm}
 
+%-----------SUMMARY-----------
+\section{\textbf{Professional Summary}}
+\small{Aspiring Software and Systems Engineer with a focus on macOS/iOS internals, reverse engineering, and low-level system mods. Experienced in hardware manufacturing for scientific instrumentation, technical IT support, and web development. Proven track record of architecting complex cross-platform systems using Swift, Rust, and C-family languages.}
+\vspace{-2mm}
 %-----------EDUCATION-----------
 \section{\textbf{Education}}
   \resumeSubHeadingListStart
     \resumeSubheading
-      {Bachelor of Science (BS) in Computer Science}{Expected May 2027}
-      {Eastern Washington University}{Mathematics Minor}
+      {Eastern Washington University, Spokane, WA}{Expected May 2027}
+      {Bachelor of Science (BS) in Computer Science}{Mathematics Minor}
       \resumeItemListStart
-        \item {\textbf{Languages}{: Swift, Objective-C, C/C++, JavaScript, TypeScript, Python, Rust, Java, Nix}}
-        \item {\textbf{Tools}{: \mbox{Xcode/xcodebuild, AppKit/SwiftUI, XPC, Unix, Makefile with custom targets, LLDB/Clang}}}
-        \item {\textbf{Core OS \& Systems}{: macOS/iOS, reverse engineering, kernels, operating systems, runtime mods}}
         \item {\textbf{Relevant Coursework}{: C and UNIX Programming (CSCD 240), Computer Networks (CSCD 330), Algorithms (CSCD 320), Data Structures (CSCD 300), Digital Circuits (EENG 160), Cybersecurity Fundamentals (CYBR 101)}}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-6mm}
-
+\vspace{-5mm}
 %-----------PROFESSIONAL EXPERIENCE-----------
 \section{\textbf{Professional Experience}}
   \resumeSubHeadingListStart
     \resumeSubheading
-      {Information Technology Specialist}{Jun 2025 - Present}
+      {Information Technology (IT) Specialist}{Jun 2025 - Present}
       {Eastern Washington University, Cheney, WA}{}
       \resumeItemListStart
-        \item {Tier I remote support; logins/passwords, connectivity, software/hardware; Freshservice tickets; average resolution time 5–20 minutes}
+        \item {Tier 0 remote support; logins/passwords, connectivity, software/hardware; Freshservice tickets; average resolution time 5–20 minutes}
       \resumeItemListEnd
     \resumeSubheading
       {Manufacturing Technician}{Jan 2022 - Mar 2025}
       {Sunburst Sensors, Missoula, MT}{}
       \resumeItemListStart
-        \item {Manufactured autonomous instruments measuring carbon parameters (\textit{p}CO2/pH) using patented drift-free technology; soldered PCBs and crafted custom cabling and battery packs}
+        \item {Manufactured autonomous instruments for carbon measurement (\textit{p}CO2/pH); soldered high-precision PCBs and assembled \textbf{600+ custom battery packs} and specialized cabling over a 3-year tenure}
       \resumeItemListEnd
     \resumeSubheading
       {Information Technology (IT) Consultant}{Sep 2020 - Oct 2020 | Oct 2024 - Jan 2025}
@@ -191,8 +191,7 @@
         \item {Tier I phone support; printers; Wi–Fi; TeamDynamix; shadowing; monitoring; helped ~20 people/week; closed 600+ tickets}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-6mm}
-
+\vspace{-5mm}
 %-----------PROJECTS-----------
 \section{\textbf{Projects}}
   \resumeSubHeadingListStart
@@ -205,7 +204,7 @@
         \item {Automated \textbf{universal builds} (\texttt{x86\_64}, \texttt{arm64}, \texttt{arm64e}) via custom \textbf{Makefiles} with integrated \textbf{CLI} control using \textbf{XPC-compatible} notification persistence}
       \resumeItemListEnd
     \resumeSubheading
-      {\link{https://github.com/aspauldingcode/Wawona}{Wawona (62 \faStar{})}}{2024 - Present}
+      {\link{https://github.com/aspauldingcode/Wawona}{Wawona (62 \faStar{})}}{2025 - Present}
       {Native Wayland Compositor for macOS, iOS, and Android}{\link{https://github.com/aspauldingcode/Wawona}{GitHub}}
       \resumeItemListStart
         \item {Architected a high-performance \textbf{Rust} core and multi-threaded rendering pipeline (\textbf{Metal}, \textbf{DMA-BUF}) supporting 57+ Wayland protocol globals and \textbf{wlroots} (Sway/tinywl) compatibility}
@@ -222,13 +221,22 @@
         \item {Implemented a secure \textbf{ChatGPT} interface supporting \textbf{Markdown} and encrypted proxy communication; optimized for watchOS performance using \textbf{GCD worker queues}}
       \resumeItemListEnd
     \resumeSubheading
-      {\link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}{2024 - Present}
-      {Swift Package: Base16/Base24 Theming API}{\link{https://github.com/aspauldingcode/TintedThemingSwift}{GitHub}}
+      {\link{https://github.com/aspauldingcode/HIAHKernel}{HIAHKernel}}{2025 - Present}
+      {iOS Virtual Kernel and Process Runner}{\link{https://github.com/aspauldingcode/HIAHKernel}{GitHub}}
       \resumeItemListStart
-        \item {Developed a cross-platform \textbf{Swift 5.9} API (\textbf{SPM}) providing semantic color mappings for \textbf{Base16/Base24} specifications across \textbf{iOS}, \textbf{macOS}, \textbf{watchOS}, and \textbf{tvOS}}
-        \item {Optimized theme delivery via an \textbf{async/await} networking layer with \textbf{FileManager}-based caching and defensive \textbf{YAML} parsing (\textbf{Yams}) for remote GitHub-hosted schemes}
-        \item {Engineered a type-safe \textbf{SwiftUI/UIKit} design system using \textbf{Codable} value types and hex-parsing extensions to enable dynamic runtime theme switching}
+        \item {Engineered a virtual process manager for iOS with a \textbf{Mach-O binary patcher} that converts executable binaries to loadable bundles (\texttt{MH\_EXECUTE} $\rightarrow$ \texttt{MH\_BUNDLE}) for \texttt{dlopen}-based execution}
+        \item {Developed a low-level hooking framework for \textbf{POSIX syscall interception} and \textbf{symbol redirection}, implementing a \textbf{DYLD bypass} to load unsigned code without a global JIT entitlement}
+        \item {Designed a secure \textbf{Unix domain socket} IPC layer for communication between app groups and \textbf{NSExtensions}, managed by a reproducible \textbf{Nix} and \textbf{XcodeGen} infrastructure}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
-
+\vspace{-5mm}
+%-----------SKILLS-----------
+\section{\textbf{Skills}}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: Swift, Objective-C, C/C++, JavaScript, TypeScript, Python, Rust, Java, Nix} \\
+     \textbf{Core OS \& Systems}{: macOS/iOS, reverse engineering, kernels, operating systems, runtime mods} \\
+     \textbf{Tools}{: Xcode/xcodebuild, AppKit/SwiftUI, XPC, Unix, Makefile, LLDB/Clang}
+    }}
+ \end{itemize}
 \end{document}
