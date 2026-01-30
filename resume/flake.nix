@@ -34,8 +34,7 @@
                 mkdir -p result
                 if [ -f resume_alex_spaulding.pdf ]; then
                     mv -f resume_alex_spaulding.{pdf,aux,log,out} result/
-                    echo "✅ Outputs moved to result/:"
-                    echo "copying resume/result/resume_alex_spaulding.pdf to portfolio/public/resume_alex_spaulding.pdf"
+                    echo "Moved outputs to result/"
                     cp result/resume_alex_spaulding.pdf ../portfolio/public/resume_alex_spaulding.pdf
                     ${open} result/resume_alex_spaulding.pdf
                 else

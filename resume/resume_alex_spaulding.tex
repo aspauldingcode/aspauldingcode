@@ -32,7 +32,7 @@
 \newunicodechar{⁺}{\textsuperscript{+}}
 
 % Adjust margins
-\geometry{margin=0.3in, includefoot, footskip=.35cm}
+\geometry{margin=0.25in, top=0.3in, bottom=0.3in, includefoot, footskip=0.3cm}
 
 % Footer: centered small text at bottom
 \pagestyle{fancy}
@@ -70,8 +70,8 @@
 
 % Sections formatting
 \titleformat{\section}{
-  \vspace{-4pt}\scshape\raggedright\large
-}{}{0em}{}[\color{black}\titlerule \vspace{-7pt}]
+  \vspace{-6pt}\scshape\raggedright\large
+}{}{0em}{}[\color{cvaccent}\titlerule \vspace{-7pt}]
 
 %-------------------------
 % Custom commands
@@ -90,12 +90,12 @@
 }
 
 \newcommand{\resumeSubheading}[4]{
-\vspace{0.5mm}\item
+\vspace{0.3mm}\item
     \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
         \textbf{#1} & \textit{\footnotesize{#4}} \\
         \textit{\footnotesize{#3}} &  \underline{\footnotesize{#2}}\\
     \end{tabular*}
-    \vspace{-2.4mm}
+    \vspace{-2.6mm}
 }
 
 \newcommand{\resumeProject}[4]{
@@ -117,7 +117,7 @@
 \newcommand{\resumeItemListStart}{\sloppy\begin{justify}\begin{itemize}[leftmargin=3.4ex, rightmargin=2ex, noitemsep,labelsep=0.8em,itemsep=0mm]\small}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{2mm}}
 \newcommand{\resumeHeadingSkillEnd}{\end{itemize}\vspace{-2mm}}
-\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\fussy\vspace{-2mm}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\fussy\vspace{-2.4mm}}
 \newcommand{\cvsection}[1]{%
 \vspace{2mm}
 \begin{tcolorbox}
@@ -129,8 +129,9 @@
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
 \newcolumntype{C}{>{\centering\arraybackslash}X}%
 
-% Custom command for blue underlined links with external link icon
-\newcommand{\link}[2]{\href{#1}{\textcolor{blue}{\underline{#2}}\ \raisebox{0.1ex}{\tiny\faExternalLink}}}
+% Custom command for themed underlined links with external link icon
+\definecolor{cvaccent}{HTML}{B7410E} % A professional muted orange (Rust)
+\newcommand{\link}[2]{\href{#1}{\textcolor{cvaccent}{\underline{#2}}\ \raisebox{0.1ex}{\tiny\faExternalLink}}}
 %---- End of Packages and Functions ------
 
 %-------------------------------------------
@@ -148,10 +149,10 @@
 %----------HEADING-----------------
 \noindent
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l r@{}}
-  \textbf{\Large \name} & \footnotesize{\href{tel:\phonetel}{\faPhone\ +1-\phone}\ |\ \faEnvelope\ \link{mailto:\emaila}{\emaila}} \\
+  \textbf{\Large \textcolor{cvaccent}{\name}} & \footnotesize{\href{tel:\phonetel}{\faPhone\ +1-\phone}\ |\ \faEnvelope\ \link{mailto:\emaila}{\emaila}} \\
   \footnotesize{\faGlobe\ \link{https://www.aspauldingcode.com/}{aspauldingcode.com}} & \footnotesize{\faGithub\ \link{https://github.com/aspauldingcode}{github.com/aspauldingcode}\ |\ \faLinkedin\ \link{https://linkedin.com/in/aspauldingcode}{linkedin.com/in/aspauldingcode}} \\
 \end{tabular*}
-\vspace{-2mm}
+\vspace{-3mm}
 
 %-----------EDUCATION-----------
 \section{\textbf{Education}}
@@ -161,9 +162,9 @@
       {Eastern Washington University}{Mathematics Minor}
       \resumeItemListStart
         \item {\textbf{Languages}{: Swift, Objective-C, C/C++, JavaScript, TypeScript, Python, Rust, Java, Nix}}
-        \item {\textbf{Core OS \& Systems}{: macOS/iOS, reverse engineering, kernels, operating systems, runtime mods}}
         \item {\textbf{Tools}{: \mbox{Xcode/xcodebuild, AppKit/SwiftUI, XPC, Unix, Makefile with custom targets, LLDB/Clang}}}
-        \item {\textbf{Relevant Coursework}{: C and UNIX Programming (CSCD 240), Algorithms (CSCD 320), Data Structures (CSCD 300), Cybersecurity Fundamentals (CYBR 101)}}
+        \item {\textbf{Core OS \& Systems}{: macOS/iOS, reverse engineering, kernels, operating systems, runtime mods}}
+        \item {\textbf{Relevant Coursework}{: C and UNIX Programming (CSCD 240), Computer Networks (CSCD 330), Algorithms (CSCD 320), Data Structures (CSCD 300), Digital Circuits (EENG 160), Cybersecurity Fundamentals (CYBR 101)}}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
 \vspace{-6mm}
@@ -178,6 +179,12 @@
         \item {Tier I remote support; logins/passwords, connectivity, software/hardware; Freshservice tickets; average resolution time 5–20 minutes}
       \resumeItemListEnd
     \resumeSubheading
+      {Manufacturing Technician}{Jan 2022 - Mar 2025}
+      {Sunburst Sensors, Missoula, MT}{}
+      \resumeItemListStart
+        \item {Manufactured autonomous instruments measuring carbon parameters (\textit{p}CO2/pH) using patented drift-free technology; soldered PCBs and crafted custom cabling and battery packs}
+      \resumeItemListEnd
+    \resumeSubheading
       {Information Technology (IT) Consultant}{Sep 2020 - Oct 2020 | Oct 2024 - Jan 2025}
       {University of Montana IT Help Desk, Missoula, MT}{}
       \resumeItemListStart
@@ -190,49 +197,38 @@
 \section{\textbf{Projects}}
   \resumeSubHeadingListStart
     \resumeSubheading
-      {\link{https://github.com/aspauldingcode/apple-sharpener}{Apple Sharpener (137 \faStar{})}}{2024 - Present}
+      {\link{https://github.com/aspauldingcode/apple-sharpener}{Apple Sharpener (154 \faStar{})}}{2024 - Present}
       {macOS Window/Dock Corner Radius Tweak}{\link{https://github.com/aspauldingcode/apple-sharpener}{GitHub}}
       \resumeItemListStart
-        \item {Universal builds (\texttt{x86\_64}, \texttt{arm64}, \texttt{arm64e}); CLI · robust debugging}
-        \item {Objective-C/AppKit method swizzling (corners/titlebar)}
-        \item {Early runtime arbitrary code injection}
+        \item {Reverse engineered \textbf{AppKit/QuartzCore} private methods (e.g., \texttt{\_cornerRadius}) using \textbf{IDA}, \textbf{otool}, and \textbf{frida-trace} to implement system-wide UI modifications}
+        \item {Developed a low-level \textbf{Objective-C} runtime patch using \textbf{method swizzling} and early runtime code injection targeting the \textbf{Ammonia} system injection framework}
+        \item {Automated \textbf{universal builds} (\texttt{x86\_64}, \texttt{arm64}, \texttt{arm64e}) via custom \textbf{Makefiles} with integrated \textbf{CLI} control using \textbf{XPC-compatible} notification persistence}
       \resumeItemListEnd
     \resumeSubheading
-      {\link{https://github.com/aspauldingcode/macwmfx}{macwmfx (43 \faStar{})}}{2024 - Present}
-      {macOS Window Manager Effects Framework}{\link{https://github.com/aspauldingcode/macwmfx}{GitHub}}
+      {\link{https://github.com/aspauldingcode/Wawona}{Wawona (62 \faStar{})}}{2024 - Present}
+      {Native Wayland Compositor for macOS, iOS, and Android}{\link{https://github.com/aspauldingcode/Wawona}{GitHub}}
       \resumeItemListStart
-        \item {Client–server: injected agent · XPC CLI}
-        \item {JSON config; whitelist/blacklist; one-command \texttt{--reload}}
-        \item {Configurable borders/transparency/blur/shadows}
-      \resumeItemListEnd
-    \resumeSubheading
-      {\link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}{2024 - Present}
-      {Swift Package: Base16/Base24 Theming API}{\link{https://github.com/aspauldingcode/TintedThemingSwift}{GitHub}}
-      \resumeItemListStart
-        \item {Cross-platform targets (iOS, macOS, watchOS, tvOS)}
-        \item {Theme loading; network/local cache}
-        \item {Semantic color API; composable theme maps}
+        \item {Architected a high-performance \textbf{Rust} core and multi-threaded rendering pipeline (\textbf{Metal}, \textbf{DMA-BUF}) supporting 57+ Wayland protocol globals and \textbf{wlroots} (Sway/tinywl) compatibility}
+        \item {Developed native platform frontends (\textbf{AppKit}, \textbf{UIKit}, \textbf{Jetpack Compose}) via \textbf{UniFFI} to enable direct rendering to macOS window decorations and seamless OS integration}
+        \item {Orchestrated hermetic, reproducible build systems using \textbf{Nix Flakes} and custom SDK wrappers to port Linux-exclusive desktop applications to mobile and macOS platforms}
       \resumeItemListEnd
     
     \resumeSubheading
       {\link{https://github.com/aspauldingcode/Whisperer}{Whisperer}}{2023 - Present}
       {Apple Watch Application (App Store submission in progress)}{\link{https://github.com/aspauldingcode/Whisperer}{GitHub}}
       \resumeItemListStart
-        \item {Secure proxy + client–server API (Vercel/NodeJS)}
-        \item {Async/await streaming speech pipeline: Whisper STT and TTS}
-        \item {GCD worker queues; UI updates on main}
-        \item {Theming via \link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift} (Base16/Base24)}
+        \item {Engineered a native \textbf{watchOS} application with a real-time \textbf{async/await} audio pipeline integrating \textbf{OpenAI Whisper} for STT and low-latency \textbf{TTS} for continuous voice-driven conversations}
+        \item {Architected a \textbf{Vercel serverless} backend and \textbf{CoreGraphics} engine to typeset complex \textbf{MathJax} functions (e.g., triple integration) for high-fidelity rendering on small-screen displays}
+        \item {Implemented a secure \textbf{ChatGPT} interface supporting \textbf{Markdown} and encrypted proxy communication; optimized for watchOS performance using \textbf{GCD worker queues}}
       \resumeItemListEnd
     \resumeSubheading
-      {\link{https://github.com/aspauldingcode/TintedMac}{TintedMac}}{2025 - Present}
-      {macOS System-Wide Color Scheme Tweak}{\link{https://github.com/aspauldingcode/TintedMac}{GitHub}}
+      {\link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}{2024 - Present}
+      {Swift Package: Base16/Base24 Theming API}{\link{https://github.com/aspauldingcode/TintedThemingSwift}{GitHub}}
       \resumeItemListStart
-        \item {SwiftUI/AppKit theming via \link{https://github.com/aspauldingcode/TintedThemingSwift}{TintedThemingSwift}}
-        \item {Opt-in tinting; TOML config; app filtering}
-        \item {Base16/Base24 semantic mapping}
+        \item {Developed a cross-platform \textbf{Swift 5.9} API (\textbf{SPM}) providing semantic color mappings for \textbf{Base16/Base24} specifications across \textbf{iOS}, \textbf{macOS}, \textbf{watchOS}, and \textbf{tvOS}}
+        \item {Optimized theme delivery via an \textbf{async/await} networking layer with \textbf{FileManager}-based caching and defensive \textbf{YAML} parsing (\textbf{Yams}) for remote GitHub-hosted schemes}
+        \item {Engineered a type-safe \textbf{SwiftUI/UIKit} design system using \textbf{Codable} value types and hex-parsing extensions to enable dynamic runtime theme switching}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-6mm}
-%-------------------------------------------
-\end{document}
 
+\end{document}
