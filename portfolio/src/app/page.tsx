@@ -9,46 +9,14 @@ import ContactForm from './components/ContactForm';
 import ResumeViewer from './components/ResumeViewer';
 import { emailConfig } from '@/config/email';
 import { projects } from './projects/projectData';
+import { useSession } from './context/SessionContext';
 
 export default function Home() {
   const router = useRouter();
 
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isResumeOpen, setIsResumeOpen] = useState(false);
-  const [cachedResume, setCachedResume] = useState<string | null>(null);
-
-  // Resume Pre-fetching and Caching
-  useEffect(() => {
-    const fetchAndCacheResume = async () => {
-      try {
-        // 1. Check localStorage first
-        const cached = localStorage.getItem('resume_base64');
-        if (cached) {
-          setCachedResume(cached);
-          console.log('Resume loaded from cache');
-          return;
-        }
-
-        // 2. If not cached, fetch and convert
-        console.log('Pre-fetching resume...');
-        const response = await fetch('/resume_alex_spaulding.pdf');
-        const blob = await response.blob();
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result as string;
-          localStorage.setItem('resume_base64', base64data);
-          setCachedResume(base64data);
-          console.log('Resume cached successfully');
-        };
-        reader.readAsDataURL(blob);
-      } catch (error) {
-        console.error('Failed to pre-fetch resume:', error);
-      }
-    };
-
-    fetchAndCacheResume();
-  }, []);
+  const { resumeBase64 } = useSession();
 
   // Project Images Pre-loading
   useEffect(() => {
@@ -446,7 +414,7 @@ export default function Home() {
           <ResumeViewer
             key="resume-viewer"
             onCheckClose={() => setIsResumeOpen(false)}
-            cachedResume={cachedResume}
+            cachedResume={resumeBase64}
           />
         )}
       </AnimatePresence>

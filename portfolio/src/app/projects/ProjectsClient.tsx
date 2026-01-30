@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, SetStateAction } from 'react';
 import { Project } from './projectData';
 import ProjectsHeader from '../components/ProjectsHeader';
 import CardStack from '@/components/CardStack';
@@ -9,6 +9,7 @@ import ProjectModal from '@/components/ProjectModal';
 import TutorialHint from '@/components/TutorialHint';
 import { fetchMultipleGitHubRepoData, GitHubRepoData } from '@/lib/github';
 import { AnimatePresence } from 'framer-motion';
+import { useSession } from '@/app/context/SessionContext';
 
 interface CardData {
   id: string;
@@ -32,16 +33,72 @@ interface ProjectsClientProps {
 }
 
 export default function ProjectsClient({ projects, initialGithubData = {} }: ProjectsClientProps) {
-  const [swipedCards, setSwipedCards] = useState<Project[]>([]);
-  const [dismissedCards, setDismissedCards] = useState<Project[]>([]);
-  const [dismissedViewSwipedCards, setDismissedViewSwipedCards] = useState<Set<string>>(new Set());
-  const [showAllCards, setShowAllCards] = useState(true);
-  const [showDismissedOnly, setShowDismissedOnly] = useState(false);
+  const { projectsState, setProjectsState } = useSession();
+
+  // Destructure state from context
+  const {
+    swipedCards,
+    dismissedCards,
+    dismissedViewSwipedCards,
+    showAllCards,
+    showDismissedOnly,
+    hasShownTutorial,
+    hasDismissedTutorial
+  } = projectsState;
+
+  // Create adapter setters to maintain existing logic structure
+  const setSwipedCards = (action: SetStateAction<Project[]>) => {
+    setProjectsState(prev => ({
+      ...prev,
+      swipedCards: typeof action === 'function' ? action(prev.swipedCards) : action
+    }));
+  };
+
+  const setDismissedCards = (action: SetStateAction<Project[]>) => {
+    setProjectsState(prev => ({
+      ...prev,
+      dismissedCards: typeof action === 'function' ? action(prev.dismissedCards) : action
+    }));
+  };
+
+  const setDismissedViewSwipedCards = (action: SetStateAction<Set<string>>) => {
+    setProjectsState(prev => ({
+      ...prev,
+      dismissedViewSwipedCards: typeof action === 'function' ? action(prev.dismissedViewSwipedCards) : action
+    }));
+  };
+
+  const setShowAllCards = (action: SetStateAction<boolean>) => {
+    setProjectsState(prev => ({
+      ...prev,
+      showAllCards: typeof action === 'function' ? action(prev.showAllCards) : action
+    }));
+  };
+
+  const setShowDismissedOnly = (action: SetStateAction<boolean>) => {
+    setProjectsState(prev => ({
+      ...prev,
+      showDismissedOnly: typeof action === 'function' ? action(prev.showDismissedOnly) : action
+    }));
+  };
+
+  const setHasShownTutorial = (action: SetStateAction<boolean>) => {
+    setProjectsState(prev => ({
+      ...prev,
+      hasShownTutorial: typeof action === 'function' ? action(prev.hasShownTutorial) : action
+    }));
+  };
+
+  const setHasDismissedTutorial = (action: SetStateAction<boolean>) => {
+    setProjectsState(prev => ({
+      ...prev,
+      hasDismissedTutorial: typeof action === 'function' ? action(prev.hasDismissedTutorial) : action
+    }));
+  };
+
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedProjectSource, setSelectedProjectSource] = useState<'stack' | 'liked'>('stack');
   const [showTutorialHint, setShowTutorialHint] = useState(false);
-  const [hasShownTutorial, setHasShownTutorial] = useState(false);
-  const [hasDismissedTutorial, setHasDismissedTutorial] = useState(false);
   const [githubData] = useState<Record<string, GitHubRepoData>>(initialGithubData);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const cardStackSwipeRef = useRef<((direction: 'left' | 'right') => void) | null>(null);

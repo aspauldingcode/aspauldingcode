@@ -1,5 +1,6 @@
 import './globals.css';
 import ClientLayout from './components/ClientLayout';
+import { SessionProvider } from './context/SessionContext';
 import Script from 'next/script';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
@@ -213,9 +214,11 @@ export default function RootLayout({
         <Script src={`https://www.google.com/recaptcha/api.js?render=${SITE_KEY}&badge=bottomright&size=invisible`} />
       </head>
       <body className="overflow-hidden overscroll-none touch-none">
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+        <SessionProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </SessionProvider>
       </body>
     </html>
   );
