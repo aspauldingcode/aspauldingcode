@@ -47,8 +47,30 @@ const config: Config = {
         'portrait-tall': { 'raw': '(orientation: portrait) and (min-height: 650px)' },
         'wide-short': { 'raw': '(min-width: 1200px) and (max-height: 600px)' },
       },
+      animation: {
+        shimmer: 'shimmer 2s infinite linear',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }: { addUtilities: any }) {
+      addUtilities({
+        ".pt-safe": { paddingTop: "env(safe-area-inset-top)" },
+        ".pb-safe": { paddingBottom: "env(safe-area-inset-bottom)" },
+        ".pl-safe": { paddingLeft: "env(safe-area-inset-left)" },
+        ".pr-safe": { paddingRight: "env(safe-area-inset-right)" },
+        ".top-safe": { top: "env(safe-area-inset-top)" },
+        ".bottom-safe": { bottom: "env(safe-area-inset-bottom)" },
+        ".left-safe": { left: "env(safe-area-inset-left)" },
+        ".right-safe": { right: "env(safe-area-inset-right)" },
+      });
+    },
+  ],
 };
 export default config;

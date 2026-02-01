@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, PanInfo, useMotionValue, useTransform, useDragControls } from 'framer-motion';
+import { useBreakpoints } from '@/hooks/useBreakpoints';
 
 interface ResumeViewerProps {
     onCheckClose: () => void;
@@ -9,6 +11,9 @@ interface ResumeViewerProps {
 }
 
 export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewerProps) {
+    const bp = useBreakpoints();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
     const pdfUrl = '/resume_alex_spaulding.pdf';
     const dragY = useMotionValue(0);
     const dragControls = useDragControls(); // Add drag controls
@@ -57,7 +62,9 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
         }
     };
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center pointer-events-none">
             {/* Backdrop Container - Handles entry/exit animation */}
             <motion.div
@@ -81,7 +88,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                     initial={{ y: 1000 }}
                     animate={{ y: 0 }}
                     exit={{ y: 1000 }}
-                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                    transition={{ type: "spring", damping: 30, stiffness: 260 }}
                     drag="y"
                     dragControls={dragControls}
                     dragListener={false}
@@ -134,9 +141,11 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                                         />
                                     </svg>
                                 </motion.button>
-                                <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
-                                    (d)
-                                </span>
+                                {bp.hasKeyboard && (
+                                    <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
+                                        (d)
+                                    </span>
+                                )}
                             </div>
 
                             {/* Title - Center Aligned */}
@@ -159,9 +168,11 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
-                                <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
-                                    (esc)
-                                </span>
+                                {bp.hasKeyboard && (
+                                    <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
+                                        (esc)
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -178,6 +189,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                     <div className="h-10 sm:h-6 bg-base01 shrink-0" />
                 </motion.div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

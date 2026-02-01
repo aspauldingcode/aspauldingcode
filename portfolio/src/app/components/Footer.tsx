@@ -261,7 +261,7 @@ export default function Footer() {
   return (
     <>
       <footer
-        className="fixed bottom-0 left-0 w-full py-1 sm:py-2 text-center text-base04 text-[10px] xs:text-xs sm:text-xs bg-base00/80 backdrop-blur-sm z-[60] border-t border-base02 transition-opacity duration-300 overflow-hidden"
+        className="fixed bottom-0 left-0 w-full pt-1 pb-[calc(0.25rem+var(--safe-bottom))] sm:pt-2 sm:pb-[calc(0.5rem+var(--safe-bottom))] text-center text-base04 text-[10px] xs:text-xs sm:text-xs bg-base00/80 backdrop-blur-sm z-[60] border-t border-base02 transition-opacity duration-300 overflow-hidden"
         style={{
           opacity: mounted ? 1 : 0,
           transform: 'translate3d(0,0,0)',

@@ -14,6 +14,7 @@
     "clsx": "^2.1.1",
     "debug": "^4.3.4",
     "eslint": "^9",
+    "extract-colors": "^4.2.1",
     "framer-motion": "^12.27.5",
     "glob": "^11.0.0",
     "lru-cache": "^11.0.0",

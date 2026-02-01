@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import emailjs from '@emailjs/browser';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, useDragControls } from 'framer-motion';
+import { useBreakpoints } from '@/hooks/useBreakpoints';
 
 declare global {
   interface Window {
@@ -38,6 +40,9 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
   const dragY = useMotionValue(0);
   const dragControls = useDragControls();
   const backdropOpacity = useTransform(dragY, [0, 300], [0.5, 0]);
+  const bp = useBreakpoints();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Mobile Detection - Run only on mount to avoid resize flashing
   useEffect(() => {
@@ -197,7 +202,9 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
   };
 
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center pointer-events-none">
       {/* Backdrop Container - Handles entry/exit animation */}
       <motion.div
@@ -219,7 +226,7 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
         initial={{ y: 1000 }}
         animate={{ y: 0 }}
         exit={{ y: 1000 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        transition={{ type: "spring", damping: 30, stiffness: 260 }}
         drag="y"
         dragControls={dragControls}
         dragListener={false}
@@ -232,35 +239,43 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
         {/* Draggable Header Area */}
         <div
           onPointerDown={(e) => dragControls.start(e)}
-          className="w-full relative pt-2 pb-6 cursor-grab active:cursor-grabbing shrink-0 touch-none px-4"
+          className="w-full relative pt-2 pb-6 cursor-grab active:cursor-grabbing shrink-0 touch-none px-4 border-b border-base02"
         >
           {/* Drag Handle Indicator */}
           <div className="flex items-center justify-center mb-6">
             <div className="w-12 h-1.5 bg-base03 rounded-full opacity-50" />
           </div>
 
-          {/* Close Button - Pulled into header area */}
-          <div className="absolute top-2 right-4 flex flex-col items-center">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
-              title="Close (esc)"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">(esc)</span>
-          </div>
+          {/* Header UI Row */}
+          <div className="flex items-center justify-between relative min-h-[44px]">
+            {/* Left Spacer to balance layout if needed, though title is absolute */}
+            <div className="w-12" />
 
-          {/* Title Area - Center Aligned */}
-          <div className="flex flex-col items-center pointer-events-none">
-            <h2 className="text-xl font-bold text-base05">Contact Alex</h2>
-            <p className="text-base04 text-xs mt-0.5 opacity-70">Leave a message and I&apos;ll get back to you.</p>
+            {/* Title Area - Center Aligned */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
+              <h2 className="text-xl font-bold text-base05">Contact Alex</h2>
+              <p className="text-base04 text-xs mt-0.5 opacity-70">Leave a message and I&apos;ll get back to you.</p>
+            </div>
+
+            {/* Close Button */}
+            <div className="flex flex-col items-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
+                title="Close (esc)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              {bp.hasKeyboard && (
+                <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">(esc)</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -320,7 +335,7 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
                 placeholder="What&apos;s on your mind?"
                 disabled={status === 'sending'}
               />
-              {!isMobile && (
+              {bp.hasKeyboard && (
                 <div className="flex justify-start px-1">
                   <span className="text-[10px] text-base03">Shift+Enter for new line</span>
                 </div>
@@ -348,7 +363,7 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
               ) : status === 'success' ? 'Sent!' : status === 'error' ? 'Error - Try Again' : 'Send Message'}
             </motion.button>
 
-            {!isMobile && (
+            {bp.hasKeyboard && (
               <div className="flex justify-center mt-2">
                 <span className="text-[10px] font-mono text-base04 opacity-50 uppercase tracking-widest">(Enter) to send</span>
               </div>
@@ -370,26 +385,26 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
             >
               <div className="bg-base01 border-2 border-base0D rounded-2xl p-6 shadow-2xl max-w-sm w-full">
                 <h3 className="text-xl font-bold text-base05 mb-2">Ready to send?</h3>
-                {!isMobile && (
+                {bp.hasKeyboard && (
                   <p className="text-base04 text-sm mb-6">
                     Press <span className="text-base0D font-mono bg-base02 px-1 rounded">Shift+Enter</span> to add a new line.<br />
                     Press <span className="text-base0D font-mono bg-base02 px-1 rounded">Enter</span> or <span className="text-base0B font-mono bg-base02 px-1 rounded">y</span> to send now.
                   </p>
                 )}
-                {isMobile && <div className="mb-6" />}
+                {!bp.hasKeyboard && <div className="mb-6" />}
 
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowConfirm(false)}
                     className="flex-1 py-2 rounded-lg bg-base02 hover:bg-base03 text-base05 font-semibold transition-colors touch-manipulation"
                   >
-                    Cancel (n / Esc)
+                    Cancel {bp.hasKeyboard ? '(n / Esc)' : ''}
                   </button>
                   <button
                     onClick={processSubmit}
                     className="flex-1 py-2 rounded-lg bg-base0D hover:bg-base0C text-base00 font-bold transition-colors shadow-lg touch-manipulation"
                   >
-                    Send (y / Enter)
+                    Send {bp.hasKeyboard ? '(y / Enter)' : ''}
                   </button>
                 </div>
               </div>
@@ -397,6 +412,7 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
           )}
         </AnimatePresence>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }

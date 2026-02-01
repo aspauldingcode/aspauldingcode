@@ -8,6 +8,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useTheme } from '../app/context/ThemeContext';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { useBreakpoints } from '@/hooks/useBreakpoints';
 
 // Custom styles for carousel dots and animations
 // const customDotsStyle = `
@@ -53,7 +54,7 @@ const ROTATION_FACTOR = 0.1;
 const MAX_ROTATION = 15;
 
 // Custom arrow components for carousel
-const CustomPrevArrow = ({ onClick, currentSlide }: { onClick?: () => void; currentSlide?: number }) => {
+const CustomPrevArrow = ({ onClick, currentSlide, hasKeyboard }: { onClick?: () => void; currentSlide?: number; hasKeyboard?: boolean }) => {
   if (currentSlide === 0) return null;
 
   return (
@@ -77,12 +78,14 @@ const CustomPrevArrow = ({ onClick, currentSlide }: { onClick?: () => void; curr
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </button>
-      <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(←)</span>
+      {hasKeyboard && (
+        <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(←)</span>
+      )}
     </div>
   );
 };
 
-const CustomNextArrow = ({ onClick, currentSlide, slideCount }: { onClick?: () => void; currentSlide?: number; slideCount?: number }) => {
+const CustomNextArrow = ({ onClick, currentSlide, slideCount, hasKeyboard }: { onClick?: () => void; currentSlide?: number; slideCount?: number; hasKeyboard?: boolean }) => {
   if (currentSlide !== undefined && slideCount !== undefined && currentSlide >= slideCount - 1) return null;
 
   // Add horizontal pulse animation when on first slide
@@ -112,7 +115,9 @@ const CustomNextArrow = ({ onClick, currentSlide, slideCount }: { onClick?: () =
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       </button>
-      <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(→)</span>
+      {hasKeyboard && (
+        <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(→)</span>
+      )}
     </div>
   );
 };
@@ -126,6 +131,7 @@ export default function ProjectModal({
   githubData
 }: ProjectModalProps) {
 
+  const bp = useBreakpoints();
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [hasUserSwiped, setHasUserSwiped] = useState(false);
@@ -294,8 +300,8 @@ export default function ProjectModal({
     swipe: true,
     touchMove: true,
     arrows: !!(project?.images.length && project.images.length > 1), // Show arrows only if multiple images
-    prevArrow: <CustomPrevArrow currentSlide={currentSlide} />,
-    nextArrow: <CustomNextArrow currentSlide={currentSlide} slideCount={project?.images.length} />,
+    prevArrow: <CustomPrevArrow currentSlide={currentSlide} hasKeyboard={bp.hasKeyboard} />,
+    nextArrow: <CustomNextArrow currentSlide={currentSlide} slideCount={project?.images.length} hasKeyboard={bp.hasKeyboard} />,
     dotsClass: "slick-dots custom-dots",
     afterChange: (current: number) => {
       setCurrentSlide(current);
@@ -352,7 +358,9 @@ export default function ProjectModal({
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(esc)</span>
+          {bp.hasKeyboard && (
+            <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(esc)</span>
+          )}
         </div>
 
         {/* Scrollable content container */}
@@ -456,10 +464,14 @@ export default function ProjectModal({
                     href={project.githubRepo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-2 bg-base0C hover:bg-base0D text-base00 text-sm rounded-lg transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-base02 hover:bg-base03 text-base05 text-sm rounded-lg transition-colors group/github"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    View Source Code →
+                    <span className="font-nerd text-lg"></span>
+                    <span className="font-semibold">View Source</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 opacity-60 group-hover/github:opacity-100 transition-opacity">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
                   </a>
                 )}
                 {project.link && (
@@ -498,7 +510,9 @@ export default function ProjectModal({
               >
                 <span>Pass</span>
               </button>
-              <span className="text-[10px] text-base04 font-mono opacity-50 hidden sm:block">(p)</span>
+              {bp.hasKeyboard && (
+                <span className="text-[10px] text-base04 font-mono opacity-50 hidden sm:block">(p)</span>
+              )}
             </div>
 
             <div className="flex-1 flex flex-col items-center gap-1">
@@ -515,7 +529,9 @@ export default function ProjectModal({
               >
                 <span>Like</span>
               </button>
-              <span className="text-[10px] text-base04 font-mono opacity-50 hidden sm:block">(l)</span>
+              {bp.hasKeyboard && (
+                <span className="text-[10px] text-base04 font-mono opacity-50 hidden sm:block">(l)</span>
+              )}
             </div>
           </div>
         </div>
@@ -568,7 +584,9 @@ export default function ProjectModal({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
               </div>
-              <span className="text-[10px] uppercase tracking-widest opacity-40 font-bold hidden sm:block">Scroll: ↑ / ↓</span>
+              {bp.hasKeyboard && (
+                <span className="text-[10px] uppercase tracking-widest opacity-40 font-bold hidden sm:block">Scroll: ↑ / ↓</span>
+              )}
             </div>
           </div>
         )}

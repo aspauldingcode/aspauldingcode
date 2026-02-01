@@ -104,8 +104,8 @@ function ThemeScript() {
             style.textContent = \`
               .theme-toggle-placeholder {
                 position: fixed;
-                top: 1.5rem;
-                right: 1.5rem;
+                top: calc(1.5rem + env(safe-area-inset-top));
+                right: calc(1.5rem + env(safe-area-inset-right));
                 padding: 0.75rem;
                 border-radius: 0.5rem;
                 background-color: var(--base08);
@@ -122,7 +122,8 @@ function ThemeScript() {
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                padding: 0.5rem 0;
+                padding-top: 0.5rem;
+                padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
                 text-align: center;
                 font-size: 0.75rem;
                 background-color: rgba(var(--base00-rgb), 0.8);
@@ -135,15 +136,15 @@ function ThemeScript() {
               
               @media (min-width: 640px) {
                 .theme-toggle-placeholder {
-                  top: 2rem;
-                  right: 2rem;
+                  top: calc(2rem + env(safe-area-inset-top));
+                  right: calc(2rem + env(safe-area-inset-right));
                 }
               }
               
               @media (min-width: 1024px) {
                 .theme-toggle-placeholder {
-                  top: 2.5rem;
-                  right: 2.5rem;
+                  top: calc(2.5rem + env(safe-area-inset-top));
+                  right: calc(2.5rem + env(safe-area-inset-right));
                 }
               }
             \`;
@@ -207,13 +208,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className="overflow-hidden">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <GuardScript />
         <ThemeScript />
         <Script src={`https://www.google.com/recaptcha/api.js?render=${SITE_KEY}&badge=bottomright&size=invisible`} />
       </head>
-      <body className="overflow-hidden overscroll-none touch-none">
+      <body>
         <SessionProvider>
           <ClientLayout>
             {children}

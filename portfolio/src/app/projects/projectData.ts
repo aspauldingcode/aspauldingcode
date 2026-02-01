@@ -160,7 +160,7 @@ export const projects: Project[] = [
     images: ["/yeetbar_slider/Yeetbar_preview.png"],
     description: "A macOS utility designed to remove window titlebars, providing a cleaner interface and maximizing screen real estate. YeetBar is a system-level tweak that integrates seamlessly with macOS, allowing users to enjoy a more minimalist desktop experience by eliminating unnecessary UI elements. This work-in-progress project focuses on creating a lightweight solution with minimal system overhead while maintaining full compatibility with macOS window management.",
     shortDescription: "macOS utility removing window titlebars for a cleaner, minimalist desktop experience with maximum screen space.",
-    threeWordDescriptor: "macOS Utility",
+    threeWordDescriptor: "macOS Tweak",
     startYear: 2025,
     githubRepo: "https://github.com/aspauldingcode/Yeetbar"
   },
