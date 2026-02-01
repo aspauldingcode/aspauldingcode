@@ -32,7 +32,6 @@ export const useImageColors = (imageUrl: string | undefined) => {
                     crossOrigin: 'anonymous',
                     pixels: 64000,
                     distance: 0.2,
-                    splitPower: 10,
                 });
 
                 if (isMounted) {
