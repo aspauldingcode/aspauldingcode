@@ -6,7 +6,7 @@
 
 %---- Required Packages and Functions ----
 
-\documentclass[a4paper,11pt]{article}
+\documentclass[a4paper,10pt]{article}
 \usepackage{latexsym}
 \usepackage{xcolor}
 \usepackage{float}
@@ -31,15 +31,24 @@
 % Map Unicode superscript plus (U+207A) to LaTeX superscript plus
 \newunicodechar{⁺}{\textsuperscript{+}}
 
+%---- Global Spacing Variables ----
+\newcommand{\sectionGap}{-3.8mm}
+\newcommand{\SectionEndGap}{-10pt}
+\newcommand{\entryGap}{1.2mm}
+\newcommand{\headerEndGap}{-2.8mm}
+\newcommand{\subheadingToContentGap}{-2.0mm}
+\newcommand{\listEndGap}{-2.5mm}
+\newcommand{\projectDescRightMargin}{0.33\textwidth}
+
 % Adjust margins
-\geometry{margin=0.25in, top=0.3in, bottom=0.3in, includefoot, footskip=0.3cm}
+\geometry{margin=0.2in, top=0.25in, bottom=0.25in, includefoot, footskip=10.25pt}
 
 % Footer: centered small text at bottom
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
-\fancyfoot[C]{\footnotesize For references, please contact me}
+\fancyfoot[C]{\footnotesize \textit{References available upon request.}}
 
 %\usepackage[skins, listings, breakable, theorems, most]{tcolorbox}
 \tcbset{
@@ -70,8 +79,8 @@
 
 % Sections formatting
 \titleformat{\section}{
-  \vspace{-6pt}\scshape\raggedright\large
-}{}{0em}{}[\color{cvaccent}\titlerule \vspace{-7pt}]
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{cvaccent}\titlerule \vspace{\SectionEndGap}]
 
 %-------------------------
 % Custom commands
@@ -90,34 +99,37 @@
 }
 
 \newcommand{\resumeSubheading}[4]{
-\vspace{0.3mm}\item
+\vspace{\entryGap}\item
     \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
         \textbf{#1} & \textit{\footnotesize{#4}} \\
         \textit{\footnotesize{#3}}\strut & \underline{\smash{\footnotesize{#2}}}\strut \\
     \end{tabular*}
-    \vspace{-2.6mm}
+    \vspace{\subheadingToContentGap}
 }
 
 \newcommand{\resumeProject}[4]{
-\vspace{0.5mm}\item
+\vspace{\entryGap}\item
     \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
         \textbf{#1} & \textit{\footnotesize{#3}} \\
         \footnotesize{\textit{#2}} & \footnotesize{#4}
     \end{tabular*}
-    \vspace{-2.4mm}
+    \vspace{\subheadingToContentGap}
 }
 
 \newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
 % \renewcommand{\labelitemii}{$\circ$}
 % Use text-mode bullet for better kerning and spacing
 \renewcommand{\labelitemi}{\textbullet}
-\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt,labelsep=0pt,labelwidth=0pt,label={}]} 
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt,labelsep=0pt,labelwidth=0pt,label={}, noitemsep, topsep=0pt, parsep=0pt]} 
 \newcommand{\resumeHeadingSkillStart}{\begin{itemize}[leftmargin=*,itemsep=1.7mm, rightmargin=2ex]}
 % Increase label separation to improve spacing after the bullet
-\newcommand{\resumeItemListStart}{\sloppy\begin{justify}\begin{itemize}[leftmargin=3.4ex, rightmargin=2ex, noitemsep,labelsep=0.8em,itemsep=0mm]\small}
-\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{2mm}}
-\newcommand{\resumeHeadingSkillEnd}{\end{itemize}\vspace{-2mm}}
-\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\fussy\vspace{-2.4mm}}
+% NOTE: itemsep is hardcoded to 0pt to prevent bullet overlap. listEndGap is only for post-list spacing.
+\newcommand{\resumeItemListStart}{\sloppy\begin{justify}\begin{itemize}[leftmargin=3.4ex, rightmargin=2ex, labelsep=0.8em, itemsep=0pt, topsep=0pt, parsep=0pt]\small}
+\newcommand{\resumeProjectItemListStart}{\sloppy\begin{justify}\begin{itemize}[leftmargin=3.4ex, rightmargin=\projectDescRightMargin, labelsep=0.8em, itemsep=0pt, topsep=0pt, parsep=0pt]\small}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{\entryGap}}
+\newcommand{\resumeHeadingSkillEnd}{\end{itemize}\vspace{\entryGap}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\fussy\vspace{\listEndGap}}
+\newcommand{\resumeProjectItemListEnd}{\end{itemize}\end{justify}\fussy\vspace{\listEndGap}}
 \newcommand{\cvsection}[1]{%
 \vspace{2mm}
 \begin{tcolorbox}
@@ -152,12 +164,14 @@
   \textbf{\Large \textcolor{cvaccent}{\name}} & \footnotesize{\href{tel:\phonetel}{\faPhone\ +1-\phone}\ |\ \faEnvelope\ \link{mailto:\emaila}{\emaila}} \\
   \footnotesize{\faGlobe\ \link{https://www.aspauldingcode.com/}{aspauldingcode.com}} & \footnotesize{\faGithub\ \link{https://github.com/aspauldingcode}{github.com/aspauldingcode}\ |\ \faLinkedin\ \link{https://linkedin.com/in/aspauldingcode}{linkedin.com/in/aspauldingcode}} \\
 \end{tabular*}
-\vspace{-3mm}
+\vspace{\headerEndGap}
 
 %-----------SUMMARY-----------
 \section{\textbf{Professional Summary}}
-\small{Aspiring Software and Systems Engineer with a focus on macOS/iOS internals, reverse engineering, and low-level system mods. Experienced in hardware manufacturing for scientific instrumentation, technical IT support, and web development. Proven track record of architecting complex cross-platform systems using Swift, Rust, and C-family languages.}
-\vspace{-2mm}
+\vspace{\entryGap}
+{\small Systems Engineer specializing in macOS and iOS internals, reverse engineering, and runtime modifications. Architect of sophisticated, highly configurable cross-platform environments and widely-used customization tools. Dedicated to meticulous system-level craft that empowers power users and elevates the native desktop experience.}
+\vspace{\entryGap}
+\vspace{\sectionGap}
 %-----------EDUCATION-----------
 \section{\textbf{Education}}
   \resumeSubHeadingListStart
@@ -165,10 +179,10 @@
       {Eastern Washington University, Spokane, WA}{Expected May 2027}
       {Bachelor of Science (BS) in Computer Science}{Mathematics Minor}
       \resumeItemListStart
-        \item {\textbf{Relevant Coursework}{: C and UNIX Programming (CSCD 240), Computer Networks (CSCD 330), Algorithms (CSCD 320), Data Structures (CSCD 300), Digital Circuits (EENG 160), Cybersecurity Fundamentals (CYBR 101)}}
+        \item {\textbf{Relevant Coursework}{: C and UNIX Programming, Computer Networks, Algorithms, Data Structures, Digital Circuits, Cybersecurity Fundamentals}}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-5mm}
+\vspace{\sectionGap}
 %-----------PROFESSIONAL EXPERIENCE-----------
 \section{\textbf{Professional Experience}}
   \resumeSubHeadingListStart
@@ -176,67 +190,104 @@
       {Information Technology (IT) Specialist}{Jun 2025 - Present}
       {Eastern Washington University, Cheney, WA}{}
       \resumeItemListStart
-        \item {Tier 0 remote support; logins/passwords, connectivity, software/hardware; Freshservice tickets; average resolution time 5–20 minutes}
+        \item {Direct support for accounts, hardware, and network connectivity via phones, walk-ins, and Freshservice ticketing.}
       \resumeItemListEnd
     \resumeSubheading
       {Manufacturing Technician}{Jan 2022 - Mar 2025}
       {Sunburst Sensors, Missoula, MT}{}
       \resumeItemListStart
-        \item {Manufactured autonomous instruments for carbon measurement (\textit{p}CO2/pH); soldered high-precision PCBs and assembled \textbf{600+ custom battery packs} and specialized cabling over a 3-year tenure}
+        \item {Built autonomous \textit{p}CO2/pH instruments; soldered precision PCBs and assembled 600+ custom battery packs and specialized cabling.}
       \resumeItemListEnd
     \resumeSubheading
       {Information Technology (IT) Consultant}{Sep 2020 - Oct 2020 | Oct 2024 - Jan 2025}
       {University of Montana IT Help Desk, Missoula, MT}{}
       \resumeItemListStart
-        \item {Tier I phone support; printers; Wi–Fi; TeamDynamix; shadowing; monitoring; helped ~20 people/week; closed 600+ tickets}
+        \item {Resolved Tier I connectivity, account, and hardware issues for 20+ users/week and managed 600+ total TeamDynamix tickets.}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-5mm}
+\vspace{\sectionGap}
 %-----------PROJECTS-----------
 \section{\textbf{Projects}}
   \resumeSubHeadingListStart
     \resumeSubheading
-      {\link{https://github.com/aspauldingcode/apple-sharpener}{Apple Sharpener (154 \faStar{})}}{2024 - Present}
-      {macOS Window/Dock Corner Radius Tweak}{\link{https://github.com/aspauldingcode/apple-sharpener}{GitHub}}
-      \resumeItemListStart
-        \item {Reverse engineered \textbf{AppKit/QuartzCore} private methods (e.g., \texttt{\_cornerRadius}) using \textbf{IDA}, \textbf{otool}, and \textbf{frida-trace} to implement system-wide UI modifications}
-        \item {Developed a low-level \textbf{Objective-C} runtime patch using \textbf{method swizzling} and early runtime code injection targeting the \textbf{Ammonia} system injection framework}
-        \item {Automated \textbf{universal builds} (\texttt{x86\_64}, \texttt{arm64}, \texttt{arm64e}) via custom \textbf{Makefiles} with integrated \textbf{CLI} control using \textbf{XPC-compatible} notification persistence}
-      \resumeItemListEnd
+      {\link{https://github.com/aspauldingcode/apple-sharpener}{Apple Sharpener (210 \faStar{})}}{2024 - Present}
+      {macOS Window and Dock Customization}{\link{https://github.com/aspauldingcode/apple-sharpener}{GitHub}}
+      \resumeProjectItemListStart
+        \item {System-wide customization tool for macOS to adjust window and Dock corner radius.}
+      \resumeProjectItemListEnd
+
     \resumeSubheading
-      {\link{https://github.com/aspauldingcode/Wawona}{Wawona (62 \faStar{})}}{2025 - Present}
-      {Native Wayland Compositor for macOS, iOS, and Android}{\link{https://github.com/aspauldingcode/Wawona}{GitHub}}
-      \resumeItemListStart
-        \item {Architected a high-performance \textbf{Rust} core and multi-threaded rendering pipeline (\textbf{Metal}, \textbf{DMA-BUF}) supporting 57+ Wayland protocol globals and \textbf{wlroots} (Sway/tinywl) compatibility}
-        \item {Developed native platform frontends (\textbf{AppKit}, \textbf{UIKit}, \textbf{Jetpack Compose}) via \textbf{UniFFI} to enable direct rendering to macOS window decorations and seamless OS integration}
-        \item {Orchestrated hermetic, reproducible build systems using \textbf{Nix Flakes} and custom SDK wrappers to port Linux-exclusive desktop applications to mobile and macOS platforms}
-      \resumeItemListEnd
-    
+      {\link{https://github.com/aspauldingcode/Wawona}{Wawona (96 \faStar{})}}{2025 - Present}
+      {Native Wayland Compositor}{\link{https://github.com/aspauldingcode/Wawona}{GitHub}}
+      \resumeProjectItemListStart
+        \item {Enables Linux desktop applications to run natively on macOS, iOS, and Android.}
+      \resumeProjectItemListEnd
+
+    \resumeSubheading
+      {\link{https://github.com/aspauldingcode/macwmfx}{macwmfx (48 \faStar{})}}{2025 - Present}
+      {macOS Window Manager Effects}{\link{https://github.com/aspauldingcode/macwmfx}{GitHub}}
+      \resumeProjectItemListStart
+        \item {Enhances the macOS desktop by adding customizable visual effects to native window management.}
+      \resumeProjectItemListEnd
+
+    \resumeSubheading
+      {\link{https://github.com/aspauldingcode/dotfiles}{.dotfiles (9 \faStar{})}}{2023 - Present}
+      {Universal System Configuration}{\link{https://github.com/aspauldingcode/dotfiles}{GitHub}}
+      \resumeProjectItemListStart
+        \item {Version-controlled suite of system configurations and automated setup scripts for development.}
+      \resumeProjectItemListEnd
+
+    \resumeSubheading
+      {\link{https://github.com/aspauldingcode/AltCore}{AltCore (8 \faStar{})}}{2025 - Present}
+      {macOS App Mod Framework}{\link{https://github.com/aspauldingcode/AltCore}{GitHub}}
+      \resumeProjectItemListStart
+        \item {Architected a framework for full process replacement at launch, enabling seamless swapping of native macOS applications via runtime modifications.}
+      \resumeProjectItemListEnd
+    \resumeSubheading
+      {\link{https://github.com/aspauldingcode/aspauldingcode}{aspauldingcode.com (1 \faStar{})}}{2024 - Present}
+      {Portfolio Environment}{\link{https://github.com/aspauldingcode/aspauldingcode}{GitHub}}
+      \resumeProjectItemListStart
+        \item {High-performance Next.js portfolio showcasing project efforts with optimized mobile navigation.}
+      \resumeProjectItemListEnd
+
+    \resumeSubheading
+      {\link{https://github.com/aspauldingcode/HIAHKernel}{HIAHKernel (1 \faStar{})}}{2025 - Present}
+      {iOS Virtual Process Manager}{\link{https://github.com/aspauldingcode/HIAHKernel}{GitHub}}
+      \resumeProjectItemListStart
+        \item {Virtual iOS kernel enabling multi-app environments and POSIX process management (fork/exec) in one sandbox.}
+      \resumeProjectItemListEnd
+
     \resumeSubheading
       {\link{https://github.com/aspauldingcode/Whisperer}{Whisperer}}{2023 - Present}
-      {Apple Watch Application (App Store submission in progress)}{\link{https://github.com/aspauldingcode/Whisperer}{GitHub}}
-      \resumeItemListStart
-        \item {Engineered a native \textbf{watchOS} application with a real-time \textbf{async/await} audio pipeline integrating \textbf{OpenAI Whisper} for STT and low-latency \textbf{TTS} for continuous voice-driven conversations}
-        \item {Architected a \textbf{Vercel serverless} backend and \textbf{CoreGraphics} engine to typeset complex \textbf{MathJax} functions (e.g., triple integration) for high-fidelity rendering on small-screen displays}
-        \item {Implemented a secure \textbf{ChatGPT} interface supporting \textbf{Markdown} and encrypted proxy communication; optimized for watchOS performance using \textbf{GCD worker queues}}
-      \resumeItemListEnd
-    \resumeSubheading
-      {\link{https://github.com/aspauldingcode/HIAHKernel}{HIAHKernel}}{2025 - Present}
-      {iOS Virtual Kernel and Process Runner}{\link{https://github.com/aspauldingcode/HIAHKernel}{GitHub}}
-      \resumeItemListStart
-        \item {Engineered a virtual process manager for iOS with a \textbf{Mach-O binary patcher} that converts executable binaries to loadable bundles (\texttt{MH\_EXECUTE} $\rightarrow$ \texttt{MH\_BUNDLE}) for \texttt{dlopen}-based execution}
-        \item {Developed a low-level hooking framework for \textbf{POSIX syscall interception} and \textbf{symbol redirection}, implementing a \textbf{DYLD bypass} to load unsigned code without a global JIT entitlement}
-        \item {Designed a secure \textbf{Unix domain socket} IPC layer for communication between app groups and \textbf{NSExtensions}, managed by a reproducible \textbf{Nix} and \textbf{XcodeGen} infrastructure}
-      \resumeItemListEnd
+      {Apple Watch AI Voice Assistant}{\link{https://github.com/aspauldingcode/Whisperer}{GitHub}}
+      \resumeProjectItemListStart
+        \item {Sophisticated ChatGPT client with markdown support; engineered specifically as a high-performance, standalone Apple Watch application.}
+      \resumeProjectItemListEnd
   \resumeSubHeadingListEnd
-\vspace{-5mm}
+\vspace{\sectionGap}
+%-----------EXTRA CURRICULARS-----------
+\section{\textbf{Extra Curriculars \& Awards}}
+\vspace{\entryGap}
+\begin{itemize}[leftmargin=0pt, labelsep=0pt, labelwidth=0pt, label={}, noitemsep, topsep=0pt, parsep=0pt]
+  \item \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+    \textbf{MESA Member} -- {\small Mathematics, Engineering, and Science Achievement} & \underline{\smash{\footnotesize{2025 -- Present}}} \\
+  \end{tabular*}
+  \item \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+    \textbf{1st Place -- Gonzaga University Hackathon} -- {\small DevOps Lead; CI/CD for "1v1me" via GitHub Actions \& Cloud Run} & \underline{\smash{\footnotesize{2025}}} \\
+  \end{tabular*}
+  \item \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+    \textbf{1st Place -- UM Cyber Competition} -- {\small CTF winner; network reconnaissance \& server exploitation} & \underline{\smash{\footnotesize{2024}}} \\
+  \end{tabular*}
+\end{itemize}
+\vspace{\sectionGap}
 %-----------SKILLS-----------
 \section{\textbf{Skills}}
- \begin{itemize}[leftmargin=0.15in, label={}]
-    \small{\item{
-     \textbf{Languages}{: Swift, Objective-C, C/C++, JavaScript, TypeScript, Python, Rust, Java, Nix} \\
-     \textbf{Core OS \& Systems}{: macOS/iOS, reverse engineering, kernels, operating systems, runtime mods} \\
-     \textbf{Tools}{: Xcode/xcodebuild, AppKit/SwiftUI, XPC, Unix, Makefile, LLDB/Clang}
-    }}
+ \vspace{\entryGap}
+ \begin{itemize}[leftmargin=2ex, label={}, itemsep=0pt, topsep=0pt, parsep=0pt]
+     \small
+     \item \textbf{Languages}{: C, Objective-C, Rust, Swift, Kotlin, Java, Python, JavaScript/TypeScript, Nix, SQL}
+     \item \textbf{Low-Level \& Systems}{: macOS/iOS Internals, Reverse Engineering (IDA, otool, frida), Code Injection (ZKSwizzle), Static/Dynamic Analysis, Mach-O, POSIX, XPC, GCD, IPC, Kernel/Runtime Mods, Method Swizzling}
+     \item \textbf{Graphics \& UI}{: Metal, Wayland Protocols (cursor-shape, fractional-scale), Remote Rendering (CARenderer, CAContext), CoreGraphics, QuartzCore, AppKit, UIKit, SwiftUI, Jetpack Compose, watchOS, MathJax, Markdown}
+     \item \textbf{Infrastructure \& Tools}{: Nix Flakes, Node.js, Next.js, React.js, Vue.js, XcodeGen, LLDB/Clang, GitHub Actions, Docker, UniFFI, Vercel, Git, Unix Shell}
  \end{itemize}
 \end{document}
