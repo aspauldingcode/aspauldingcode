@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
           'Accept': 'application/vnd.github+json',
           'User-Agent': 'Portfolio-App',
         },
-        next: { revalidate: 3600 } // Cache for 1 hour
+        next: { revalidate: 2592000 } // Cache for 30 days
       });
 
       if (!response.ok) return null;
@@ -56,12 +56,20 @@ export async function GET(request: NextRequest) {
       if (curr) acc[curr.id] = curr;
       return acc;
     }, {});
-    return NextResponse.json(indexedResults);
+    return NextResponse.json(indexedResults, {
+      headers: {
+        'Cache-Control': 's-maxage=2592000, stale-while-revalidate=86400',
+      },
+    });
   }
 
   const result = await fetchRepo(repo!);
   if (!result) {
     return NextResponse.json({ error: 'Failed to fetch repository data' }, { status: 500 });
   }
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: {
+      'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+    },
+  });
 }

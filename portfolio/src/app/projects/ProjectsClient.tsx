@@ -60,8 +60,11 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
 
   // Fetch GitHub data on client side
   useEffect(() => {
+    // Skip fetching if we already have initial data from the server
+    if (Object.keys(initialGithubData).length > 0) return;
+
     // Skip fetching extra data on low-end connections to save bandwidth/processing
-    if (isLowEnd && Object.keys(initialGithubData).length > 0) return;
+    if (isLowEnd) return;
 
     const fetchStars = async () => {
       const repos = projects

@@ -5,6 +5,8 @@ import Script from 'next/script';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
 
+export const runtime = 'nodejs';
+
 export const metadata = {
   title: 'Portfolio',
   description: 'My portfolio website',

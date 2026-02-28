@@ -1,25 +1,132 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-base00: var(--base00);
+  --color-base01: var(--base01);
+  --color-base02: var(--base02);
+  --color-base03: var(--base03);
+  --color-base04: var(--base04);
+  --color-base05: var(--base05);
+  --color-base06: var(--base06);
+  --color-base07: var(--base07);
+  --color-base08: var(--base08);
+  --color-base09: var(--base09);
+  --color-base0A: var(--base0A);
+  --color-base0B: var(--base0B);
+  --color-base0C: var(--base0C);
+  --color-base0D: var(--base0D);
+  --color-base0E: var(--base0E);
+  --color-base0F: var(--base0F);
+
+  /* Breakpoints */
+  --breakpoint-wide: 1200px;
+
+  /* Animations */
+  --animate-shimmer: shimmer 2s infinite linear;
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+}
+
+/* Custom Variants for complex media queries */
+@variant h-600 (@media (max-height: 600px));
+@variant h-550 (@media (max-height: 550px));
+@variant h-500 (@media (max-height: 500px));
+@variant h-452 (@media (max-height: 452px));
+@variant h-400 (@media (max-height: 400px));
+@variant h-350 (@media (max-height: 350px));
+@variant h-320 (@media (max-height: 320px));
+@variant h-280 (@media (max-height: 280px));
+@variant portrait (@media (orientation: portrait));
+@variant landscape (@media (orientation: landscape));
+@variant tall (@media (min-height: 700px));
+@variant tall-650 (@media (min-height: 650px));
+@variant tall-600 (@media (min-height: 600px));
+@variant w-768 (@media (max-width: 768px));
+@variant ample-space (@media (min-width: 1200px) and (min-height: 700px));
+@variant portrait-tall (@media (orientation: portrait) and (min-height: 650px));
+@variant wide-short (@media (min-width: 1200px) and (max-height: 600px));
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+@utility top-safe {
+  top: env(safe-area-inset-top);
+}
+
+@utility bottom-safe {
+  bottom: env(safe-area-inset-bottom);
+}
+
+@utility left-safe {
+  left: env(safe-area-inset-left);
+}
+
+@utility right-safe {
+  right: env(safe-area-inset-right);
+}
 
 /* Nerd Font Icons Support */
 @font-face {
   font-family: 'NerdFont';
   src: url('/fonts/JetBrainsMonoNLNerdFont-Regular.ttf') format('truetype'),
-    url('/fonts/JetBrainsMonoNerdFont-Regular.ttf') format('truetype'),
-    local('JetBrainsMono Nerd Font'),
-    local('JetBrains Mono NL Nerd Font Complete'),
-    local('Hack Nerd Font'),
-    local('FiraCode Nerd Font'),
-    local('Inconsolata Nerd Font'),
-    local('monospace');
+  url('/fonts/JetBrainsMonoNerdFont-Regular.ttf') format('truetype'),
+  local('JetBrainsMono Nerd Font'),
+  local('JetBrains Mono NL Nerd Font Complete'),
+  local('Hack Nerd Font'),
+  local('FiraCode Nerd Font'),
+  local('Inconsolata Nerd Font'),
+  local('monospace');
   font-weight: normal;
   font-style: normal;
-  unicode-range: U+E000-U+F8FF, U+F0000-U+FFFFD, U+100000-U+10FFFD, U+23FB-U+23FE, U+2665, U+26A1, U+2B58, U+E000-U+E00A, U+E0A0-U+E0A2, U+E0B0-U+E0B3, U+E0B4-U+E0C8, U+E0CA, U+E0CC-U+E0D2, U+E0D4, U+E200-U+E2A9, U+E300-U+E3EB, U+E5FA-U+E62B, U+E700-U+E7C5, U+F000-U+F2E0, U+F300-U+F313, U+F400-U+F4A8, U+F500-U+F8FF;
+  unicode-range: U+E000-U+F8FF,
+  U+F0000-U+FFFFD,
+  U+100000-U+10FFFD,
+  U+23FB-U+23FE,
+  U+2665,
+  U+26A1,
+  U+2B58,
+  U+E000-U+E00A,
+  U+E0A0-U+E0A2,
+  U+E0B0-U+E0B3,
+  U+E0B4-U+E0C8,
+  U+E0CA,
+  U+E0CC-U+E0D2,
+  U+E0D4,
+  U+E200-U+E2A9,
+  U+E300-U+E3EB,
+  U+E5FA-U+E62B,
+  U+E700-U+E7C5,
+  U+F000-U+F2E0,
+  U+F300-U+F313,
+  U+F400-U+F4A8,
+  U+F500-U+F8FF;
 }
 
 .font-nerd {
-  font-family: 'NerdFont', monospace !important;
+  font-family: 'NerdFont',
+  monospace !important;
 }
 
 /* Animation Keyframes */
@@ -128,22 +235,27 @@
 
 /* Base16 Reversed for Project Cards in Light Mode */
 :root:not(.dark) .theme-reversed {
-  --base00: #181815;
-  /* Was base07 */
-  --base01: #282825;
-  /* Was base06 */
-  --base02: #585853;
-  /* Was base05 */
-  --base03: #878580;
-  /* Was base04 */
-  --base04: #b5b2a3;
-  /* Was base03 */
-  --base05: #d5d2c3;
-  /* Was base02 */
-  --base06: #f5f2e3;
-  /* Was base01 */
-  --base07: #fefbec;
-  /* Was base00 */
+  color-scheme: dark;
+  /* Base16 Variables - Set to the dark theme values */
+  --base00: #181818;
+  --base01: #282828;
+  --base02: #383838;
+  --base03: #585858;
+  --base04: #b8b8b8;
+  --base05: #d8d8d8;
+  --base06: #e8e8e8;
+  --base07: #f8f8f8;
+
+  /* Redefine Tailwind's color variables with the hex values directly */
+  /* This ensures opacity modifiers like /40 work correctly */
+  --color-base00: #181818;
+  --color-base01: #282828;
+  --color-base02: #383838;
+  --color-base03: #585858;
+  --color-base04: #b8b8b8;
+  --color-base05: #d8d8d8;
+  --color-base06: #e8e8e8;
+  --color-base07: #f8f8f8;
 }
 
 /* Prevent pull-to-refresh */

@@ -40,8 +40,11 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, priority
                             <>
                                 {/* Skeleton/Shimmer underlying layer */}
                                 <div
-                                    className={`absolute inset-0 bg-gradient-to-r from-base02 via-base01 to-base02 animate-shimmer transition-opacity duration-700 ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
-                                    style={{ backgroundSize: '200% 100%' }}
+                                    className={`absolute inset-0 animate-shimmer transition-opacity duration-700 ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                                    style={{
+                                        backgroundSize: '200% 100%',
+                                        backgroundImage: 'linear-gradient(to right, rgba(56,56,56,1), rgba(40,40,40,1), rgba(56,56,56,1))'
+                                    }}
                                 />
                                 <Image
                                     src={project.images[0]}
@@ -62,8 +65,18 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, priority
                             </div>
                         )}
                         {/* Gradient Overlays */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-base00 via-base00/40 to-transparent opacity-80" />
-                        <div className="absolute inset-0 bg-base00/0 transition-colors duration-300 group-hover:bg-base00/20" />
+                        {/* We use specific inline styles for gradients here to guarantee they are always dark, */}
+                        {/* bypassing any potential Tailwind v4 light/dark context bugs with .theme-reversed */}
+                        <div
+                            className="absolute inset-0 opacity-80"
+                            style={{ backgroundImage: 'linear-gradient(to top, rgba(24,24,24,1), rgba(24,24,24,0.4), transparent)' }}
+                        />
+                        <div
+                            className="absolute inset-0 transition-colors duration-300"
+                            style={{ backgroundColor: 'rgba(24,24,24,0)' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(24,24,24,0.2)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(24,24,24,0)'}
+                        />
                     </div>
 
                     {/* Content Layer */}
@@ -116,7 +129,10 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, priority
                     </div>
 
                     {/* Gloss/Sheen Effects */}
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-base05/10 via-transparent to-transparent opacity-50" />
+                    <div
+                        className="pointer-events-none absolute inset-0 opacity-50"
+                        style={{ backgroundImage: 'linear-gradient(to bottom right, rgba(216,216,216,0.1), transparent, transparent)' }}
+                    />
                 </div>
             </motion.div>
         </div>

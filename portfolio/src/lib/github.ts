@@ -108,7 +108,7 @@ export async function fetchGitHubDataServer(repos: string[]): Promise<Record<str
             'Accept': 'application/vnd.github+json',
             'User-Agent': 'Portfolio-App',
           },
-          next: { revalidate: 3600 } // Cache for 1 hour
+          next: { revalidate: 2592000 } // Cache for 30 days
         });
 
         if (!response.ok) return null;

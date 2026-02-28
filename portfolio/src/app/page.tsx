@@ -203,14 +203,7 @@ export default function Home() {
         });
       });
 
-      // Pre-fetch GitHub stars to ensure sorted order is ready
-      const repos = projects.filter(p => p.githubRepo).map(p => p.githubRepo!);
-      if (repos.length > 0) {
-        console.log('Pre-fetching GitHub stars...');
-        fetch(`/api/github-stars?repos=${encodeURIComponent(repos.join(','))}`).catch(err => {
-          console.error('Failed to pre-fetch GitHub stars:', err);
-        });
-      }
+      // No longer pre-fetching here as projects page now uses server-side fetching
     }, 2000);
 
     return () => clearTimeout(timer);
