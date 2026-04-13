@@ -8,6 +8,7 @@ export default function GlobalShortcuts() {
     const router = useRouter();
     const pathname = usePathname();
     const { toggleTheme } = useTheme();
+    const homePath = pathname.replace(/\/projects\/?$/, '') || '/';
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -24,14 +25,14 @@ export default function GlobalShortcuts() {
             }
 
             // Global (except home): h -> Home
-            if (key === 'h' && pathname !== '/') {
-                router.push('/');
+            if (key === 'h' && pathname !== homePath) {
+                router.push(homePath);
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [pathname, router, toggleTheme]);
+    }, [homePath, pathname, router, toggleTheme]);
 
     return null;
 }

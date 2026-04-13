@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Project } from './projectData';
 import ProjectsHeader from '../components/ProjectsHeader';
@@ -8,6 +8,7 @@ import ProjectCard from '@/components/ProjectCard';
 import { GitHubRepoData } from '@/lib/github';
 import { motion } from 'framer-motion';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useBreakpoints } from '@/hooks/useBreakpoints';
 
 function ProjectSheetLoading() {
   return (
@@ -27,7 +28,8 @@ function ProjectSheetLoading() {
 }
 
 // Dynamically import the sheet/modal to reduce initial bundle size
-const ProjectSheet = dynamic(() => import('@/components/ProjectSheet'), {
+const loadProjectSheet = () => import('@/components/ProjectSheet');
+const ProjectSheet = dynamic(loadProjectSheet, {
   loading: () => <ProjectSheetLoading />,
 });
 
@@ -50,7 +52,9 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [githubData, setGithubData] = useState<Record<string, GitHubRepoData>>(initialGithubData);
   const { isLowEnd } = useNetworkStatus();
+  const bp = useBreakpoints();
   const [hasOpenedSheet, setHasOpenedSheet] = useState(false);
+  const hasPrewarmedSheetRef = useRef(false);
 
   useEffect(() => {
     const scrollTop = () => {
@@ -110,8 +114,22 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
   }, [projects, isLowEnd, initialGithubData]);
 
   const handleViewProject = useCallback((project: Project) => {
+    if (typeof window !== 'undefined' && typeof performance !== 'undefined') {
+      const now = performance.now();
+      (window as Window & { __projectSheetPerf?: { intentAt?: number; projectId?: number } }).__projectSheetPerf = {
+        intentAt: now,
+        projectId: project.id,
+      };
+      performance.mark('project-sheet-open-intent');
+    }
     setSelectedProject(project);
   }, []);
+
+  const prewarmProjectSheet = useCallback(() => {
+    if (hasPrewarmedSheetRef.current || isLowEnd) return;
+    hasPrewarmedSheetRef.current = true;
+    void loadProjectSheet();
+  }, [isLowEnd]);
 
   const handleModalClose = useCallback(() => {
     setSelectedProject(null);
@@ -129,6 +147,19 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedProject, handleModalClose]);
 
+  useEffect(() => {
+    if (isLowEnd || hasPrewarmedSheetRef.current) return;
+
+    const idle = window.requestIdleCallback;
+    if (idle) {
+      const idleId = idle(() => prewarmProjectSheet(), { timeout: 1000 });
+      return () => window.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(prewarmProjectSheet, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [isLowEnd, prewarmProjectSheet]);
+
   const sortedProjects = useMemo(() => {
     return [...projects].sort((a, b) => {
       const repoA = a.githubRepo ? githubData[a.githubRepo] : null;
@@ -140,6 +171,15 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
       return starsB - starsA;
     });
   }, [projects, githubData]);
+
+  const cardPriorityLimit = useMemo(() => {
+    // Restrict preload priority to the first visible row in the current grid.
+    if (!bp.isMounted) return 3;
+    if (bp.width >= 1536) return 4;
+    if (bp.width >= 1024) return 3;
+    if (bp.width >= 640) return 2;
+    return 1;
+  }, [bp.isMounted, bp.width]);
 
   return (
     <div className="min-h-screen bg-base00 text-base05 flex flex-col">
@@ -176,8 +216,9 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
               <ProjectCard
                 project={project}
                 onViewProject={handleViewProject}
-                // Priority loading for the first few items above the fold
-                priority={index < 4}
+                onIntent={prewarmProjectSheet}
+                // Priority loading for first visible row only.
+                priority={index < cardPriorityLimit}
                 quality={isLowEnd ? 60 : 75}
                 repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
               />

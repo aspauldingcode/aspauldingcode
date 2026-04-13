@@ -134,13 +134,13 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                                         onPointerDown={(e) => e.stopPropagation()}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="px-4 py-2 rounded-lg bg-base0D hover:bg-base0C text-base00 text-sm transition-colors flex items-center gap-2 shadow-sm touch-manipulation"
+                                        className="px-3 sm:px-4 py-2 min-w-[44px] rounded-lg bg-base0D hover:bg-base0C text-base00 text-sm transition-colors flex items-center justify-center gap-2 shadow-sm touch-manipulation"
                                         style={{
                                             filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
                                         }}
                                         title="Download Resume (d)"
                                     >
-                                        <span>Download</span>
+                                        {bp.isSm && <span>Download</span>}
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             fill="none"

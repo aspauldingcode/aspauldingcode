@@ -10,12 +10,13 @@ import { GitHubRepoData } from '@/lib/github';
 interface ProjectCardProps {
     project: Project;
     onViewProject: (project: Project) => void;
+    onIntent?: () => void;
     priority?: boolean;
     quality?: number;
     repoData?: GitHubRepoData;
 }
 
-const ProjectCard = memo(function ProjectCard({ project, onViewProject, priority = false, quality = 70, repoData }: ProjectCardProps) {
+const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent, priority = false, quality = 70, repoData }: ProjectCardProps) {
     const [isLoaded, setIsLoaded] = useState(false);
 
     return (
@@ -25,6 +26,9 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, priority
                 e.stopPropagation();
                 onViewProject(project);
             }}
+            onMouseEnter={onIntent}
+            onTouchStart={onIntent}
+            onFocus={onIntent}
         >
             <motion.div
                 className="w-full h-full"

@@ -25,7 +25,7 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  allowedDevOrigins: ["10.104.144.172", "localhost:3000"]
+  allowedDevOrigins: ["10.104.144.172", "10.0.0.42", "localhost:3000"]
 };
 
 module.exports = nextConfig;

@@ -10,6 +10,7 @@ import { GitHubRepoData } from '../lib/github';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
 import { useImageColors, prefetchImageColors } from '@/hooks/useImageColors';
 import { useSliderSwipeMachine } from '@/hooks/useSliderSwipeMachine';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import SwirlingBackdrop from './SwirlingBackdrop';
 
 interface ProjectSheetProps {
@@ -20,6 +21,7 @@ interface ProjectSheetProps {
 
 const TOUCH_SWIPE_THRESHOLD = 40;
 const MOUSE_SWIPE_THRESHOLD = 50;
+const SHEET_IMAGE_SIZES = '(max-width: 640px) 100vw, (max-width: 1024px) 92vw, (max-width: 1536px) 80vw, 960px';
 
 // Reuse custom arrows or style them differently for the bigger view
 const SheetPrevArrow = ({ onClick, currentSlide, hasKeyboard }: { onClick?: () => void; currentSlide?: number; hasKeyboard?: boolean }) => {
@@ -74,11 +76,14 @@ const SheetNextArrow = ({ onClick, currentSlide, slideCount, hasKeyboard }: { on
 
 export default function ProjectSheet({ project, onClose, githubData }: ProjectSheetProps) {
     const bp = useBreakpoints();
+    const { isLowEnd } = useNetworkStatus();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loadedSlides, setLoadedSlides] = useState<Record<string, boolean>>({});
     const [dotWindowStart, setDotWindowStart] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
+    const imageQuality = isLowEnd ? 60 : 75;
+    const firstImageReportedRef = useRef<string | null>(null);
 
     // Framer Motion Drag Controls
     const dragY = useMotionValue(0);
@@ -106,6 +111,9 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
         if (project) {
             document.body.classList.add('sheet-open');
             document.documentElement.classList.add('sheet-open');
+            if (typeof performance !== 'undefined') {
+                performance.mark('project-sheet-mounted');
+            }
         } else {
             document.body.classList.remove('sheet-open');
             document.documentElement.classList.remove('sheet-open');
@@ -127,10 +135,28 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
         setCurrentSlide(0);
         setLoadedSlides({});
         setDotWindowStart(0);
-        if (project?.images && project.images.length > 0) {
-            prefetchImageColors(project.images);
-        }
+        firstImageReportedRef.current = null;
     }, [project?.title, project?.images]);
+
+    useEffect(() => {
+        if (!project?.images?.length || isLowEnd) return;
+
+        const current = project.images[currentSlide];
+        const next = project.images[currentSlide + 1];
+        const targets = [current, next].filter(Boolean) as string[];
+        if (!targets.length) return;
+
+        const runPrefetch = () => prefetchImageColors(targets);
+        const idle = window.requestIdleCallback;
+
+        if (idle) {
+            const idleId = idle(runPrefetch, { timeout: 300 });
+            return () => window.cancelIdleCallback?.(idleId);
+        }
+
+        const timeoutId = window.setTimeout(runPrefetch, 120);
+        return () => window.clearTimeout(timeoutId);
+    }, [project?.images, currentSlide, isLowEnd]);
 
     const imageCount = project?.images.length ?? 0;
 
@@ -318,12 +344,25 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                                                                 src={img}
                                                                 alt={`${proj.title} screenshot ${idx + 1}`}
                                                                 fill
-                                                                className={`object-contain transition-all duration-700 ${isLoaded ? 'blur-0 opacity-100' : 'blur-xl opacity-0 scale-105'}`}
-                                                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
-                                                                quality={82}
+                                                                className={`object-contain transition-all duration-700 ${isLoaded ? 'blur-0 opacity-100' : idx === 0 ? 'blur-md opacity-70 scale-[1.02]' : 'blur-xl opacity-0 scale-105'}`}
+                                                                sizes={SHEET_IMAGE_SIZES}
+                                                                quality={imageQuality}
                                                                 priority={idx === 0}
                                                                 onLoad={() => {
                                                                     setLoadedSlides((prev) => ({ ...prev, [imageKey]: true }));
+                                                                    if (idx === 0 && firstImageReportedRef.current !== proj.title && typeof window !== 'undefined' && typeof performance !== 'undefined') {
+                                                                        firstImageReportedRef.current = proj.title;
+                                                                        performance.mark('project-sheet-first-image-visible');
+                                                                        const perfState = (window as Window & { __projectSheetPerf?: { intentAt?: number } }).__projectSheetPerf;
+                                                                        const now = performance.now();
+                                                                        const tapToVisible = perfState?.intentAt ? Math.round(now - perfState.intentAt) : null;
+                                                                        if (process.env.NODE_ENV !== 'production') {
+                                                                            console.info('[ProjectSheetPerf]', {
+                                                                                project: proj.title,
+                                                                                tapToFirstImageMs: tapToVisible,
+                                                                            });
+                                                                        }
+                                                                    }
                                                                 }}
                                                             />
                                                         </div>
@@ -394,8 +433,8 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                                             alt={proj.title}
                                             fill
                                             className="object-contain"
-                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
-                                            quality={82}
+                                            sizes={SHEET_IMAGE_SIZES}
+                                            quality={imageQuality}
                                             priority
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-base01 via-transparent to-transparent opacity-60" />

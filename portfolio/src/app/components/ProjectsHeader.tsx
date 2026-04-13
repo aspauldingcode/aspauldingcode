@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
+import { MouseEvent, useState, useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface ProjectsHeaderProps {
   isSheetOpen?: boolean;
@@ -14,15 +14,21 @@ export default function ProjectsHeader({
 }: ProjectsHeaderProps) {
   const { scrollY } = useScroll();
   const bp = useBreakpoints();
+  const router = useRouter();
+  const pathname = usePathname();
   const [showTooltip, setShowTooltip] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const homePath = pathname.replace(/\/projects\/?$/, '') || '/';
 
-  const handleHomeClick = () => {
+  const handleHomeClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     // Clear existing timeout to reset the 3s clock
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     // Ensure tooltip is visible during interaction
     setShowTooltip(true);
+
+    router.push(homePath);
 
     timeoutRef.current = setTimeout(() => {
       setShowTooltip(false);
@@ -49,12 +55,11 @@ export default function ProjectsHeader({
     <>
       {/* Fixed Header Bar with Navigation and Title */}
       <div
-        className="fixed top-0 left-0 right-0 pt-[calc(1rem+var(--safe-top))] pl-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] sm:pt-[calc(1.25rem+var(--safe-top))] sm:pl-[calc(1.25rem+var(--safe-left))] sm:pr-[calc(1.25rem+var(--safe-right))] lg:pt-[calc(1.5rem+var(--safe-top))] lg:pl-[calc(1.5rem+var(--safe-left))] lg:pr-[calc(1.5rem+var(--safe-right))]"
+        className="fixed top-0 left-0 right-0 z-[200] pointer-events-none pt-[calc(1rem+var(--safe-top))] pl-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] sm:pt-[calc(1.25rem+var(--safe-top))] sm:pl-[calc(1.25rem+var(--safe-left))] sm:pr-[calc(1.25rem+var(--safe-right))] lg:pt-[calc(1.5rem+var(--safe-top))] lg:pl-[calc(1.5rem+var(--safe-left))] lg:pr-[calc(1.5rem+var(--safe-right))]"
         style={{
           transform: 'translate3d(0,0,0)', // Force hardware acceleration for mobile
           WebkitTransform: 'translate3d(0,0,0)', // Safari-specific
           position: 'fixed', // Ensure fixed positioning is explicit
-          pointerEvents: 'none' // Let clicks pass through empty areas
         }}
       >
         <div className="relative h-9">
@@ -68,8 +73,8 @@ export default function ProjectsHeader({
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="pointer-events-auto z-[100] absolute top-0 left-0"
         >
-          <Link
-            href="/"
+          <button
+            type="button"
             onClick={handleHomeClick}
             className="block p-2 rounded-lg bg-base0B hover:bg-base0A transition-all duration-300 shadow-lg active:scale-95 touch-manipulation relative group"
             aria-label="Back to Home"
@@ -99,7 +104,7 @@ export default function ProjectsHeader({
                 home
               </span>
             )}
-          </Link>
+          </button>
         </motion.div>
 
         <motion.div
