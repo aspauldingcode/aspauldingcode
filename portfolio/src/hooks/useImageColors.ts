@@ -1,61 +1,56 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { extractColors } from 'extract-colors';
 
-export const useImageColors = (imageUrl: string | undefined) => {
-    const [colors, setColors] = useState<string[]>([]);
+const colorCache = new Map<string, string[]>();
+const pendingExtractions = new Map<string, Promise<string[]>>();
 
-    // Cache for extracted colors to avoid re-processing the same image
-    const [colorCache, setColorCache] = useState<Record<string, string[]>>({});
+async function extractColorsFromUrl(imageUrl: string): Promise<string[]> {
+    if (colorCache.has(imageUrl)) return colorCache.get(imageUrl)!;
+
+    if (pendingExtractions.has(imageUrl)) return pendingExtractions.get(imageUrl)!;
+
+    const promise = extractColors(imageUrl, {
+        crossOrigin: 'anonymous',
+        pixels: 10000,
+        distance: 0.22,
+    }).then(results => {
+        const hexColors = results.map(c => c.hex);
+        colorCache.set(imageUrl, hexColors);
+        pendingExtractions.delete(imageUrl);
+        return hexColors;
+    }).catch(error => {
+        console.error("Failed to extract colors:", error);
+        pendingExtractions.delete(imageUrl);
+        return [] as string[];
+    });
+
+    pendingExtractions.set(imageUrl, promise);
+    return promise;
+}
+
+export function prefetchImageColors(imageUrls: string[]) {
+    imageUrls.forEach(url => extractColorsFromUrl(url));
+}
+
+export const useImageColors = (imageUrl: string | undefined) => {
+    const [colors, setColors] = useState<string[]>(() =>
+        imageUrl && colorCache.has(imageUrl) ? colorCache.get(imageUrl)! : []
+    );
+    const urlRef = useRef(imageUrl);
 
     useEffect(() => {
-        if (!imageUrl) {
-            setColors([]);
+        urlRef.current = imageUrl;
+        if (!imageUrl) { setColors([]); return; }
+
+        if (colorCache.has(imageUrl)) {
+            setColors(colorCache.get(imageUrl)!);
             return;
         }
 
-        // Check cache first
-        if (colorCache[imageUrl]) {
-            setColors(colorCache[imageUrl]);
-            return;
-        }
-
-        let isMounted = true;
-
-        const fetchColors = async () => {
-            try {
-                // crossOrigin is needed if images are on a different domain, but local is fine.
-                // extracted-colors handles loading the image internally if we pass a src string?
-                // Actually extractColors expects a src string (url) or element.
-                // For cross-origin images, might need proxy, but these are local as checked.
-
-                const extracted = await extractColors(imageUrl, {
-                    crossOrigin: 'anonymous',
-                    pixels: 64000,
-                    distance: 0.2,
-                });
-
-                if (isMounted) {
-                    // Sort by area (dominance) or maybe just take them as is. 
-                    // Let's sort by luminance or something if needed, but extract-colors usually returns ordered by area.
-                    // We just want the hex values.
-                    const hexColors = extracted.map(c => c.hex);
-
-                    setColors(hexColors);
-                    setColorCache(prev => ({ ...prev, [imageUrl]: hexColors }));
-                }
-            } catch (error) {
-                console.error("Failed to extract colors:", error);
-                // Fallback or keep previous?
-                if (isMounted) setColors([]);
-            }
-        };
-
-        fetchColors();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [imageUrl, colorCache]);
+        extractColorsFromUrl(imageUrl).then(hexColors => {
+            if (urlRef.current === imageUrl) setColors(hexColors);
+        });
+    }, [imageUrl]);
 
     return colors;
 };

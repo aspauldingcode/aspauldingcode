@@ -15,7 +15,7 @@ interface ProjectCardProps {
     repoData?: GitHubRepoData;
 }
 
-const ProjectCard = memo(function ProjectCard({ project, onViewProject, priority = false, quality = 75, repoData }: ProjectCardProps) {
+const ProjectCard = memo(function ProjectCard({ project, onViewProject, priority = false, quality = 70, repoData }: ProjectCardProps) {
     const [isLoaded, setIsLoaded] = useState(false);
 
     return (

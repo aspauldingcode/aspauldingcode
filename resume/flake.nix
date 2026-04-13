@@ -6,6 +6,33 @@
       systems = nixpkgs.lib.systems.flakeExposed;
     in
     {
+      lib = {
+        # A helper function that other flakes can use to build LaTeX files
+        # with the same dependencies used by aspauldingcode resumes.
+        buildTex = { pkgs, name, src, dst ? "${name}.pdf" }: pkgs.stdenvNoCC.mkDerivation {
+          inherit name src;
+          buildInputs = [ pkgs.texliveFull ];
+          phases = [ "unpackPhase" "buildPhase" "installPhase" ];
+          unpackPhase = ''
+            cp $src ./source.tex
+          '';
+          buildPhase = ''
+            pdflatex -interaction=nonstopmode source.tex
+          '';
+          installPhase = ''
+            mkdir -p $out
+            cp source.pdf $out/${dst}
+          '';
+        };
+      };
+
+      templates = {
+        resume = {
+          path = ./.;
+          description = "Alex Spaulding's Resume and Cover Letter templates";
+        };
+      };
+
       packages = nixpkgs.lib.genAttrs systems (system:
         let
           pkgs = import nixpkgs { inherit system; };
@@ -43,6 +70,39 @@
                 fi
               '';
           };
+
+          cover-letter-runner = pkgs.writeShellApplication {
+            name = "cover-letter-runner";
+            runtimeInputs = [ pkgs.texliveFull ];
+
+            text = let
+              open =
+                if pkgs.stdenv.isDarwin then
+                  "open"
+                else if pkgs.stdenv.isLinux then
+                  "xdg-open"
+                else
+                  throw "Unsupported OS";
+              in ''
+                set -e
+                echo "Building cover letter..."
+                if ! pdflatex -interaction=nonstopmode cover_letter_alex_spaulding.tex; then
+                  echo "pdflatex failed"
+                  exit 1
+                fi
+
+                mkdir -p result
+                if [ -f cover_letter_alex_spaulding.pdf ]; then
+                    mv -f cover_letter_alex_spaulding.{pdf,aux,log,out} result/
+                    echo "Moved outputs to result/"
+                    # We don't upload the cover letter to the portfolio
+                    ${open} result/cover_letter_alex_spaulding.pdf
+                else
+                    echo "Error: PDF not generated."
+                    exit 1
+                fi
+              '';
+          };
         }
       );
 
@@ -51,6 +111,10 @@
           default = {
             type    = "app";
             program = "${self.packages.${system}.resume-runner}/bin/resume-runner";
+          };
+          cover-letter = {
+            type    = "app";
+            program = "${self.packages.${system}.cover-letter-runner}/bin/cover-letter-runner";
           };
         }
       );

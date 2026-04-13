@@ -49,7 +49,7 @@ export default function ProjectsHeader({
     <>
       {/* Fixed Header Bar with Navigation and Title */}
       <div
-        className="fixed top-0 left-0 right-0 pt-[calc(1rem+var(--safe-top))] pl-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] sm:pl-[calc(1.25rem+var(--safe-left))] sm:pr-[calc(1.25rem+var(--safe-right))] lg:pl-[calc(1.5rem+var(--safe-left))] lg:pr-[calc(1.5rem+var(--safe-right))] flex items-center justify-between"
+        className="fixed top-0 left-0 right-0 pt-[calc(1rem+var(--safe-top))] pl-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] sm:pt-[calc(1.25rem+var(--safe-top))] sm:pl-[calc(1.25rem+var(--safe-left))] sm:pr-[calc(1.25rem+var(--safe-right))] lg:pt-[calc(1.5rem+var(--safe-top))] lg:pl-[calc(1.5rem+var(--safe-left))] lg:pr-[calc(1.5rem+var(--safe-right))]"
         style={{
           transform: 'translate3d(0,0,0)', // Force hardware acceleration for mobile
           WebkitTransform: 'translate3d(0,0,0)', // Safari-specific
@@ -57,6 +57,7 @@ export default function ProjectsHeader({
           pointerEvents: 'none' // Let clicks pass through empty areas
         }}
       >
+        <div className="relative h-9">
         {/* Back Button */}
         <motion.div
           animate={{
@@ -65,7 +66,7 @@ export default function ProjectsHeader({
             scale: isSheetOpen ? 0.9 : 1,
           }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="pointer-events-auto z-[100]"
+          className="pointer-events-auto z-[100] absolute top-0 left-0"
         >
           <Link
             href="/"
@@ -115,7 +116,7 @@ export default function ProjectsHeader({
             scale: isSheetOpen ? 0.9 : 1
           }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="absolute left-1/2 flex flex-col items-center justify-center pointer-events-none"
+          className="absolute left-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none"
         >
           {/* Inner Wrapper for Scroll Effects */}
           <motion.div
@@ -131,9 +132,7 @@ export default function ProjectsHeader({
             </h1>
           </motion.div>
         </motion.div>
-
-        {/* Empty spacer to balance the flex layout */}
-        <div className="w-9" />
+        </div>
       </div>
     </>
   );

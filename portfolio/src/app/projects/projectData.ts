@@ -1,3 +1,5 @@
+import { resolveImageUrl } from '@/lib/imageUrl';
+
 export interface Project {
   id: number;
   title: string;
@@ -11,7 +13,7 @@ export interface Project {
   githubRepo?: string; // GitHub repository URL
 }
 
-export const projects: Project[] = [
+const rawProjects: Project[] = [
   {
     id: 1,
     title: "Dumonds.com",
@@ -206,3 +208,8 @@ export const projects: Project[] = [
     githubRepo: "https://github.com/aspauldingcode/aspauldingcode"
   }
 ];
+
+export const projects: Project[] = rawProjects.map((project) => ({
+  ...project,
+  images: project.images.map(resolveImageUrl),
+}));

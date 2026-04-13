@@ -1,22 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion, LayoutGroup } from 'framer-motion';
 import ContactForm from './components/ContactForm';
 import ResumeViewer from './components/ResumeViewer';
 import { emailConfig } from '@/config/email';
-import { projects } from './projects/projectData';
 import { useSession } from './context/SessionContext';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
+import { resolveImageUrl } from '@/lib/imageUrl';
 
 export default function Home() {
   const router = useRouter();
+  const regularProfileSrc = useMemo(() => resolveImageUrl('/profile_regular.jpg'), []);
+  const squareProfileSrc = useMemo(() => resolveImageUrl('/profile_square.jpg'), []);
 
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isResumeOpen, setIsResumeOpen] = useState(false);
+  const [isNavigatingProjects, setIsNavigatingProjects] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const { resumeBase64 } = useSession();
 
   // Get breakpoint state for smooth Framer Motion transitions
@@ -188,30 +191,34 @@ export default function Home() {
     };
   }, [bp]); // bp object changes when isMounted changes, triggering recompute
 
-
-  // Project Images Pre-loading
   useEffect(() => {
-    // Delay pre-loading to prioritize initial landing page performance
-    const timer = setTimeout(() => {
-      console.log('Starting background pre-loading of project images...');
-
-      // Pre-load project images
-      projects.forEach(project => {
-        project.images.forEach(imageUrl => {
-          const img = new window.Image();
-          img.src = imageUrl;
-        });
+    const warmProfileImages = () => {
+      [regularProfileSrc, squareProfileSrc].forEach((src) => {
+        const img = new window.Image();
+        img.src = src;
+        if (img.decode) {
+          img.decode().catch(() => {
+            // Ignore decode failures; browser cache warm-up still helps.
+          });
+        }
       });
+    };
 
-      // No longer pre-fetching here as projects page now uses server-side fetching
-    }, 2000);
+    const timer = window.setTimeout(warmProfileImages, 250);
+    return () => window.clearTimeout(timer);
+  }, [regularProfileSrc, squareProfileSrc]);
 
-    return () => clearTimeout(timer);
-  }, []);
+  useEffect(() => {
+    setProfileLoaded(false);
+  }, [responsiveStyles.showPortrait]);
 
   const handleContactClick = () => setIsContactOpen(true);
   const handleResumeClick = () => setIsResumeOpen(true);
-  const handleProjectsClick = () => router.push('/projects');
+  const handleProjectsClick = useCallback(() => {
+    if (isNavigatingProjects) return;
+    setIsNavigatingProjects(true);
+    router.push('/projects');
+  }, [isNavigatingProjects, router]);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -227,7 +234,7 @@ export default function Home() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [router]);
+  }, [handleProjectsClick]);
 
   // Don't render responsive content until we have real client dimensions
   // This prevents flash of incorrectly-sized elements during hydration
@@ -294,15 +301,25 @@ export default function Home() {
                     borderRadius: responsiveStyles.showPortrait ? 16 : 9999,
                   }}
                   transition={springTransition}
-                  className="border-4 border-base02 overflow-hidden"
+                  className="relative border-4 border-base02 overflow-hidden"
                 >
+                  <div
+                    className={`absolute inset-0 pointer-events-none animate-shimmer transition-opacity duration-700 ${profileLoaded ? 'opacity-0' : 'opacity-100'}`}
+                    style={{
+                      backgroundSize: '200% 100%',
+                      backgroundImage: 'linear-gradient(to right, rgba(56,56,56,1), rgba(40,40,40,1), rgba(56,56,56,1))'
+                    }}
+                  />
                   <Image
-                    src={responsiveStyles.showPortrait ? "/profile_regular.jpg" : "/profile_square.jpg"}
+                    src={responsiveStyles.showPortrait ? regularProfileSrc : squareProfileSrc}
                     alt="Profile picture"
                     width={responsiveStyles.showPortrait ? 220 : 150}
                     height={responsiveStyles.showPortrait ? 293 : 150}
-                    className="object-cover w-full h-full"
+                    sizes="(max-width: 640px) 96px, (max-width: 1024px) 144px, 176px"
+                    quality={80}
+                    className={`object-cover w-full h-full transition-all duration-700 ${profileLoaded ? 'blur-0 opacity-100' : 'blur-xl opacity-0 scale-105'}`}
                     priority
+                    onLoad={() => setProfileLoaded(true)}
                   />
                 </motion.div>
               </motion.div>
@@ -384,7 +401,8 @@ export default function Home() {
                     fontSize: `${responsiveStyles.buttonFontSize}rem`,
                   }}
                   transition={springTransition}
-                  className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0D hover:bg-base0C hover:scale-105 active:scale-95 transition-all duration-300 text-base00 space-x-2 touch-manipulation"
+                  className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0D hover:bg-base0C hover:scale-105 active:scale-95 transition-all duration-300 text-base00 space-x-2 touch-manipulation disabled:opacity-80 disabled:cursor-wait"
+                  disabled={isNavigatingProjects}
                 >
                   <span>Projects</span>
                   <motion.svg

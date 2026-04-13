@@ -43,6 +43,9 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                 onCheckClose();
             }
             if (key === 'd') {
+                handleDownload();
+            }
+            if (key === 'v') {
                 handleOpenNewTab();
             }
         };
@@ -54,6 +57,16 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     const handleOpenNewTab = () => {
         // Use the static URL for external opening to ensure browser native features work best
         window.open(pdfUrl, '_blank');
+    };
+
+    const handleDownload = () => {
+        const link = document.createElement('a');
+        link.href = pdfUrl;
+        link.download = 'alex_spaulding_resume.pdf';
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const handleDragEnd = (_: unknown, info: PanInfo) => {
@@ -110,42 +123,83 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
 
                         {/* Header UI Row: Title and Action Buttons */}
                         <div className="flex items-center justify-between relative">
-                            {/* Download/View Button */}
-                            <div className="flex flex-col items-center">
-                                <motion.button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleOpenNewTab();
-                                    }}
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="px-4 py-2 rounded-lg bg-base0D hover:bg-base0C text-base00 text-sm transition-colors flex items-center gap-2 shadow-sm touch-manipulation"
-                                    style={{
-                                        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
-                                    }}
-                                >
-                                    <span>Resume</span>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={2.5}
-                                        stroke="currentColor"
-                                        className="w-4 h-4"
+                            {/* Resume Action Buttons */}
+                            <div className="flex items-start gap-2">
+                                <div className="flex flex-col items-center">
+                                    <motion.button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDownload();
+                                        }}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-4 py-2 rounded-lg bg-base0D hover:bg-base0C text-base00 text-sm transition-colors flex items-center gap-2 shadow-sm touch-manipulation"
+                                        style={{
+                                            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
+                                        }}
+                                        title="Download Resume (d)"
                                     >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-                                        />
-                                    </svg>
-                                </motion.button>
-                                {bp.hasKeyboard && (
-                                    <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
-                                        (d)
-                                    </span>
-                                )}
+                                        <span>Download</span>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={2}
+                                            stroke="currentColor"
+                                            className="w-5 h-5"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                            />
+                                        </svg>
+                                    </motion.button>
+                                    {bp.hasKeyboard && (
+                                        <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
+                                            (d)
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col items-center">
+                                    <motion.button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleOpenNewTab();
+                                        }}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-3 py-2 min-w-[44px] rounded-lg bg-base0D hover:bg-base0C text-base00 transition-colors shadow-sm touch-manipulation flex items-center justify-center"
+                                        style={{
+                                            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
+                                        }}
+                                        aria-label="Open Resume in New Tab"
+                                        title="Open in New Tab (v)"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={1.5}
+                                            stroke="currentColor"
+                                            className="w-5 h-5"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M3.5 9V3.5m0 0H9m-5.5 0l6 6M20.5 9V3.5m0 0H15m5.5 0l-6 6M3.5 15v5.5m0 0H9m-5.5 0l6-6M20.5 15v5.5m0 0H15m5.5 0l-6-6"
+                                            />
+                                        </svg>
+                                    </motion.button>
+                                    {bp.hasKeyboard && (
+                                        <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
+                                            (v)
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Title - Center Aligned */}

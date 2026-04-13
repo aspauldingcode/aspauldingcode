@@ -13,16 +13,14 @@
     "@emailjs/browser": "^4.4.1",
     "clsx": "^2.1.1",
     "debug": "^4.3.4",
-    "eslint": "^9",
+    "eslint": "^10.2.0",
     "extract-colors": "^4.2.1",
     "framer-motion": "^12.27.5",
-    "glob": "^11.0.0",
+    "glob": "^13.0.6",
     "lru-cache": "^11.0.0",
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-slick": "^0.31.0",
-    "slick-carousel": "^1.8.1",
     "tailwind-merge": "^3.5.0",
     "uuid": "^13.0.0",
     "vercel": "^50.25.4"
@@ -30,17 +28,16 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@tailwindcss/postcss": "^4.2.1",
-    "@types/node": "^22.13.1",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
-    "@types/react-slick": "^0.23.13",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
     "autoprefixer": "^10.4.21",
     "eslint-config-next": "^16.1.6",
     "postcss": "^8.4.31",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "overrides": {
     "undici": "^6.21.1",

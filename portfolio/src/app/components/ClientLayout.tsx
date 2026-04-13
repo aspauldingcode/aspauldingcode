@@ -14,6 +14,7 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const reducedTransition = pathname === '/projects';
 
   useEffect(() => {
     if (pathname === '/') {
@@ -33,7 +34,7 @@ export default function ClientLayout({
   return (
     <ThemeProvider>
       <GlobalShortcuts />
-      <PageTransition key={pathname}>
+      <PageTransition key={pathname} reduced={reducedTransition}>
         {children}
       </PageTransition>
       <ThemeToggle />

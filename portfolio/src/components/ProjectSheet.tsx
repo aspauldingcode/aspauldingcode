@@ -6,12 +6,10 @@ import { Project } from '../app/projects/projectData';
 import Image from 'next/image';
 import { motion, AnimatePresence, useDragControls, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { GitHubRepoData } from '../lib/github';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
 
 import { useBreakpoints } from '@/hooks/useBreakpoints';
-import { useImageColors } from '@/hooks/useImageColors';
+import { useImageColors, prefetchImageColors } from '@/hooks/useImageColors';
+import { useSliderSwipeMachine } from '@/hooks/useSliderSwipeMachine';
 import SwirlingBackdrop from './SwirlingBackdrop';
 
 interface ProjectSheetProps {
@@ -20,12 +18,20 @@ interface ProjectSheetProps {
     githubData?: Record<string, GitHubRepoData>;
 }
 
+const TOUCH_SWIPE_THRESHOLD = 40;
+const MOUSE_SWIPE_THRESHOLD = 50;
+
 // Reuse custom arrows or style them differently for the bigger view
 const SheetPrevArrow = ({ onClick, currentSlide, hasKeyboard }: { onClick?: () => void; currentSlide?: number; hasKeyboard?: boolean }) => {
     if (currentSlide === 0) return null;
     return (
         <button
-            onClick={onClick}
+            type="button"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+                event.stopPropagation();
+                onClick?.();
+            }}
             className="absolute left-[calc(1.5rem+var(--safe-left))] top-1/2 -translate-y-1/2 z-[60] p-3 bg-black/50 hover:bg-black/80 backdrop-blur-md rounded-full text-white shadow-lg transition-all border border-white/10 group"
             aria-label="Previous slide"
         >
@@ -45,7 +51,12 @@ const SheetNextArrow = ({ onClick, currentSlide, slideCount, hasKeyboard }: { on
     if (currentSlide !== undefined && slideCount !== undefined && currentSlide >= slideCount - 1) return null;
     return (
         <button
-            onClick={onClick}
+            type="button"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+                event.stopPropagation();
+                onClick?.();
+            }}
             className="absolute right-[calc(1.5rem+var(--safe-right))] top-1/2 -translate-y-1/2 z-[60] p-3 bg-black/50 hover:bg-black/80 backdrop-blur-md rounded-full text-white shadow-lg transition-all border border-white/10 group"
             aria-label="Next slide"
         >
@@ -64,14 +75,19 @@ const SheetNextArrow = ({ onClick, currentSlide, slideCount, hasKeyboard }: { on
 export default function ProjectSheet({ project, onClose, githubData }: ProjectSheetProps) {
     const bp = useBreakpoints();
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [loadedSlides, setLoadedSlides] = useState<Record<string, boolean>>({});
+    const [dotWindowStart, setDotWindowStart] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const sliderRef = useRef<Slider>(null);
     const [mounted, setMounted] = useState(false);
 
     // Framer Motion Drag Controls
     const dragY = useMotionValue(0);
     const dragControls = useDragControls();
-    const backdropOpacity = useTransform(dragY, [0, 300], [0.5, 0]);
+    const backdropOpacity = useTransform(dragY, (value) => {
+        if (!Number.isFinite(value)) return 0.5;
+        const normalized = 0.5 - (Math.max(0, value) / 300) * 0.5;
+        return Math.max(0, Math.min(0.5, normalized));
+    });
 
     // Derived state for image colors - MUST be at top level
     // This ensures useImageColors is always called
@@ -107,20 +123,71 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
         }
     }, [project]);
 
+    useEffect(() => {
+        setCurrentSlide(0);
+        setLoadedSlides({});
+        setDotWindowStart(0);
+        if (project?.images && project.images.length > 0) {
+            prefetchImageColors(project.images);
+        }
+    }, [project?.title, project?.images]);
+
+    const imageCount = project?.images.length ?? 0;
+
+    const goToNext = () => {
+        if (currentSlide >= imageCount - 1) return;
+        const nextSlide = currentSlide + 1;
+        setCurrentSlide(nextSlide);
+
+        if (imageCount > 3) {
+            setDotWindowStart(Math.max(0, Math.min(nextSlide - 1, imageCount - 3)));
+        }
+    };
+
+    const goToPrev = () => {
+        if (currentSlide <= 0) return;
+        const prevSlide = currentSlide - 1;
+        setCurrentSlide(prevSlide);
+
+        if (imageCount > 3) {
+            setDotWindowStart(Math.max(0, Math.min(prevSlide - 1, imageCount - 3)));
+        }
+    };
+
+    const {
+        isDragging,
+        swipeAreaRef,
+        sliderRef,
+        handleMouseDown,
+        handleMouseMove,
+        handleMouseUp,
+        handleMouseLeave,
+        handleTouchStart,
+        handleTouchEnd,
+    } = useSliderSwipeMachine({
+        currentSlide,
+        imageCount,
+        onNext: goToNext,
+        onPrev: goToPrev,
+        mouseThreshold: MOUSE_SWIPE_THRESHOLD,
+        touchThreshold: TOUCH_SWIPE_THRESHOLD,
+    });
+
     // Keyboard support
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 onClose();
             } else if (e.key === 'ArrowLeft') {
-                (sliderRef.current as any)?.slickPrev();
+                goToPrev();
             } else if (e.key === 'ArrowRight') {
-                (sliderRef.current as any)?.slickNext();
+                goToNext();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onClose]);
+    }, [onClose, currentSlide, imageCount]);
+
 
     const handleDragEnd = (_: unknown, info: PanInfo) => {
         if (info.offset.y > 100 || info.velocity.y > 500) {
@@ -133,44 +200,6 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
     // Renamed to avoid stale cache
     const renderSheetContent = (proj: Project) => {
         const repoData = proj.githubRepo ? githubData?.[proj.githubRepo] : null;
-
-        const sliderSettings = {
-            dots: true,
-            infinite: false,
-            speed: 500,
-            slidesToShow: 1,
-            slidesToScroll: 1,
-            swipe: true,
-            touchMove: true,
-            arrows: (proj.images?.length || 0) > 1,
-            prevArrow: <SheetPrevArrow currentSlide={currentSlide} hasKeyboard={bp.hasKeyboard} />,
-            nextArrow: <SheetNextArrow currentSlide={currentSlide} slideCount={proj.images?.length} hasKeyboard={bp.hasKeyboard} />,
-            afterChange: (current: number) => setCurrentSlide(current),
-            appendDots: (dots: any[]) => {
-                const total = dots.length;
-                const visibleDots = dots.filter((_, index) => {
-                    if (total <= 5) return true;
-                    let start = currentSlide - 2;
-                    let end = currentSlide + 2;
-                    if (start < 0) {
-                        end = Math.min(total - 1, end + Math.abs(start));
-                        start = 0;
-                    }
-                    if (end >= total) {
-                        start = Math.max(0, start - (end - (total - 1)));
-                        end = total - 1;
-                    }
-                    return index >= start && index <= end;
-                });
-                return (
-                    <div style={{ position: "absolute", bottom: "2rem", width: "100%" }}>
-                        <ul className="slick-dots" style={{ position: "relative", bottom: "auto", display: "flex", justifyContent: "center", gap: "4px" }}>
-                            {visibleDots}
-                        </ul>
-                    </div>
-                );
-            }
-        };
 
         return (
             <div className="fixed inset-0 z-[200] flex items-end justify-center pointer-events-none">
@@ -240,7 +269,7 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                     </div>
 
                     {/* Scrollable Content */}
-                    <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden pb-10">
+                    <div ref={scrollRef} className={`flex-1 overflow-x-hidden pb-10 ${isDragging ? 'overflow-y-hidden' : 'overflow-y-auto'}`} style={{ overscrollBehaviorX: 'contain' }}>
                         {/* Hero / Carousel Section */}
                         <div className="relative w-full h-[50vh] sm:h-[60vh] bg-base00 border-b border-base02 overflow-hidden transition-colors duration-500">
                             {/* Dynamic Background */}
@@ -248,23 +277,115 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
 
                             {proj.images && proj.images.length > 0 ? (
                                 proj.images.length > 1 ? (
-                                    <div className="h-full project-sheet-slider">
-                                        <Slider ref={sliderRef} {...sliderSettings}>
-                                            {proj.images.map((img, idx) => (
-                                                <div key={idx} className="h-[50vh] sm:h-[60vh] relative outline-none focus:outline-none">
-                                                    <Image
-                                                        src={img}
-                                                        alt={`${proj.title} screenshot ${idx + 1}`}
-                                                        fill
-                                                        className="object-contain"
-                                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
-                                                        quality={90}
-                                                        priority={idx === 0}
-                                                    />
+                                    <div className="h-full project-sheet-slider relative">
+                                        <SheetPrevArrow onClick={goToPrev} currentSlide={currentSlide} hasKeyboard={bp.hasKeyboard} />
+                                        <SheetNextArrow onClick={goToNext} currentSlide={currentSlide} slideCount={proj.images?.length} hasKeyboard={bp.hasKeyboard} />
 
+                                        <div
+                                            ref={swipeAreaRef}
+                                            className="relative h-full overflow-hidden select-none"
+                                            style={{
+                                                cursor: imageCount > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                                                touchAction: 'pan-y pinch-zoom',
+                                                overscrollBehaviorX: 'contain',
+                                            }}
+                                            onMouseDown={handleMouseDown}
+                                            onMouseMove={handleMouseMove}
+                                            onMouseUp={handleMouseUp}
+                                            onMouseLeave={handleMouseLeave}
+                                            onTouchStart={handleTouchStart}
+                                            onTouchEnd={handleTouchEnd}
+                                            onDragStart={(e) => e.preventDefault()}
+                                        >
+                                            <div
+                                                ref={sliderRef}
+                                                className="flex h-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                                                style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)`, willChange: 'transform' }}
+                                            >
+                                                {proj.images.map((img, idx) => {
+                                                    const imageKey = `${img}-${idx}`;
+                                                    const isLoaded = !!loadedSlides[imageKey];
+                                                    return (
+                                                        <div key={imageKey} className="h-[50vh] sm:h-[60vh] relative w-full shrink-0 outline-none focus:outline-none">
+                                                            <div
+                                                                className={`absolute inset-0 animate-shimmer transition-opacity duration-700 ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                                                                style={{
+                                                                    backgroundSize: '200% 100%',
+                                                                    backgroundImage: 'linear-gradient(to right, rgba(56,56,56,1), rgba(40,40,40,1), rgba(56,56,56,1))'
+                                                                }}
+                                                            />
+                                                            <Image
+                                                                src={img}
+                                                                alt={`${proj.title} screenshot ${idx + 1}`}
+                                                                fill
+                                                                className={`object-contain transition-all duration-700 ${isLoaded ? 'blur-0 opacity-100' : 'blur-xl opacity-0 scale-105'}`}
+                                                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
+                                                                quality={82}
+                                                                priority={idx === 0}
+                                                                onLoad={() => {
+                                                                    setLoadedSlides((prev) => ({ ...prev, [imageKey]: true }));
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[70] flex items-center rounded-full"
+                                            style={{
+                                                gap: '8px',
+                                                padding: '5px 8px',
+                                                background: 'rgba(24, 24, 24, 0.8)',
+                                                backdropFilter: 'blur(12px)',
+                                                WebkitBackdropFilter: 'blur(12px)',
+                                                border: '1px solid rgba(255, 255, 255, 0.22)',
+                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                                            }}
+                                        >
+                                            {imageCount === 2 ? (
+                                                [0, 1].map((i) => (
+                                                    <button
+                                                        key={`sheet-dot-${i}`}
+                                                        type="button"
+                                                        onClick={() => { if (i > currentSlide) goToNext(); if (i < currentSlide) goToPrev(); }}
+                                                        className="h-2 rounded-[4px] border-none p-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                                                        style={{
+                                                            width: currentSlide === i ? '24px' : '8px',
+                                                            background: currentSlide === i ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                                                            boxShadow: currentSlide === i ? '0 0 8px rgba(255, 255, 255, 0.5)' : 'none',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <div className="relative overflow-hidden" style={{ width: '72px', height: '18px', margin: '-5px -8px' }}>
+                                                    <div
+                                                        className="absolute inset-y-0 flex items-center transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                                                        style={{
+                                                            gap: '8px',
+                                                            transform: `translateX(${8 - dotWindowStart * 16}px)`
+                                                        }}
+                                                    >
+                                                        {proj.images.map((_, i) => (
+                                                            <div
+                                                                key={`sheet-dot-${i}`}
+                                                                className="h-2 shrink-0 rounded-[4px] transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                                                                style={{
+                                                                    width: currentSlide === i ? '24px' : '8px',
+                                                                    background: currentSlide === i ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                                                                    boxShadow: currentSlide === i ? '0 0 8px rgba(255, 255, 255, 0.5)' : 'none',
+                                                                }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <button type="button" className="absolute inset-y-0 left-0 bg-transparent border-none p-0 z-10" style={{ width: '33%', cursor: currentSlide === 0 ? 'default' : 'pointer' }} disabled={currentSlide === 0} onClick={goToPrev} aria-label="Previous image" />
+                                                    <button type="button" className="absolute inset-y-0 bg-transparent border-none p-0 z-10" style={{ left: '33%', width: '34%', cursor: (currentSlide === 0 || currentSlide === imageCount - 1) ? 'pointer' : 'default' }} disabled={currentSlide > 0 && currentSlide < imageCount - 1} onClick={() => { if (currentSlide === 0) goToNext(); else if (currentSlide === imageCount - 1) goToPrev(); }} aria-label="Navigate" />
+                                                    <button type="button" className="absolute inset-y-0 right-0 bg-transparent border-none p-0 z-10" style={{ width: '33%', cursor: currentSlide >= imageCount - 1 ? 'default' : 'pointer' }} disabled={currentSlide >= imageCount - 1} onClick={goToNext} aria-label="Next image" />
                                                 </div>
-                                            ))}
-                                        </Slider>
+                                            )}
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="h-full relative">
@@ -274,7 +395,7 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                                             fill
                                             className="object-contain"
                                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
-                                            quality={90}
+                                            quality={82}
                                             priority
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-base01 via-transparent to-transparent opacity-60" />

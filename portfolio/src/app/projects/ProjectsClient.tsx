@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import { Project } from './projectData';
 import ProjectsHeader from '../components/ProjectsHeader';
@@ -10,9 +9,26 @@ import { GitHubRepoData } from '@/lib/github';
 import { motion } from 'framer-motion';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
+function ProjectSheetLoading() {
+  return (
+    <div className="fixed inset-0 z-[200] pointer-events-none">
+      <div className="absolute inset-0 bg-base00/80 backdrop-blur-sm" />
+      <div className="absolute inset-x-0 bottom-0 h-[96dvh] sm:h-[94dvh] rounded-t-3xl sm:rounded-2xl border border-base02 bg-base01/90 p-6 sm:p-8">
+        <div
+          className="h-full w-full rounded-2xl animate-shimmer"
+          style={{
+            backgroundSize: '200% 100%',
+            backgroundImage: 'linear-gradient(to right, rgba(56,56,56,0.9), rgba(40,40,40,0.8), rgba(56,56,56,0.9))',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // Dynamically import the sheet/modal to reduce initial bundle size
 const ProjectSheet = dynamic(() => import('@/components/ProjectSheet'), {
-  loading: () => null, // Optional: add a loading spinner if desired
+  loading: () => <ProjectSheetLoading />,
 });
 
 interface ProjectsClientProps {
@@ -25,7 +41,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.04
     }
   }
 };
@@ -35,12 +51,8 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
   const [githubData, setGithubData] = useState<Record<string, GitHubRepoData>>(initialGithubData);
   const { isLowEnd } = useNetworkStatus();
   const [hasOpenedSheet, setHasOpenedSheet] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    // Force scroll to top on mount with a small delay to handle browser scroll restoration
-    // Using a microtask and a timeout to be extra sure on mobile
     const scrollTop = () => {
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
@@ -48,8 +60,8 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
     };
 
     scrollTop();
-    const timer = setTimeout(scrollTop, 100);
-    return () => clearTimeout(timer);
+    const raf = requestAnimationFrame(scrollTop);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   useEffect(() => {
@@ -84,7 +96,17 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
       }
     };
 
-    fetchStars();
+    const schedule = window.requestIdleCallback
+      ? window.requestIdleCallback(fetchStars, { timeout: 1200 })
+      : window.setTimeout(fetchStars, 150);
+
+    return () => {
+      if (window.cancelIdleCallback && typeof schedule === 'number') {
+        window.cancelIdleCallback(schedule);
+      } else {
+        clearTimeout(schedule as number);
+      }
+    };
   }, [projects, isLowEnd, initialGithubData]);
 
   const handleViewProject = useCallback((project: Project) => {
@@ -121,15 +143,12 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
 
   return (
     <div className="min-h-screen bg-base00 text-base05 flex flex-col">
-      {/* Header - Portaled to body to ensure it stays fixed regardless of transforms */}
-      {mounted && createPortal(
-        <ProjectsHeader isSheetOpen={!!selectedProject} />,
-        document.body
-      )}
+      {/* Keep header always rendered for immediate first paint */}
+      <ProjectsHeader isSheetOpen={!!selectedProject} />
 
       {/* Main Grid Layout */}
       <motion.main
-        className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 pt-24 sm:pt-32 pb-8 sm:pb-12 relative z-10"
+        className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 pt-20 sm:pt-24 pb-14 sm:pb-20 relative z-10"
         animate={{
           filter: selectedProject ? "blur(5px)" : "blur(0px)",
           scale: selectedProject ? 0.98 : 1,
@@ -167,14 +186,15 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
         </motion.div>
       </motion.main>
 
-      {/* Project Details Sheet - Loaded lazily */}
-      {/* Project Details Sheet - Internal AnimatePresence handles visibility */}
-      <ProjectSheet
-        key="project-sheet"
-        project={selectedProject}
-        onClose={handleModalClose}
-        githubData={githubData}
-      />
+      {/* Project Details Sheet - loaded on first open, then kept mounted */}
+      {(selectedProject || hasOpenedSheet) && (
+        <ProjectSheet
+          key="project-sheet"
+          project={selectedProject}
+          onClose={handleModalClose}
+          githubData={githubData}
+        />
+      )}
     </div>
   );
 }

@@ -301,6 +301,11 @@ body.sheet-open {
   overscroll-behavior: none !important;
 }
 
+html.modal-open,
+body.modal-open {
+  overscroll-behavior-x: none !important;
+}
+
 /* Hide Theme Toggle when Project Sheet is Open */
 body.sheet-open #theme-toggle-ui {
   opacity: 0;

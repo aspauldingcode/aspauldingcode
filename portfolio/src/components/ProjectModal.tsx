@@ -2,40 +2,11 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Project } from '../app/projects/projectData';
-import Slider from 'react-slick';
 import Image from 'next/image';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
 import { useTheme } from '../app/context/ThemeContext';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
-
-// Custom styles for carousel dots and animations
-// const customDotsStyle = `
-//   .custom-dots {
-//     bottom: 15px !important;
-//   }
-//   .custom-dots li button:before {
-//     font-size: 10px !important;
-//     color: rgba(255, 255, 255, 0.5) !important;
-//   }
-//   .custom-dots li.slick-active button:before {
-//     color: rgba(255, 255, 255, 0.9) !important;
-//   }
-//   @keyframes horizontal-bounce {
-//     0%, 20%, 50%, 80%, 100% {
-//       transform: translateX(0) translateY(-50%);
-//     }
-//     40% {
-//       transform: translateX(4px) translateY(-50%);
-//     }
-//     60% {
-//       transform: translateX(2px) translateY(-50%);
-//     }
-//   }
-// `;
-
-
+import { useSliderSwipeMachine } from '@/hooks/useSliderSwipeMachine';
 
 import { GitHubRepoData } from '../lib/github';
 
@@ -50,17 +21,25 @@ interface ProjectModalProps {
 
 
 const SWIPE_THRESHOLD = 40;
-const ROTATION_FACTOR = 0.1;
-const MAX_ROTATION = 15;
+const MOUSE_SWIPE_THRESHOLD = 50;
 
 // Custom arrow components for carousel
-const CustomPrevArrow = ({ onClick, currentSlide, hasKeyboard }: { onClick?: () => void; currentSlide?: number; hasKeyboard?: boolean }) => {
+const CustomPrevArrow = ({
+  onClick,
+  currentSlide,
+  hasKeyboard
+}: { onClick?: (event?: React.MouseEvent<HTMLButtonElement>) => void; currentSlide?: number; hasKeyboard?: boolean }) => {
   if (currentSlide === 0) return null;
 
   return (
     <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
       <button
-        onClick={onClick}
+        type="button"
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
+          onClick?.(event);
+        }}
         title="Previous Image (Arrow Left)"
         className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
         style={{
@@ -85,7 +64,12 @@ const CustomPrevArrow = ({ onClick, currentSlide, hasKeyboard }: { onClick?: () 
   );
 };
 
-const CustomNextArrow = ({ onClick, currentSlide, slideCount, hasKeyboard }: { onClick?: () => void; currentSlide?: number; slideCount?: number; hasKeyboard?: boolean }) => {
+const CustomNextArrow = ({
+  onClick,
+  currentSlide,
+  slideCount,
+  hasKeyboard
+}: { onClick?: (event?: React.MouseEvent<HTMLButtonElement>) => void; currentSlide?: number; slideCount?: number; hasKeyboard?: boolean }) => {
   if (currentSlide !== undefined && slideCount !== undefined && currentSlide >= slideCount - 1) return null;
 
   // Add horizontal pulse animation when on first slide
@@ -94,7 +78,12 @@ const CustomNextArrow = ({ onClick, currentSlide, slideCount, hasKeyboard }: { o
   return (
     <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
       <button
-        onClick={onClick}
+        type="button"
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
+          onClick?.(event);
+        }}
         title="Next Image (Arrow Right)"
         className={`p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation ${isFirstSlide ? 'animate-pulse' : ''}`}
         style={{
@@ -135,10 +124,70 @@ export default function ProjectModal({
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [hasUserSwiped, setHasUserSwiped] = useState(false);
+  const [loadedSlides, setLoadedSlides] = useState<Record<string, boolean>>({});
+  const [dotWindowStart, setDotWindowStart] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
-  const sliderRef = useRef<Slider>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { setDimmed } = useTheme();
+  const imageCount = project?.images.length ?? 0;
+
+  const goToNext = useCallback(() => {
+    if (currentSlide >= imageCount - 1) return;
+    const nextSlide = currentSlide + 1;
+    setCurrentSlide(nextSlide);
+    setHasUserSwiped(true);
+
+    if (imageCount > 3) {
+      setDotWindowStart(Math.max(0, Math.min(nextSlide - 1, imageCount - 3)));
+    }
+  }, [currentSlide, imageCount]);
+
+  const goToPrev = useCallback(() => {
+    if (currentSlide <= 0) return;
+    const prevSlide = currentSlide - 1;
+    setCurrentSlide(prevSlide);
+    setHasUserSwiped(true);
+
+    if (imageCount > 3) {
+      setDotWindowStart(Math.max(0, Math.min(prevSlide - 1, imageCount - 3)));
+    }
+  }, [currentSlide, imageCount]);
+
+  const {
+    isDragging,
+    swipeAreaRef,
+    sliderRef,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleMouseLeave,
+    handleTouchStart,
+    handleTouchEnd,
+  } = useSliderSwipeMachine({
+    currentSlide,
+    imageCount,
+    onNext: goToNext,
+    onPrev: goToPrev,
+    mouseThreshold: MOUSE_SWIPE_THRESHOLD,
+    touchThreshold: SWIPE_THRESHOLD,
+  });
+
+  useEffect(() => {
+    setCurrentSlide(0);
+    setHasUserSwiped(false);
+    setLoadedSlides({});
+    setDotWindowStart(0);
+  }, [project?.title]);
+
+  useEffect(() => {
+    if (!project) return;
+    document.body.classList.add('modal-open');
+    document.documentElement.classList.add('modal-open');
+    return () => {
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+    };
+  }, [project]);
 
   // Handle WebKit UI dimming
   useEffect(() => {
@@ -184,18 +233,13 @@ export default function ProjectModal({
         return;
       }
 
-      // Navigate slider with arrows if connected
-      if (sliderRef.current) {
-        if (e.key === 'ArrowLeft') {
-          e.stopPropagation(); // Prevent stack interaction behind modal
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (sliderRef.current as any).slickPrev();
-        }
-        if (e.key === 'ArrowRight') {
-          e.stopPropagation();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (sliderRef.current as any).slickNext();
-        }
+      if (e.key === 'ArrowLeft') {
+        e.stopPropagation();
+        goToPrev();
+      }
+      if (e.key === 'ArrowRight') {
+        e.stopPropagation();
+        goToNext();
       }
 
       // Scroll content with Up/Down
@@ -234,7 +278,7 @@ export default function ProjectModal({
     }
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, onLike, onPass, project, onSwipe]);
+  }, [onClose, onLike, onPass, project, onSwipe, goToPrev, goToNext]);
 
   // Framer Motion values for drag
   const x = useMotionValue(0);
@@ -288,26 +332,6 @@ export default function ProjectModal({
 
 
 
-
-
-  // Slick slider settings
-  const sliderSettings = {
-    dots: true,
-    infinite: false,
-    speed: 300,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    swipe: true,
-    touchMove: true,
-    arrows: !!(project?.images.length && project.images.length > 1), // Show arrows only if multiple images
-    prevArrow: <CustomPrevArrow currentSlide={currentSlide} hasKeyboard={bp.hasKeyboard} />,
-    nextArrow: <CustomNextArrow currentSlide={currentSlide} slideCount={project?.images.length} hasKeyboard={bp.hasKeyboard} />,
-    dotsClass: "slick-dots custom-dots",
-    afterChange: (current: number) => {
-      setCurrentSlide(current);
-      setHasUserSwiped(true); // Hide swipe message after first swipe
-    },
-  };
 
 
   if (!project) return null;
@@ -366,17 +390,15 @@ export default function ProjectModal({
         {/* Scrollable content container */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto modal-scrollable-content relative"
+          className={`flex-1 modal-scrollable-content relative ${isDragging ? 'overflow-y-hidden' : 'overflow-y-auto'}`}
+          style={{ overscrollBehaviorX: 'contain' }}
         >
 
           {/* Image carousel */}
           <div
             className="relative h-80 bg-base02 flex-shrink-0"
             onPointerDown={(e) => {
-              const target = e.target as HTMLElement;
-              if (target.closest('.slick-slider, .slick-list, .slick-track')) {
-                e.stopPropagation();
-              }
+              e.stopPropagation();
             }}
           >
             {/* Vignette overlay */}
@@ -398,20 +420,121 @@ export default function ProjectModal({
               </div>
             )}
 
-            <Slider ref={sliderRef} {...sliderSettings}>
-              {project?.images.map((image, index) => (
-                <div key={index}>
-                  <Image
-                    src={image}
-                    alt={`${project.title} - Image ${index + 1}`}
-                    width={400}
-                    height={320}
-                    className="w-full h-80 object-contain bg-base02"
-                    draggable={false}
-                  />
-                </div>
-              ))}
-            </Slider>
+            {imageCount > 1 && (
+              <>
+                <CustomPrevArrow onClick={goToPrev} currentSlide={currentSlide} hasKeyboard={bp.hasKeyboard} />
+                <CustomNextArrow onClick={goToNext} currentSlide={currentSlide} slideCount={imageCount} hasKeyboard={bp.hasKeyboard} />
+              </>
+            )}
+
+            <div
+              ref={swipeAreaRef}
+              className="relative h-full overflow-hidden select-none"
+              style={{
+                cursor: imageCount > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                touchAction: 'pan-y pinch-zoom',
+                overscrollBehaviorX: 'contain',
+              }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onDragStart={(e) => e.preventDefault()}
+            >
+              <div
+                ref={sliderRef}
+                className="flex h-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)`, willChange: 'transform' }}
+              >
+                {project.images.map((image, index) => {
+                  const imageKey = `${image}-${index}`;
+                  const isLoaded = !!loadedSlides[imageKey];
+                  return (
+                    <div key={imageKey} className="relative h-full w-full shrink-0 overflow-hidden bg-base02">
+                      <div
+                        className={`absolute inset-0 animate-shimmer transition-opacity duration-700 ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                        style={{
+                          backgroundSize: '200% 100%',
+                          backgroundImage: 'linear-gradient(to right, rgba(56,56,56,1), rgba(40,40,40,1), rgba(56,56,56,1))'
+                        }}
+                      />
+                      <Image
+                        src={image}
+                        alt={`${project.title} - Image ${index + 1}`}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 85vw, 420px"
+                        priority={index === 0}
+                        quality={80}
+                        className={`object-contain bg-base02 transition-all duration-700 ${isLoaded ? 'blur-0 opacity-100' : 'blur-xl opacity-0 scale-105'}`}
+                        draggable={false}
+                        onLoad={() => {
+                          setLoadedSlides((prev) => ({ ...prev, [imageKey]: true }));
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {imageCount > 1 && (
+              <div
+                className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center rounded-full"
+                style={{
+                  gap: '8px',
+                  padding: '5px 8px',
+                  background: 'rgba(24, 24, 24, 0.8)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255, 255, 255, 0.22)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                }}
+              >
+                {imageCount === 2 ? (
+                  [0, 1].map((i) => (
+                    <button
+                      key={`dot-${i}`}
+                      type="button"
+                      onClick={() => { if (i > currentSlide) goToNext(); if (i < currentSlide) goToPrev(); }}
+                      className="h-2 rounded-[4px] border-none p-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                      style={{
+                        width: currentSlide === i ? '24px' : '8px',
+                        background: currentSlide === i ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                        boxShadow: currentSlide === i ? '0 0 8px rgba(255, 255, 255, 0.5)' : 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div className="relative overflow-hidden" style={{ width: '72px', height: '18px', margin: '-5px -8px' }}>
+                    <div
+                      className="absolute inset-y-0 flex items-center transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                      style={{
+                        gap: '8px',
+                        transform: `translateX(${8 - dotWindowStart * 16}px)`
+                      }}
+                    >
+                      {project.images.map((_, i) => (
+                        <div
+                          key={`dot-${i}`}
+                          className="h-2 shrink-0 rounded-[4px] transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                          style={{
+                            width: currentSlide === i ? '24px' : '8px',
+                            background: currentSlide === i ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                            boxShadow: currentSlide === i ? '0 0 8px rgba(255, 255, 255, 0.5)' : 'none',
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <button type="button" className="absolute inset-y-0 left-0 bg-transparent border-none p-0 z-10" style={{ width: '33%', cursor: currentSlide === 0 ? 'default' : 'pointer' }} disabled={currentSlide === 0} onClick={goToPrev} aria-label="Previous image" />
+                    <button type="button" className="absolute inset-y-0 bg-transparent border-none p-0 z-10" style={{ left: '33%', width: '34%', cursor: (currentSlide === 0 || currentSlide === imageCount - 1) ? 'pointer' : 'default' }} disabled={currentSlide > 0 && currentSlide < imageCount - 1} onClick={() => { if (currentSlide === 0) goToNext(); else if (currentSlide === imageCount - 1) goToPrev(); }} aria-label="Navigate" />
+                    <button type="button" className="absolute inset-y-0 right-0 bg-transparent border-none p-0 z-10" style={{ width: '33%', cursor: currentSlide >= imageCount - 1 ? 'default' : 'pointer' }} disabled={currentSlide >= imageCount - 1} onClick={goToNext} aria-label="Next image" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Content */}
