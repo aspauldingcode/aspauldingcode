@@ -36,11 +36,25 @@
       packages = nixpkgs.lib.genAttrs systems (system:
         let
           pkgs = import nixpkgs { inherit system; };
+
+          ats-scanner = pkgs.writeShellApplication {
+            name = "ats-scanner";
+            runtimeInputs = [
+              pkgs.poppler-utils
+              pkgs.gawk
+              pkgs.gnugrep
+              pkgs.gnused
+              pkgs.coreutils
+            ];
+            text = builtins.readFile ./ats-scan.sh;
+          };
         in
         {
+          inherit ats-scanner;
+
           resume-runner = pkgs.writeShellApplication {
             name = "resume-runner";
-            runtimeInputs = [ pkgs.texliveFull ];
+            runtimeInputs = [ pkgs.texliveFull pkgs.poppler-utils ats-scanner ];
 
             text = let
               open =
@@ -62,6 +76,9 @@
                 if [ -f resume_alex_spaulding.pdf ]; then
                     mv -f resume_alex_spaulding.{pdf,aux,log,out} result/
                     echo "Moved outputs to result/"
+
+                    ats-scanner result/resume_alex_spaulding.pdf
+
                     cp result/resume_alex_spaulding.pdf ../portfolio/public/resume_alex_spaulding.pdf
                     ${open} result/resume_alex_spaulding.pdf
                 else
@@ -115,6 +132,10 @@
           cover-letter = {
             type    = "app";
             program = "${self.packages.${system}.cover-letter-runner}/bin/cover-letter-runner";
+          };
+          ats-scan = {
+            type    = "app";
+            program = "${self.packages.${system}.ats-scanner}/bin/ats-scanner";
           };
         }
       );
