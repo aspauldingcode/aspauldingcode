@@ -34,17 +34,18 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [showConfirm, setShowConfirm] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isMessageFocused, setIsMessageFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dragY = useMotionValue(0);
   const dragControls = useDragControls();
-  const backdropOpacity = useTransform(dragY, [0, 300], [0.5, 0]);
+  const backdropOpacity = useTransform(dragY, [0, 300], [0.6, 0]);
   const bp = useBreakpoints();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Mobile Detection - Run only on mount to avoid resize flashing
+  // Mobile Detection
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640 || window.matchMedia('(pointer: coarse)').matches);
@@ -56,7 +57,6 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      // Small delay to ensure layout is ready
       textarea.style.height = 'auto';
       const maxHeight = isMobile ? 160 : 300;
       const newHeight = Math.min(textarea.scrollHeight, maxHeight);
@@ -64,26 +64,21 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
     }
   }, [formData.message, isMobile]);
 
-  // Body Scroll Lock for iOS Spacebar Bug
+  // Body Scroll Lock
   useEffect(() => {
     if (!isMobile || status === 'success') return;
-
     const handleFocusScrollLock = () => {
       const active = document.activeElement;
-      const isInput = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
-
-      if (isInput) {
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
         document.body.style.overflow = 'hidden';
-        document.body.style.height = '100dvh'; // Lock height to prevent keyboard resizing shifts
+        document.body.style.height = '100dvh';
       } else {
         document.body.style.overflow = '';
         document.body.style.height = '';
       }
     };
-
     window.addEventListener('focusin', handleFocusScrollLock);
     window.addEventListener('focusout', handleFocusScrollLock);
-
     return () => {
       window.removeEventListener('focusin', handleFocusScrollLock);
       window.removeEventListener('focusout', handleFocusScrollLock);
@@ -92,61 +87,41 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
     };
   }, [isMobile, status]);
 
-
-  // optimized Focus Scrolling - Keeps modal stable while moving input into view
   const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (isMobile) {
-      // Small delay to wait for browser keyboard handling
       setTimeout(() => {
         e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 300);
     }
   };
+
   const processSubmit = useCallback(async () => {
     setShowConfirm(false);
     setStatus('sending');
-
     try {
       if (typeof window === 'undefined' || !window.grecaptcha) {
         throw new Error('reCAPTCHA not available');
       }
-
       window.grecaptcha.ready(async () => {
         try {
-          const token = await window.grecaptcha.execute(emailConfig.recaptchaSiteKey, {
-            action: 'submit'
-          });
-
+          const token = await window.grecaptcha.execute(emailConfig.recaptchaSiteKey, { action: 'submit' });
           const verifyResponse = await fetch('/api/verify-recaptcha', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token }),
           });
-
           const verifyData = await verifyResponse.json();
-
-          if (!verifyData.success || verifyData.score < 0.5) {
-            throw new Error('reCAPTCHA verification failed');
-          }
+          if (!verifyData.success || verifyData.score < 0.5) throw new Error('reCAPTCHA verification failed');
 
           await emailjs.send(
             emailConfig.serviceId,
             emailConfig.templateId,
-            {
-              to_name: 'Alex Spaulding',
-              from_name: formData.name,
-              email: formData.email,
-              message: formData.message,
-            },
+            { to_name: 'Alex Spaulding', from_name: formData.name, email: formData.email, message: formData.message },
             emailConfig.publicKey
           );
-
           setStatus('success');
           setFormData({ name: '', email: '', message: '' });
-          setTimeout(() => {
-            onClose();
-            setStatus('idle');
-          }, 2000);
+          setTimeout(() => { onClose(); setStatus('idle'); }, 2000);
         } catch (error) {
           console.error('Failed to process form:', error);
           setStatus('error');
@@ -160,73 +135,67 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
     }
   }, [emailConfig, formData, onClose]);
 
-  // Keyboard Interaction
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // If confirmation dialog is open, trap keys
       if (showConfirm) {
         e.preventDefault();
         e.stopPropagation();
-
-        if (e.key === 'Enter' || e.key.toLowerCase() === 'y') {
-          processSubmit();
-        }
-        if (e.key === 'Escape' || e.key.toLowerCase() === 'n') {
-          setShowConfirm(false);
-        }
+        if (e.key === 'Enter' || e.key.toLowerCase() === 'y') processSubmit();
+        if (e.key === 'Escape' || e.key.toLowerCase() === 'n') setShowConfirm(false);
         return;
       }
-
-      // Normal Form Interaction
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
-
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, [showConfirm, onClose, processSubmit]);
 
-  // Initial Form Submit (Triggered by form or Enter)
+  const isFormValid = useCallback(() => {
+    return formData.name.trim() !== '' && 
+           formData.email.trim() !== '' && 
+           /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && 
+           formData.message.trim() !== '';
+  }, [formData]);
+
   const handleInitialSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setShowConfirm(true);
-  };
-
-
-
-  const handleDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.y > 100 || info.velocity.y > 500) {
-      onClose();
+    if (isFormValid()) {
+      setValidationError(null);
+      setShowConfirm(true);
+    } else {
+      if (!formData.name.trim()) setValidationError('NAME');
+      else if (!formData.email.trim()) setValidationError('EMAIL');
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) setValidationError('VALID EMAIL');
+      else if (!formData.message.trim()) setValidationError('MESSAGE');
+      setTimeout(() => setValidationError(null), 3000);
     }
   };
 
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (info.offset.y > 100 || info.velocity.y > 500) onClose();
+  };
 
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center pointer-events-none">
-      {/* Backdrop Container - Handles entry/exit animation */}
+    <div className="fixed inset-0 z-[500] flex items-end justify-center sm:items-center p-0 sm:p-4 md:p-8 pointer-events-none">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="absolute inset-0 pointer-events-auto"
+        className="absolute inset-0 pointer-events-auto overflow-hidden"
         onClick={onClose}
       >
-        {/* Real-time Backdrop - Syncs with dragY */}
-        <motion.div
-          style={{ opacity: backdropOpacity }}
-          className="absolute top-0 left-0 right-0 bottom-7 sm:bottom-9 bg-black/50 backdrop-blur-sm"
-        />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+        <div className="absolute inset-0 halftone-bg opacity-30 pointer-events-none" />
       </motion.div>
 
       <motion.div
-        initial={{ y: 1000 }}
-        animate={{ y: 0 }}
-        exit={{ y: 1000 }}
-        transition={{ type: "spring", damping: 30, stiffness: 260 }}
+        initial={{ y: 1000, rotate: 5, scale: 0.9 }}
+        animate={{ y: 0, rotate: 0, scale: 1 }}
+        exit={{ y: 1000, rotate: -5, scale: 0.9 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
         drag="y"
         dragControls={dragControls}
         dragListener={false}
@@ -234,180 +203,96 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
         dragElastic={{ top: 0, bottom: 1 }}
         style={{ y: dragY }}
         onDragEnd={handleDragEnd}
-        className="relative w-full sm:max-w-xl bg-base01 rounded-t-3xl sm:rounded-2xl shadow-2xl pointer-events-auto overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full sm:max-w-2xl pointer-events-auto flex flex-col max-h-[95vh] sm:max-h-[90vh]"
       >
-        {/* Draggable Header Area */}
-        <div
-          onPointerDown={(e) => dragControls.start(e)}
-          className="w-full relative pt-2 pb-6 cursor-grab active:cursor-grabbing shrink-0 touch-none px-4 border-b border-base02"
-        >
-          {/* Drag Handle Indicator */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-12 h-1.5 bg-base03 rounded-full opacity-50" />
-          </div>
+        <div className="absolute inset-0 bg-base08 translate-x-3 translate-y-3 opacity-60" style={{ clipPath: 'polygon(1% 0%, 99% 2%, 97% 98%, 0% 99%)' }} />
+        <div className="absolute inset-0 bg-base00 translate-x-1.5 translate-y-1.5" style={{ clipPath: 'polygon(0% 2%, 98% 0%, 100% 98%, 2% 100%)' }} />
 
-          {/* Header UI Row */}
-          <div className="flex items-center justify-between relative min-h-[44px]">
-            {/* Left Spacer to balance layout if needed, though title is absolute */}
-            <div className="w-12" />
+        <div className="relative bg-base01 overflow-hidden flex flex-col h-full" style={{ clipPath: 'polygon(0% 0%, 100% 1%, 98% 100%, 2% 98%)' }}>
+          <div className="absolute inset-0 halftone-bg opacity-10 pointer-events-none" />
 
-            {/* Title Area - Center Aligned */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
-              <h2 className="text-xl font-bold text-base05">Contact Alex</h2>
-              <p className="text-base04 text-xs mt-0.5 opacity-70">Leave a message and I&apos;ll get back to you.</p>
+          <div onPointerDown={(e) => dragControls.start(e)} className="w-full relative bg-base08 py-6 px-8 cursor-grab active:cursor-grabbing shrink-0 touch-none flex items-center justify-between overflow-hidden">
+            <div className="absolute inset-0 halftone-bg opacity-20 pointer-events-none" />
+            <div className="relative flex flex-col">
+              <h2 className="text-2xl sm:text-4xl font-black text-base00 uppercase italic tracking-tighter -skew-x-12 leading-none">Calling Card</h2>
+              <div className="h-1 sm:h-1.5 w-32 bg-base00 mt-1 sm:mt-2 -skew-x-12" />
             </div>
-
-            {/* Close Button */}
-            <div className="flex flex-col items-center">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
-                title="Close (esc)"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              {bp.hasKeyboard && (
-                <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">(esc)</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Form Content */}
-        <div className="px-6 sm:px-8 py-0 custom-scrollbar overflow-y-auto">
-
-          <form onSubmit={handleInitialSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-bold text-base05 ml-1">Name</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                onFocus={handleFocus}
-                className="w-full bg-base02 border border-base03 rounded-lg px-4 py-3 text-base05 focus:border-base0D focus:outline-none transition-colors"
-                placeholder="Your name"
-                disabled={status === 'sending'}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-bold text-base05 ml-1">Email</label>
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                onFocus={handleFocus}
-                className="w-full bg-base02 border border-base03 rounded-lg px-4 py-3 text-base05 focus:border-base0D focus:outline-none transition-colors"
-                placeholder="your@email.com"
-                disabled={status === 'sending'}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-bold text-base05 ml-1">Message</label>
-              <textarea
-                ref={textareaRef}
-                required
-                value={formData.message}
-                onChange={e => setFormData({ ...formData, message: e.target.value })}
-                onFocus={(e) => {
-                  handleFocus(e);
-                  setIsMessageFocused(true);
-                }}
-                onBlur={() => setIsMessageFocused(false)}
-                onKeyDown={(e) => {
-                  // User request: Enter triggers send prompt (unless Shift is held)
-                  // On mobile, Enter simply adds a newline
-                  if (!isMobile && e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleInitialSubmit();
-                  }
-                }}
-                className="w-full bg-base02 border border-base03 rounded-lg px-4 py-3 text-base05 focus:border-base0D focus:outline-none transition-colors min-h-[120px] max-h-[160px] sm:max-h-[300px] resize-none overflow-y-auto custom-scrollbar"
-                placeholder="What&apos;s on your mind?"
-                disabled={status === 'sending'}
-              />
-              {bp.hasKeyboard && (
-                <div className="flex justify-start px-1">
-                  <span className="text-[10px] text-base03">Shift+Enter for new line</span>
-                </div>
-              )}
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={status === 'sending' || status === 'success'}
-              className={`w-full py-3 rounded-lg font-bold text-base00 transition-colors flex items-center justify-center gap-2 ${status === 'success' ? 'bg-base0B' :
-                status === 'error' ? 'bg-base08' :
-                  'bg-base0D hover:bg-base0C'
-                }`}
-            >
-              {status === 'sending' ? (
-                <>
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Sending...</span>
-                </>
-              ) : status === 'success' ? 'Sent!' : status === 'error' ? 'Error - Try Again' : 'Send Message'}
-            </motion.button>
-
-            {bp.hasKeyboard && (
-              <div className="flex justify-center mt-2">
-                <span className="text-[10px] font-mono text-base04 opacity-50 uppercase tracking-widest">(Enter) to send</span>
+            <button onClick={onClose} className="group/close relative p-2 transition-transform active:scale-90">
+              <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1 opacity-50 group-hover/close:translate-x-1.5 group-hover/close:translate-y-1.5 transition-transform" />
+              <div className="relative bg-base00 p-1.5 -skew-x-12 border-2 border-base09">
+                <svg className="w-5 h-5 text-base09 skew-x-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </div>
-            )}
-          </form>
+            </button>
+          </div>
 
-          {/* Safe Area Padding - Increased for mobile to allow scrolling past keyboard */}
-          <div className="h-64 sm:h-2" />
+          <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-10 sm:py-12 space-y-10 projects-scroll">
+            <AnimatePresence mode="wait">
+              {validationError && (
+                <motion.div initial={{ opacity: 0, x: -100, skewX: -12 }} animate={{ opacity: 1, x: 0, skewX: -12 }} exit={{ opacity: 0, x: 100, skewX: -12 }} className="p-4 bg-base09 text-base00 font-black uppercase italic tracking-tighter text-center shadow-[4px_4px_0px_var(--base08)]">
+                  <span className="skew-x-12 block">PLEASE ENTER {validationError}!</span>
+                </motion.div>
+              )}
+              {status !== 'idle' && !validationError && (
+                <motion.div initial={{ opacity: 0, x: -50, skewX: -12 }} animate={{ opacity: 1, x: 0, skewX: -12 }} exit={{ opacity: 0, x: 50, skewX: -12 }} className={`p-4 font-black uppercase italic tracking-tighter text-center ${status === 'sending' ? 'bg-base0D text-base00' : status === 'success' ? 'bg-base0B text-base00' : 'bg-base08 text-base00'}`}>
+                  <span className="skew-x-12 block">{status === 'sending' ? 'ENCRYPTING MESSAGE...' : status === 'success' ? 'MESSAGE INFILTRATED SUCCESSFULLY!' : 'INFILTRATION FAILED. RETRY?'}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form onSubmit={handleInitialSubmit} className="space-y-8">
+              <div className="space-y-2 group/field">
+                <label className="text-[10px] font-black uppercase italic tracking-widest text-base04 ml-1 flex items-center gap-2"><span className="w-2 h-2 bg-base09 -skew-x-12" />Sender Name</label>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-base00 -skew-x-2 translate-x-1 translate-y-1 opacity-0 group-focus-within/field:opacity-100 transition-opacity" />
+                  <input type="text" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} onFocus={handleFocus} className="relative w-full bg-base02 border-2 border-base03 px-4 py-3 text-base05 focus:border-base0D focus:outline-none transition-all -skew-x-2 font-kanit font-bold italic tracking-tight" placeholder="Your Name" disabled={status === 'sending'} />
+                </div>
+              </div>
+
+              <div className="space-y-2 group/field">
+                <label className="text-[10px] font-black uppercase italic tracking-widest text-base04 ml-1 flex items-center gap-2"><span className="w-2 h-2 bg-base09 -skew-x-12" />Target Frequency</label>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-base00 -skew-x-2 translate-x-1 translate-y-1 opacity-0 group-focus-within/field:opacity-100 transition-opacity" />
+                  <input type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} onFocus={handleFocus} className="relative w-full bg-base02 border-2 border-base03 px-4 py-3 text-base05 focus:border-base0D focus:outline-none transition-all -skew-x-2 font-kanit font-bold italic tracking-tight" placeholder="your@email.com" disabled={status === 'sending'} />
+                </div>
+              </div>
+
+              <div className="space-y-2 group/field">
+                <label className="text-[10px] font-black uppercase italic tracking-widest text-base04 ml-1 flex items-center gap-2"><span className="w-2 h-2 bg-base09 -skew-x-12" />Message Details</label>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-base00 -skew-x-2 translate-x-1 translate-y-1 opacity-0 group-focus-within/field:opacity-100 transition-opacity" />
+                  <textarea ref={textareaRef} required value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} onFocus={(e) => { handleFocus(e); setIsMessageFocused(true); }} onBlur={() => setIsMessageFocused(false)} onKeyDown={(e) => { if (!isMobile && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInitialSubmit(); } }} className="relative w-full bg-base02 border-2 border-base03 px-4 py-3 text-base05 focus:border-base0D focus:outline-none transition-all -skew-x-2 min-h-[120px] max-h-[160px] sm:max-h-[300px] resize-none overflow-y-auto font-kanit font-bold italic tracking-tight projects-scroll" placeholder="What's on your mind?" disabled={status === 'sending'} />
+                </div>
+              </div>
+
+              <div className="relative group pt-4">
+                <div className="p6-button-shadow" />
+                <button type="submit" disabled={status === 'sending'} className="relative w-full p6-button py-4 bg-base09 hover:bg-base0A text-base00 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group-hover:translate-x-1 group-hover:translate-y-1 transition-all">
+                  <span className="skew-x-12 font-black uppercase italic tracking-tighter text-xl">Deploy Inquiry</span>
+                  <div className="relative skew-x-12">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>
+                  </div>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
-        {/* Confirmation Overlay */}
         <AnimatePresence>
           {showConfirm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 bg-base00/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center"
-            >
-              <div className="bg-base01 border-2 border-base0D rounded-2xl p-6 shadow-2xl max-w-sm w-full">
-                <h3 className="text-xl font-bold text-base05 mb-2">Ready to send?</h3>
-                {bp.hasKeyboard && (
-                  <p className="text-base04 text-sm mb-6">
-                    Press <span className="text-base0D font-mono bg-base02 px-1 rounded">Shift+Enter</span> to add a new line.<br />
-                    Press <span className="text-base0D font-mono bg-base02 px-1 rounded">Enter</span> or <span className="text-base0B font-mono bg-base02 px-1 rounded">y</span> to send now.
-                  </p>
-                )}
-                {!bp.hasKeyboard && <div className="mb-6" />}
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowConfirm(false)}
-                    className="flex-1 py-2 rounded-lg bg-base02 hover:bg-base03 text-base05 font-semibold transition-colors touch-manipulation"
-                  >
-                    Cancel {bp.hasKeyboard ? '(n / Esc)' : ''}
-                  </button>
-                  <button
-                    onClick={processSubmit}
-                    className="flex-1 py-2 rounded-lg bg-base0D hover:bg-base0C text-base00 font-bold transition-colors shadow-lg touch-manipulation"
-                  >
-                    Send {bp.hasKeyboard ? '(y / Enter)' : ''}
-                  </button>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-base00/80 backdrop-blur-md">
+              <motion.div initial={{ scale: 0.8, rotate: -5 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.8, rotate: 5 }} className="relative bg-base01 p-8 border-4 border-base09 -skew-x-12 shadow-[10px_10px_0px_var(--base08)] max-w-sm w-full">
+                <div className="skew-x-12 space-y-6">
+                  <div className="flex flex-col items-center gap-2 mb-4">
+                    <span className="text-base08 font-black text-4xl italic tracking-tighter uppercase">READY?</span>
+                    <div className="h-1 w-full bg-base09" />
+                  </div>
+                  <p className="text-base05 font-black uppercase italic tracking-tight text-center">The calling card is ready. Deploy to the destination?</p>
+                  <div className="flex flex-col gap-3">
+                    <button onPointerDown={() => processSubmit()} className="p6-button py-3 bg-base0B hover:bg-base0D text-base00 font-black uppercase italic tracking-widest text-sm"><span className="skew-x-12 block">EXECUTE [ENTER]</span></button>
+                    <button onPointerDown={() => setShowConfirm(false)} className="p6-button py-3 bg-base02 hover:bg-base08 text-base05 font-black uppercase italic tracking-widest text-sm"><span className="skew-x-12 block">ABORT [ESC]</span></button>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

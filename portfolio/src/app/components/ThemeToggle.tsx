@@ -121,43 +121,43 @@ export default function ThemeToggle() {
   return (
     <div
       id="theme-toggle-ui"
-      className="fixed top-0 right-0 pt-[calc(1rem+var(--safe-top))] pr-[calc(1rem+var(--safe-right))] sm:pt-[calc(1.25rem+var(--safe-top))] sm:pr-[calc(1.25rem+var(--safe-right))] lg:pt-[calc(1.5rem+var(--safe-top))] lg:pr-[calc(1.5rem+var(--safe-right))] z-50 flex flex-col items-center transition-all duration-500 will-change-transform"
+      className="fixed top-0 right-0 pt-[calc(1rem+var(--safe-top))] pr-[calc(1rem+var(--safe-right))] z-[210] flex flex-col items-center transition-all duration-500 will-change-transform"
       style={{
         transform: 'translate3d(0,0,0)',
         WebkitTransform: 'translate3d(0,0,0)'
       }}
     >
       <div className="group relative flex flex-col items-center">
+        {/* Unified Persona Offset Shadow */}
+        <div className="p6-button-shadow" />
+        
         <button
           onClick={handleToggle}
-          className="p-2 rounded-lg bg-base0D hover:bg-base0C transition-all duration-300 shadow-lg active:scale-95 touch-manipulation overflow-hidden"
+          className="p6-button p-2 bg-base0D hover:bg-base0C text-base00"
           aria-label={getAriaLabel()}
           title={`Cycle theme (t)`}
         >
-          <svg
-            className="w-5 h-5 text-base00"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{
-              opacity: 1,
-              transition: 'none',
-              transform: 'translate3d(0,0,0)',
-              WebkitTransform: 'translate3d(0,0,0)'
-            }}
-          >
-            {getThemeIcon()}
-          </svg>
+          <div className="skew-x-12 relative z-10">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              strokeWidth={3}
+            >
+              {getThemeIcon()}
+            </svg>
+          </div>
         </button>
 
-        {/* Hover Hint */}
-        <span className={`absolute right-full mr-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-base0D text-base00 text-[10px] font-bold uppercase tracking-widest rounded transition-all duration-300 pointer-events-none whitespace-nowrap shadow-xl border border-base00/10 ${showTooltip ? 'opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0' : 'opacity-0'}`}>
-          {mounted ? theme : 'auto'}
-        </span>
+        {/* Unified Hover Hint */}
+        <div className={`p6-tooltip right-full mr-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${showTooltip ? 'opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0' : 'opacity-0'}`}>
+          <span className="p6-tooltip-text">{mounted ? theme : 'auto'}</span>
+        </div>
       </div>
       {bp.hasKeyboard && (
-        <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(t)</span>
+        <span className="text-[10px] font-black italic text-base04 opacity-50 mt-2 pointer-events-none uppercase tracking-widest">(t)</span>
       )}
     </div>
   );

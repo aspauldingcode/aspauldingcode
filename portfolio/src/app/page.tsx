@@ -11,6 +11,77 @@ import { useSession } from './context/SessionContext';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
 import { resolveImageUrl } from '@/lib/imageUrl';
 
+function FloatingShapes() {
+  const shapes = [
+    // P1/P2: Gothic Butterfly (Outline)
+    <svg key="p12" viewBox="0 0 100 100" className="w-full h-full stroke-current fill-none stroke-[2]">
+      <path d="M50 50 L30 20 Q 10 10, 10 40 L30 50 L10 60 Q 10 90, 30 80 L50 50 L70 20 Q 90 10, 90 40 L70 50 L90 60 Q 90 90, 70 80 Z" strokeLinejoin="round" />
+    </svg>,
+    // P3: Moon & Gear (Outline)
+    <svg key="p3" viewBox="0 0 100 100" className="w-full h-full stroke-current fill-none stroke-[2]">
+      <path d="M30 20 A 40 40 0 1 0 30 80 A 30 30 0 1 1 30 20" />
+      <circle cx="55" cy="50" r="10" strokeDasharray="4 2" />
+    </svg>,
+    // P4: TV Frame (Outline)
+    <svg key="p4" viewBox="0 0 100 100" className="w-full h-full stroke-current fill-none stroke-[2.5]">
+      <rect x="15" y="25" width="70" height="55" rx="5" />
+      <path d="M35 25 L25 10 M65 25 L75 10" strokeLinecap="round" />
+      <path d="M25 35 L75 35" opacity="0.3" />
+    </svg>,
+    // P5: Phantom Star (20-point rounded uneven - Outline)
+    <svg key="p5" viewBox="0 0 100 100" className="w-full h-full stroke-current fill-none stroke-[2]">
+      <path d="M50 5 L55 35 L85 25 L65 45 L95 55 L65 65 L85 85 L55 75 L50 95 L45 75 L15 85 L35 65 L5 55 L35 45 L15 25 L45 35 Z" strokeLinejoin="round" />
+    </svg>
+  ];
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {/* Top Left Hero Shape - Multi-Era Composition */}
+      <motion.div
+        initial={{ rotate: 0, scale: 0.8, x: '-20%', y: '-20%' }}
+        animate={{ 
+          rotate: [0, 90, 180, 270, 360],
+          scale: [0.8, 1.1, 0.8],
+        }}
+        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+        className="absolute top-0 left-0 w-80 h-80 text-base08 opacity-10"
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full stroke-current fill-none stroke-[1] filter blur-[0.5px]">
+          <circle cx="50" cy="50" r="45" strokeDasharray="10 5" />
+          <path d="M50 5 L55 35 L85 25 L65 45 L95 55 L65 65 L85 85 L55 75 L50 95 L45 75 L15 85 L35 65 L5 55 L35 45 L15 25 L45 35 Z" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M10 10 L90 20 L80 90 L20 80 Z" strokeWidth="1" strokeDasharray="5 5" />
+        </svg>
+      </motion.div>
+
+      {/* Floating Debris */}
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: Math.random() * 100 + '%', 
+            y: Math.random() * 100 + '%',
+            rotate: Math.random() * 360,
+            scale: 0.5 + Math.random() * 1,
+            opacity: 0.05
+          }}
+          animate={{ 
+            y: ['-20%', '120%'],
+            rotate: [0, 360],
+          }}
+          transition={{ 
+            duration: 25 + Math.random() * 40, 
+            repeat: Infinity, 
+            ease: "linear" 
+          }}
+          className={`absolute w-16 h-16 sm:w-24 sm:h-24 ${i % 2 === 0 ? 'text-base09' : 'text-base08'}`}
+        >
+          {shapes[i % shapes.length]}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const regularProfileSrc = useMemo(() => resolveImageUrl('/profile_regular.jpg'), []);
@@ -26,152 +97,50 @@ export default function Home() {
   const bp = useBreakpoints();
 
   // Quick, smooth spring transition for responsive animations
-  const springTransition = { type: "spring" as const, damping: 40, stiffness: 400 };
+  const springTransition = { type: "spring" as const, damping: 25, stiffness: 200 };
 
   // Calculate responsive values based on current viewport
   const responsiveStyles = useMemo(() => {
-    // Use the full breakpoint state - will recompute when isMounted changes
-    const { height, width, isH452, isH400, isH350, isH320, isH280, isH500, isH550, isH600, isTall600, isTall650, isTall, isSm, isMd, isLg, isXl, isWideShort, isMounted } = bp;
+    const { height, width, isMounted, isSm, isMd, isLg, isXl, hasKeyboard } = bp;
 
-    // Container padding
-    let containerPadding = { x: 32, y: 32 }; // default px-8 py-8
-    if (isH280) containerPadding = { x: 16, y: 4 };
-    else if (isH320) containerPadding = { x: 16, y: 4 };
-    else if (isH350) containerPadding = { x: 16, y: 6 };
-    else if (isH400) containerPadding = { x: 16, y: 8 };
-    else if (isH452) containerPadding = { x: 16, y: 8 };
-    else if (isH500) containerPadding = { x: 16, y: 8 };
-    else if (isH550) containerPadding = { x: 16, y: 12 };
-    else if (isH600) containerPadding = { x: 16, y: 16 };
+    // Use a base scaling factor derived from height to ensure fit
+    // We target a "comfortable" fit for height >= 600px
+    const hScale = Math.min(1, Math.max(0.4, height / 800));
+    const wScale = Math.min(1, Math.max(0.4, width / 1200));
+    
+    // Global constraint scale
+    const scale = Math.min(hScale, wScale);
 
-    // Profile section margin bottom (used for divider spacing)
-    let profileMarginBottom = isSm ? 32 : 24; // mb-6 sm:mb-8
-    if (isH280) profileMarginBottom = 8;
-    else if (isH320) profileMarginBottom = 8;
-    else if (isH350) profileMarginBottom = 10;
-    else if (isH400) profileMarginBottom = 12;
-    else if (isH452) profileMarginBottom = 14;
-    else if (isH500) profileMarginBottom = 16;
-    else if (isH550) profileMarginBottom = 18;
-    else if (isH600) profileMarginBottom = 20;
+    // Profile image size - strictly tied to height to prevent vertical overflow
+    // Base portrait is 176x224, square is 160
+    // On very short screens, we prioritize fitting everything
+    const portraitSize = {
+      w: Math.floor(Math.min(176, height * 0.22)),
+      h: Math.floor(Math.min(224, height * 0.28))
+    };
+    const squareSize = Math.floor(Math.min(160, height * 0.2));
 
-    // Use horizontal layout when height is constrained (h-452 breakpoint)
-    const useHorizontalLayout = isH452;
+    // Show portrait only if height is sufficient (>= 500px)
+    const showPortrait = height >= 500;
 
-    // Profile image size (width x height for portrait, size for square) - capped at reasonable max
-    let portraitSize = { w: 112, h: 144 }; // w-28 h-36
-    let squareSize = 96; // w-24 h-24
+    // Dynamic padding and margins
+    const containerPadding = { 
+      x: Math.max(16, Math.floor(32 * scale)), 
+      y: Math.max(12, Math.floor(32 * scale)) 
+    };
+    
+    const profileMarginBottom = Math.max(8, Math.floor(32 * hScale));
+    
+    // Layout decisions
+    const useHorizontalLayout = height < 450 && width > 600;
+    const buttonsHorizontal = width > 640 || (height < 500 && width > 500);
 
-    if (isTall) {
-      portraitSize = { w: 176, h: 224 }; // capped max
-      squareSize = 160;
-    } else if (isTall650) {
-      portraitSize = { w: 160, h: 208 };
-      squareSize = 144;
-    } else if (isXl) {
-      portraitSize = { w: 152, h: 192 };
-      squareSize = 136;
-    } else if (isLg) {
-      portraitSize = { w: 144, h: 176 };
-      squareSize = 128;
-    } else if (isMd) {
-      portraitSize = { w: 128, h: 160 };
-      squareSize = 112;
-    } else if (isSm) {
-      portraitSize = { w: 112, h: 144 };
-      squareSize = 96;
-    }
+    // Typography
+    const titleSize = Math.max(0.8, 2 * scale); // rem
+    const descSize = Math.max(0.7, 1 * scale); // rem
 
-    // Apply height constraints
-    if (isH280) {
-      portraitSize = { w: 64, h: 96 };
-      squareSize = 56;
-    } else if (isH320) {
-      portraitSize = { w: 72, h: 108 };
-      squareSize = 64;
-    } else if (isH350) {
-      portraitSize = { w: 80, h: 120 };
-      squareSize = 72;
-    } else if (isH400) {
-      portraitSize = { w: 88, h: 128 };
-      squareSize = 72;
-    } else if (isH452) {
-      portraitSize = { w: 96, h: 144 };
-      squareSize = 72;
-    } else if (isH500) {
-      portraitSize = { w: 112, h: 160 };
-      squareSize = 88;
-    } else if (isH550) {
-      portraitSize = { w: 128, h: 176 };
-      squareSize = 96;
-    } else if (isH600) {
-      portraitSize = { w: 144, h: 192 };
-      squareSize = 112;
-    }
-
-    // Show portrait image when tall enough
-    const showPortrait = isTall600;
-
-    // Title font size (in rem) - capped at 2rem max
-    let titleSize = 1.25; // text-xl
-    if (isH280) titleSize = 0.75;
-    else if (isH320) titleSize = 0.75;
-    else if (isH350) titleSize = 0.875;
-    else if (isH400) titleSize = 0.875;
-    else if (isH452) titleSize = 1;
-    else if (isH500) titleSize = 1;
-    else if (isH550) titleSize = 1.125;
-    else if (isH600) titleSize = 1.25;
-    else if (isXl) titleSize = 2; // capped max
-    else if (isLg) titleSize = 1.875;
-    else if (isMd) titleSize = 1.5;
-    else if (isSm) titleSize = 1.25;
-
-    // Description font size (in rem) - capped at 1rem max
-    let descSize = 0.75; // text-xs
-    if (isH280 || isH320 || isH350 || isH400 || isH452 || isH500 || isH550) descSize = 0.75;
-    else if (isH600) descSize = 0.75;
-    else if (isLg) descSize = 1; // capped max
-    else if (isMd) descSize = 0.9375;
-    else if (isSm) descSize = 0.875;
-
-    // Button gap - ensure proper spacing between buttons
-    let buttonGap = isSm ? 56 : 24; // gap-6 sm:gap-14
-    if (isH280) buttonGap = 16;
-    else if (isH320) buttonGap = 16;
-    else if (isH350) buttonGap = 20;
-    else if (isH400) buttonGap = 24;
-    else if (isH452) buttonGap = 28;
-    else if (isH500) buttonGap = 32;
-    else if (isH550) buttonGap = 36;
-    else if (isH600) buttonGap = 40;
-    else if (isWideShort) buttonGap = 32;
-
-    // Buttons use horizontal layout on sm+ or h-452
-    const buttonsHorizontal = isSm || isH452;
-
-    // Button padding and size - capped for large screens
-    let buttonPadding = { x: 24, y: 12 }; // px-6 py-3
-    let buttonFontSize = 0.875; // text-sm
-    if (isH280) { buttonPadding = { x: 16, y: 4 }; buttonFontSize = 0.75; }
-    else if (isH320) { buttonPadding = { x: 16, y: 4 }; buttonFontSize = 0.75; }
-    else if (isH350) { buttonPadding = { x: 16, y: 6 }; buttonFontSize = 0.75; }
-    else if (isH400) { buttonPadding = { x: 16, y: 6 }; buttonFontSize = 0.75; }
-    else if (isH452) { buttonPadding = { x: 16, y: 6 }; buttonFontSize = 0.75; }
-    else if (isH500) { buttonPadding = { x: 18, y: 8 }; buttonFontSize = 0.75; }
-    else if (isH550) { buttonPadding = { x: 18, y: 8 }; buttonFontSize = 0.75; }
-    else if (isH600) { buttonPadding = { x: 20, y: 10 }; buttonFontSize = 0.875; }
-    else if (isWideShort) { buttonPadding = { x: 20, y: 10 }; buttonFontSize = 0.875; }
-    else if (isMd) { buttonPadding = { x: 24, y: 12 }; buttonFontSize = 1; } // capped max
-    else if (isSm) { buttonPadding = { x: 22, y: 10 }; buttonFontSize = 0.9375; }
-
-    // Button icon size - capped at 18px max
-    let iconSize = 16; // w-4 h-4
-    if (isH280 || isH320 || isH350) iconSize = 10;
-    else if (isH400 || isH452) iconSize = 12;
-    else if (isH500 || isH550 || isH600) iconSize = 12;
-    else if (isMd) iconSize = 18; // capped max
-    else if (isSm) iconSize = 16;
+    // Interaction spacing
+    const buttonGap = Math.max(12, Math.floor((isSm ? 56 : 24) * scale));
 
     return {
       containerPadding,
@@ -184,12 +153,10 @@ export default function Home() {
       descSize,
       buttonGap,
       buttonsHorizontal,
-      buttonPadding,
-      buttonFontSize,
-      iconSize,
-      hasKeyboard: bp.hasKeyboard,
+      hasKeyboard,
     };
-  }, [bp]); // bp object changes when isMounted changes, triggering recompute
+  }, [bp]);
+ // bp object changes when isMounted changes, triggering recompute
 
   useEffect(() => {
     const warmProfileImages = () => {
@@ -240,14 +207,18 @@ export default function Home() {
   // This prevents flash of incorrectly-sized elements during hydration
   if (!bp.isMounted) {
     return (
-      <main className="fixed inset-0 min-h-[100dvh] min-h-[100svh] flex flex-col items-center justify-center bg-base00 overflow-hidden touch-none pb-8 sm:pb-10" />
+      <main className="fixed inset-0 min-h-[100dvh] flex flex-col items-center justify-center bg-base00 overflow-hidden touch-none" />
     );
   }
 
   return (
     <main
-      className="fixed inset-0 min-h-[100dvh] min-h-[100svh] flex flex-col items-center justify-center bg-base00 overflow-hidden touch-none pb-8 sm:pb-10"
+      className="fixed inset-0 min-h-[100dvh] flex flex-col items-center justify-center bg-base00 overflow-hidden touch-none pb-24"
     >
+      {/* Persona Background Elements */}
+      <FloatingShapes />
+      <div className="absolute inset-0 halftone-bg opacity-10 pointer-events-none z-0" />
+
       <LayoutGroup>
         <motion.div
           layout
@@ -259,7 +230,7 @@ export default function Home() {
             paddingBottom: responsiveStyles.containerPadding.y,
           }}
           transition={springTransition}
-          className="flex flex-col items-center justify-center h-full w-full max-w-4xl max-h-full mx-auto overflow-auto"
+          className="relative flex flex-col items-center justify-center h-full w-full max-w-4xl max-h-full mx-auto overflow-hidden z-10"
         >
           {/* Profile and Title Section */}
           <motion.div
@@ -269,20 +240,20 @@ export default function Home() {
             transition={springTransition}
             className="flex-shrink-0 w-full max-w-2xl mx-auto flex flex-col items-center"
           >
-            {/* Profile row/column layout - uses float for text wrap in horizontal mode */}
             <motion.div
               layout
               initial={false}
               transition={springTransition}
               className={responsiveStyles.useHorizontalLayout ? "block w-fit" : "flex flex-col items-center w-fit"}
             >
-              {/* Profile Image Container */}
+              {/* Profile Image Container - Persona Stylized */}
               <motion.div
                 layout
                 initial={false}
                 animate={{
                   marginBottom: responsiveStyles.useHorizontalLayout ? 0 : 8,
-                  marginRight: responsiveStyles.useHorizontalLayout ? 16 : 0,
+                  marginRight: responsiveStyles.useHorizontalLayout ? 32 : 0,
+                  rotate: responsiveStyles.useHorizontalLayout ? -2 : 0,
                 }}
                 transition={springTransition}
                 className="flex-shrink-0"
@@ -291,89 +262,93 @@ export default function Home() {
                   shapeOutside: responsiveStyles.useHorizontalLayout ? 'margin-box' : 'none',
                 }}
               >
-                {/* Single morphing image container - transitions between portrait and square */}
                 <motion.div
                   layoutId="profile-image"
                   initial={false}
                   animate={{
                     width: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.w : responsiveStyles.squareSize,
                     height: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.h : responsiveStyles.squareSize,
-                    borderRadius: responsiveStyles.showPortrait ? 16 : 9999,
                   }}
                   transition={springTransition}
-                  className="relative border-4 border-base02 overflow-hidden"
+                  className="relative border-4 border-base09 bg-base01 shadow-[12px_12px_0px_var(--base08)] overflow-hidden -skew-x-2"
                 >
-                  <div
-                    className={`absolute inset-0 pointer-events-none animate-shimmer transition-opacity duration-700 ${profileLoaded ? 'opacity-0' : 'opacity-100'}`}
-                    style={{
-                      backgroundSize: '200% 100%',
-                      backgroundImage: 'linear-gradient(to right, rgba(56,56,56,1), rgba(40,40,40,1), rgba(56,56,56,1))'
-                    }}
-                  />
                   <Image
                     src={responsiveStyles.showPortrait ? regularProfileSrc : squareProfileSrc}
-                    alt="Profile picture"
-                    width={responsiveStyles.showPortrait ? 220 : 150}
-                    height={responsiveStyles.showPortrait ? 293 : 150}
-                    sizes="(max-width: 640px) 96px, (max-width: 1024px) 144px, 176px"
-                    quality={80}
-                    className={`object-cover w-full h-full transition-all duration-700 ${profileLoaded ? 'blur-0 opacity-100' : 'blur-xl opacity-0 scale-105'}`}
+                    alt="Profile"
+                    fill
+                    className={`object-cover w-full h-full transition-all duration-700 ${profileLoaded ? 'blur-0 opacity-90 scale-100' : 'blur-xl opacity-0 scale-110'}`}
                     priority
                     onLoad={() => setProfileLoaded(true)}
                   />
+                  <div className="absolute inset-0 halftone-bg opacity-30 mix-blend-overlay pointer-events-none" />
                 </motion.div>
               </motion.div>
 
-              {/* Title and Description */}
+              {/* Title and Description - Persona Kinetic */}
               <motion.div
                 layout
                 transition={springTransition}
                 style={{ textAlign: responsiveStyles.useHorizontalLayout ? 'left' : 'center' }}
+                className="mt-4 sm:mt-6"
               >
-                <motion.h1
-                  initial={false}
-                  animate={{ fontSize: `${responsiveStyles.titleSize}rem` }}
-                  transition={springTransition}
-                  className="font-bold text-base05 mb-1"
-                >
-                  Alex Spaulding
-                </motion.h1>
-                <motion.p
-                  initial={false}
-                  animate={{ fontSize: `${responsiveStyles.descSize}rem` }}
-                  transition={springTransition}
-                  className="text-base04 max-w-md"
-                  style={{ paddingLeft: responsiveStyles.useHorizontalLayout ? 0 : 8, paddingRight: responsiveStyles.useHorizontalLayout ? 0 : 8 }}
-                >
-                  Computer Science student at Eastern Washington University currently exploring macOS reverse engineering and UI design tweaks.
-                </motion.p>
+                <div className="relative inline-block mb-6">
+                  {/* Layered Shadows */}
+                  <div className="absolute inset-0 bg-base09 -skew-x-12 translate-x-3 translate-y-2 opacity-30" />
+                  <div className="absolute inset-0 bg-base08 -skew-x-12 translate-x-1.5 translate-y-1 opacity-50" />
+                  
+                  {/* Main Title Box */}
+                  <div className="relative bg-base00 border-2 border-base05 px-8 py-3 -skew-x-12 shadow-2xl">
+                    <motion.h1
+                      initial={false}
+                      animate={{ fontSize: `${responsiveStyles.titleSize * 1.5}rem` }}
+                      transition={springTransition}
+                      className="font-black text-base05 leading-none uppercase italic tracking-tighter"
+                    >
+                      Alex Spaulding
+                    </motion.h1>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute -left-4 top-0 bottom-0 w-1 bg-base09 opacity-50 hidden sm:block" />
+                  <motion.p
+                    initial={false}
+                    animate={{ fontSize: `${responsiveStyles.descSize * 1.2}rem` }}
+                    transition={springTransition}
+                    className="text-base05 max-w-md font-black uppercase italic tracking-tight leading-[1.1]"
+                  >
+                    Computer Science student at Eastern Washington University currently exploring <span className="text-base09 underline decoration-4">macOS reverse engineering</span> and UI design tweaks.
+                  </motion.p>
+                </div>
               </motion.div>
 
-              {/* Clear float */}
               {responsiveStyles.useHorizontalLayout && <div style={{ clear: 'both' }} />}
             </motion.div>
           </motion.div>
 
-          {/* Divider between profile and buttons */}
+          {/* Persona Menu Divider */}
           <motion.div
             initial={false}
             animate={{
-              marginTop: responsiveStyles.profileMarginBottom * 0.25,
+              marginTop: responsiveStyles.profileMarginBottom,
               marginBottom: responsiveStyles.profileMarginBottom * 2,
             }}
             transition={springTransition}
-            className="w-full max-w-md mx-auto"
+            className="w-full max-w-lg mx-auto flex items-center justify-center gap-6 px-8"
           >
-            <div className="h-px bg-gradient-to-r from-transparent via-base03 to-transparent" />
+            <div className="h-[3px] flex-1 bg-base02 -skew-x-12" />
+            <div className="relative bg-base09 px-5 py-1 shadow-[6px_6px_0px_var(--base08)] -skew-x-12 border-2 border-base00">
+              <span className="text-xs font-black text-base00 uppercase italic tracking-[0.3em] skew-x-12 block ml-1">Menu</span>
+            </div>
+            <div className="h-[3px] flex-1 bg-base02 -skew-x-12" />
           </motion.div>
 
-          {/* Buttons Section - Bootstrap-like responsive grid */}
+          {/* Buttons Section - Persona Style Grid */}
           <motion.div
             layout
             transition={springTransition}
-            className="flex-shrink-0 w-full max-w-2xl mx-auto"
+            className="flex-shrink-0 w-full max-w-3xl mx-auto"
           >
-            {/* Grid container - adapts based on viewport constraints */}
             <motion.div
               layout
               initial={false}
@@ -384,147 +359,77 @@ export default function Home() {
               className="flex justify-center items-center"
               style={{ gap: responsiveStyles.buttonGap }}
             >
-
               {/* Projects Button */}
-              <motion.div
-                className="transform rotate-0 sm:-rotate-1 hover:-rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 flex flex-col items-center gap-1"
-                style={{ width: responsiveStyles.buttonsHorizontal ? 'auto' : '100%' }}
-              >
+              <div className="relative group/btn w-full sm:w-auto">
+                <div className="p6-button-shadow" />
                 <motion.button
                   onTap={handleProjectsClick}
-                  initial={false}
-                  animate={{
-                    paddingLeft: responsiveStyles.buttonPadding.x,
-                    paddingRight: responsiveStyles.buttonPadding.x,
-                    paddingTop: responsiveStyles.buttonPadding.y,
-                    paddingBottom: responsiveStyles.buttonPadding.y,
-                    fontSize: `${responsiveStyles.buttonFontSize}rem`,
-                  }}
-                  transition={springTransition}
-                  className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0D hover:bg-base0C hover:scale-105 active:scale-95 transition-all duration-300 text-base00 space-x-2 touch-manipulation disabled:opacity-80 disabled:cursor-wait"
+                  className="relative p6-button px-10 py-4 bg-base0D hover:bg-base0C text-base00 flex items-center justify-center gap-4 disabled:opacity-50"
                   disabled={isNavigatingProjects}
                 >
-                  <span>Projects</span>
-                  <motion.svg
-                    initial={false}
-                    animate={{ width: responsiveStyles.iconSize, height: responsiveStyles.iconSize }}
-                    transition={springTransition}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="flex-shrink-0"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                    />
-                  </motion.svg>
+                  <span className="skew-x-12 font-black uppercase italic tracking-tighter text-xl">
+                    Projects
+                  </span>
+                  <div className="relative skew-x-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </div>
                 </motion.button>
                 {responsiveStyles.hasKeyboard && (
-                  <span className="text-[10px] font-mono opacity-50 text-base04 hidden sm:block">(p)</span>
+                  <div className="p6-tooltip -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover/btn:opacity-100 transition-opacity">
+                    <span className="p6-tooltip-text">EXPLORE [P]</span>
+                  </div>
                 )}
-              </motion.div>
+              </div>
 
               {/* Resume Button */}
-              <motion.div
-                className="transform rotate-0 sm:rotate-0.5 hover:rotate-0.5 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 flex flex-col items-center gap-1"
-                style={{ width: responsiveStyles.buttonsHorizontal ? 'auto' : '100%' }}
-              >
+              <div className="relative group/btn w-full sm:w-auto">
+                <div className="p6-button-shadow" />
                 <motion.button
                   onTap={handleResumeClick}
-                  initial={false}
-                  animate={{
-                    paddingLeft: responsiveStyles.buttonPadding.x,
-                    paddingRight: responsiveStyles.buttonPadding.x,
-                    paddingTop: responsiveStyles.buttonPadding.y,
-                    paddingBottom: responsiveStyles.buttonPadding.y,
-                    fontSize: `${responsiveStyles.buttonFontSize}rem`,
-                  }}
-                  transition={springTransition}
-                  className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0B hover:bg-base0A hover:scale-105 active:scale-95 transition-all duration-300 text-base00 space-x-2 touch-manipulation"
+                  className="relative p6-button px-10 py-4 bg-base0B hover:bg-base0A text-base00 flex items-center justify-center gap-4"
                 >
-                  <span>Resume</span>
-                  <motion.svg
-                    initial={false}
-                    animate={{ width: responsiveStyles.iconSize, height: responsiveStyles.iconSize }}
-                    transition={springTransition}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="flex-shrink-0"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-                    />
-                  </motion.svg>
+                  <span className="skew-x-12 font-black uppercase italic tracking-tighter text-xl">
+                    Resume
+                  </span>
+                  <div className="relative skew-x-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                  </div>
                 </motion.button>
                 {responsiveStyles.hasKeyboard && (
-                  <span className="text-[10px] font-mono opacity-50 text-base04 hidden sm:block">(r)</span>
+                  <div className="p6-tooltip -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover/btn:opacity-100 transition-opacity">
+                    <span className="p6-tooltip-text">DOSSIER [R]</span>
+                  </div>
                 )}
-              </motion.div>
+              </div>
 
               {/* Contact Button */}
-              <motion.div
-                className="transform rotate-0 sm:rotate-1 hover:rotate-1 sm:hover:rotate-0 active:rotate-0 transition-transform duration-300 flex flex-col items-center gap-1"
-                style={{ width: responsiveStyles.buttonsHorizontal ? 'auto' : '100%' }}
-              >
+              <div className="relative group/btn w-full sm:w-auto">
+                <div className="p6-button-shadow" />
                 <motion.button
                   onTap={handleContactClick}
-                  initial={false}
-                  animate={{
-                    paddingLeft: responsiveStyles.buttonPadding.x,
-                    paddingRight: responsiveStyles.buttonPadding.x,
-                    paddingTop: responsiveStyles.buttonPadding.y,
-                    paddingBottom: responsiveStyles.buttonPadding.y,
-                    fontSize: `${responsiveStyles.buttonFontSize}rem`,
-                  }}
-                  transition={springTransition}
-                  className="inline-flex w-full justify-center rounded-lg shadow-lg items-center bg-base0E hover:bg-base0F hover:scale-105 active:scale-95 transition-all duration-300 text-base00 space-x-2 touch-manipulation"
+                  className="relative p6-button px-10 py-4 bg-base0E hover:bg-base0F text-base00 flex items-center justify-center gap-4"
                 >
-                  <span>Contact</span>
-                  <motion.svg
-                    initial={false}
-                    animate={{ width: responsiveStyles.iconSize, height: responsiveStyles.iconSize }}
-                    transition={springTransition}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="flex-shrink-0"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
-                    />
-                  </motion.svg>
+                  <span className="skew-x-12 font-black uppercase italic tracking-tighter text-xl">
+                    Contact
+                  </span>
+                  <div className="relative skew-x-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                  </div>
                 </motion.button>
                 {responsiveStyles.hasKeyboard && (
-                  <span className="text-[10px] font-mono opacity-50 text-base04 hidden sm:block">(c)</span>
+                  <div className="p6-tooltip -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover/btn:opacity-100 transition-opacity">
+                    <span className="p6-tooltip-text">MESSAGE [C]</span>
+                  </div>
                 )}
-              </motion.div>
+              </div>
             </motion.div>
           </motion.div>
-
-          {/* Minimal spacer for very small screens - reduced when using horizontal layout */}
-          <div className="flex-shrink-0 h-2 sm:h-4 md:h-6
-            h-600:h-2 h-600:sm:h-3 h-600:md:h-4
-            h-550:h-2 h-550:sm:h-2 h-550:md:h-3
-            h-500:h-2 h-500:sm:h-2 h-500:md:h-2
-            h-452:h-1.5 h-452:sm:h-2 h-452:md:h-2
-            h-400:h-1.5 h-400:sm:h-1.5 h-400:md:h-2
-            h-350:h-1 h-350:sm:h-1 h-350:md:h-1.5
-            h-320:h-1 h-320:sm:h-1 h-320:md:h-1
-            h-280:h-1 h-280:sm:h-1 h-280:md:h-1
-            wide-short:h-3 wide-short:sm:h-4"></div>
         </motion.div>
       </LayoutGroup>
 

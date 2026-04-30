@@ -21,16 +21,21 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
 
     // Create a Blob URL from the cached base64 string for instant loading
     const displayUrl = useMemo(() => {
-        if (!cachedResume) return `${pdfUrl}#view=FitH`;
+        const fitParams = '#view=FitH&toolbar=0&navpanes=0';
+        
+        if (!cachedResume) return `${pdfUrl}${fitParams}`;
 
         try {
-            // If it's already a data URL (from FileReader), return it
-            if (cachedResume.startsWith('data:')) return cachedResume;
+            let base64 = cachedResume;
+            // If it's already a data URL (from FileReader), strip the prefix to handle appending params consistently
+            if (base64.startsWith('data:application/pdf;base64,')) {
+                base64 = base64.replace('data:application/pdf;base64,', '');
+            }
 
-            // Otherwise, assume it's raw base64 and wrap it
-            return `data:application/pdf;base64,${cachedResume}`;
+            // Return with FitH parameters appended to the data URL
+            return `data:application/pdf;base64,${base64}${fitParams}`;
         } catch {
-            return `${pdfUrl}#view=FitH`;
+            return `${pdfUrl}${fitParams}`;
         }
     }, [cachedResume]);
 
@@ -75,175 +80,122 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
         }
     };
 
-    if (!mounted) return null;
+  if (!mounted) return null;
 
-    return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center pointer-events-none">
-            {/* Backdrop Container - Handles entry/exit animation */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-0 pointer-events-auto"
-                onClick={onCheckClose}
-            >
-                {/* Real-time Backdrop - Syncs with dragY */}
-                <motion.div
-                    style={{ opacity: backdropOpacity }}
-                    className="absolute top-0 left-0 right-0 bottom-7 sm:bottom-9 bg-black/50 backdrop-blur-sm"
-                />
-            </motion.div>
+  return createPortal(
+    <div className="fixed inset-0 z-[500] flex items-end justify-center sm:items-center p-0 sm:p-4 md:p-8 pointer-events-none">
+      {/* Backdrop Container - Dossier Style */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="absolute inset-0 pointer-events-auto overflow-hidden"
+        onClick={onCheckClose}
+      >
+        <div className="absolute inset-0 bg-base00/70 backdrop-blur-md" />
+        {/* Blue Grid/Blueprint Motif */}
+        <div 
+          className="absolute inset-0 opacity-20 pointer-events-none" 
+          style={{ 
+            backgroundImage: `radial-gradient(var(--base0D) 1px, transparent 1px)`,
+            backgroundSize: '24px 24px'
+          }} 
+        />
+      </motion.div>
 
-            {/* Content Container */}
-            <div className="relative z-10 pointer-events-none w-full h-full sm:h-auto flex items-end justify-center sm:items-center p-0 sm:p-10">
-                <motion.div
-                    initial={{ y: 1000 }}
-                    animate={{ y: 0 }}
-                    exit={{ y: 1000 }}
-                    transition={{ type: "spring", damping: 30, stiffness: 260 }}
-                    drag="y"
-                    dragControls={dragControls}
-                    dragListener={false}
-                    dragConstraints={{ top: 0, bottom: 0 }}
-                    dragElastic={{ top: 0, bottom: 1 }}
-                    style={{ y: dragY }}
-                    onDragEnd={handleDragEnd}
-                    className="relative w-full sm:max-w-5xl bg-base01 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh] sm:h-[85vh] pointer-events-auto"
-                >
-                    {/* Draggable Header Area */}
-                    <div
-                        onPointerDown={(e) => dragControls.start(e)}
-                        className="w-full relative pt-2 pb-4 cursor-grab active:cursor-grabbing shrink-0 touch-none px-4"
-                    >
-                        {/* Drag Handle Indicator */}
-                        <div className="flex items-center justify-center mb-6">
-                            <div className="w-12 h-1.5 bg-base03 rounded-full opacity-50" />
-                        </div>
+      <motion.div
+        initial={{ y: 1000, rotate: -3, scale: 0.95 }}
+        animate={{ y: 0, rotate: 0, scale: 1 }}
+        exit={{ y: 1000, rotate: 3, scale: 0.95 }}
+        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+        drag="y"
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 1 }}
+        style={{ y: dragY }}
+        onDragEnd={handleDragEnd}
+        className="relative w-full sm:max-w-6xl pointer-events-auto flex flex-col h-[95vh] sm:h-[90vh]"
+      >
+        {/* Dossier Folder Shadows */}
+        <div 
+          className="absolute inset-0 bg-base0D translate-x-3 translate-y-3 opacity-40"
+          style={{ clipPath: 'polygon(0% 5%, 15% 0%, 85% 2%, 100% 7%, 98% 100%, 2% 98%)' }}
+        />
+        <div 
+          className="absolute inset-0 bg-base00 translate-x-1.5 translate-y-1.5"
+          style={{ clipPath: 'polygon(2% 7%, 18% 2%, 82% 0%, 98% 5%, 100% 98%, 0% 100%)' }}
+        />
 
-                        {/* Header UI Row: Title and Action Buttons */}
-                        <div className="flex items-center justify-between relative">
-                            {/* Resume Action Buttons */}
-                            <div className="flex items-start gap-2">
-                                <div className="flex flex-col items-center">
-                                    <motion.button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDownload();
-                                        }}
-                                        onPointerDown={(e) => e.stopPropagation()}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="px-3 sm:px-4 py-2 min-w-[44px] rounded-lg bg-base0D hover:bg-base0C text-base00 text-sm transition-colors flex items-center justify-center gap-2 shadow-sm touch-manipulation"
-                                        style={{
-                                            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
-                                        }}
-                                        title="Download Resume (d)"
-                                    >
-                                        {bp.isSm && <span>Download</span>}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth={2}
-                                            stroke="currentColor"
-                                            className="w-5 h-5"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-                                            />
-                                        </svg>
-                                    </motion.button>
-                                    {bp.hasKeyboard && (
-                                        <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
-                                            (d)
-                                        </span>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col items-center">
-                                    <motion.button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleOpenNewTab();
-                                        }}
-                                        onPointerDown={(e) => e.stopPropagation()}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="px-3 py-2 min-w-[44px] rounded-lg bg-base0D hover:bg-base0C text-base00 transition-colors shadow-sm touch-manipulation flex items-center justify-center"
-                                        style={{
-                                            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
-                                        }}
-                                        aria-label="Open Resume in New Tab"
-                                        title="Open in New Tab (v)"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth={1.5}
-                                            stroke="currentColor"
-                                            className="w-5 h-5"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M3.5 9V3.5m0 0H9m-5.5 0l6 6M20.5 9V3.5m0 0H15m5.5 0l-6 6M3.5 15v5.5m0 0H9m-5.5 0l6-6M20.5 15v5.5m0 0H15m5.5 0l-6-6"
-                                            />
-                                        </svg>
-                                    </motion.button>
-                                    {bp.hasKeyboard && (
-                                        <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
-                                            (v)
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Title - Center Aligned */}
-                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
-                                <h2 className="text-xl font-bold text-base05 whitespace-nowrap">Alex&apos;s Resume</h2>
-                            </div>
-
-                            {/* Close Button */}
-                            <div className="flex flex-col items-center">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onCheckClose();
-                                    }}
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
-                                    title="Close (esc)"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                                {bp.hasKeyboard && (
-                                    <span className="text-[10px] font-mono opacity-50 text-base04 mt-1 pointer-events-none whitespace-nowrap bg-base01/50 px-1 rounded">
-                                        (esc)
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 bg-base01 w-full h-full min-h-[400px] border-t border-base02">
-                        <iframe
-                            src={displayUrl}
-                            className="w-full h-full border-none"
-                            title="Resume Preview"
-                        />
-                    </div>
-
-                    {/* Bottom padding for website footer */}
-                    <div className="h-10 sm:h-6 bg-base01 shrink-0" />
-                </motion.div>
+        {/* Main Content Area */}
+        <div 
+          className="relative bg-base01 overflow-hidden flex flex-col h-full"
+          style={{ clipPath: 'polygon(0% 5%, 20% 0%, 80% 2%, 100% 8%, 97% 97%, 3% 100%)' }}
+        >
+          {/* Header - Dossier Tab Style */}
+          <div
+            onPointerDown={(e) => dragControls.start(e)}
+            className="w-full relative bg-base0D py-6 px-8 cursor-grab active:cursor-grabbing shrink-0 touch-none flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden border-b-2 border-base00"
+          >
+            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(45deg, var(--base00) 25%, transparent 25%, transparent 50%, var(--base00) 50%, var(--base00) 75%, transparent 75%, transparent)' , backgroundSize: '4px 4px'}} />
+            
+            <div className="relative flex flex-col items-center sm:items-start">
+              <div className="bg-base00 px-3 py-1 mb-2 -skew-x-12">
+                <span className="text-[10px] font-black text-base0D uppercase tracking-[0.3em] skew-x-12 block">CONFIDANT DATA</span>
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-black text-base00 uppercase italic tracking-tighter leading-none">
+                Alex&apos;s Dossier
+              </h2>
             </div>
-        </div>,
-        document.body
-    );
+
+            <div className="flex items-center gap-3">
+              <div className="relative group">
+                <div className="p6-button-shadow" />
+                <button
+                  onClick={handleDownload}
+                  className="p6-button px-6 py-2 bg-base00 text-base0D border-2 border-base0D flex items-center gap-2 group/btn"
+                >
+                  <svg className="w-5 h-5 skew-x-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                  <span className="text-xs font-black uppercase italic skew-x-12">Download</span>
+                </button>
+              </div>
+
+              <div className="relative group">
+                <div className="p6-button-shadow" />
+                <button
+                  onClick={onCheckClose}
+                  className="p6-button p-2 bg-base08 text-base00"
+                >
+                  <svg className="w-6 h-6 skew-x-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* PDF Viewer Area */}
+          <div className="flex-1 relative bg-base00 flex flex-col overflow-hidden">
+             {/* Dynamic Loading Filter */}
+            <div className="absolute inset-0 pointer-events-none z-10 bg-base0D/5 mix-blend-overlay" />
+            
+            <iframe
+              src={displayUrl}
+              className="w-full h-full border-none filter grayscale-[20%] contrast-[110%]"
+              title="Resume Preview"
+            />
+          </div>
+
+          {/* Footer Bar */}
+          <div className="h-12 bg-base0D/10 flex items-center justify-center border-t-2 border-base0D/20">
+             <span className="text-[10px] font-black text-base04 tracking-[0.5em] uppercase italic">RECORDS ARCHIVE v6.0</span>
+          </div>
+        </div>
+      </motion.div>
+    </div>,
+    document.body
+  );
 }

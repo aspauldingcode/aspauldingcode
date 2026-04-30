@@ -227,30 +227,58 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
     const renderSheetContent = (proj: Project) => {
         const repoData = proj.githubRepo ? githubData?.[proj.githubRepo] : null;
 
+        // Determine Era Motif based on project title (deterministic)
+        const eraSeed = proj.title.length % 3; // 0 = P3, 1 = P4, 2 = P5
+        const eraColor = eraSeed === 0 ? 'var(--base0D)' : eraSeed === 1 ? 'var(--base0A)' : 'var(--base08)';
+        const eraLabel = eraSeed === 0 ? 'P3 ERA' : eraSeed === 1 ? 'P4 ERA' : 'P5 ERA';
+
         return (
-            <div className="fixed inset-0 z-[200] flex items-end justify-center pointer-events-none">
-                {/* Backdrop Container */}
+            <div className="fixed inset-0 z-[250] flex items-end justify-center pointer-events-none">
+                {/* Backdrop Container - Era Varied */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="absolute inset-0 pointer-events-auto"
+                    className="absolute inset-0 pointer-events-auto overflow-hidden"
                     onClick={onClose}
                 >
-                    {/* Real-time Backdrop - Syncs with dragY */}
                     <motion.div
                         style={{ opacity: backdropOpacity }}
                         className="absolute inset-0 bg-base00/90 backdrop-blur-md touch-none"
                     />
+                    
+                    {/* Era Specific Background Motifs */}
+                    <AnimatePresence>
+                        {eraSeed === 0 && ( // P3: Gears & Blue
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} exit={{ opacity: 0 }} className="absolute inset-0 pointer-events-none">
+                                <div className="absolute top-10 right-10 w-64 h-64 border-8 border-base0D rounded-full opacity-20 animate-[spin_20s_linear_infinite]" style={{ borderStyle: 'dashed' }} />
+                                <div className="absolute bottom-20 left-10 w-96 h-96 border-4 border-base0D rounded-full opacity-10 animate-[spin_35s_linear_infinite_reverse]" style={{ borderStyle: 'dotted' }} />
+                            </motion.div>
+                        )}
+                        {eraSeed === 1 && ( // P4: TV & Yellow
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} exit={{ opacity: 0 }} className="absolute inset-0 pointer-events-none">
+                                <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, var(--base0A) 1px, var(--base0A) 2px)', backgroundSize: '100% 4px', opacity: 0.1 }} />
+                                <div className="absolute top-20 left-1/4 w-32 h-32 border-4 border-base0A opacity-20 rotate-45 animate-pulse" />
+                                <div className="absolute bottom-40 right-1/4 w-48 h-48 border-4 border-base0A opacity-20 -rotate-12 animate-bounce" />
+                            </motion.div>
+                        )}
+                        {eraSeed === 2 && ( // P5: Stars & Red
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} exit={{ opacity: 0 }} className="absolute inset-0 pointer-events-none">
+                                <div className="absolute inset-0 halftone-bg opacity-20" />
+                                <div className="absolute top-1/4 right-1/4 text-base08 opacity-20 text-9xl animate-spin">★</div>
+                                <div className="absolute bottom-1/4 left-1/4 text-base08 opacity-10 text-8xl animate-pulse">★</div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
 
-                {/* Sheet Container */}
+                {/* Sheet Container - Era Modified */}
                 <motion.div
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: "spring", damping: 30, stiffness: 260 }}
+                    initial={{ y: "100%", rotate: eraSeed === 0 ? -2 : eraSeed === 1 ? 0 : 2 }}
+                    animate={{ y: 0, rotate: 0 }}
+                    exit={{ y: "100%", rotate: eraSeed === 0 ? 2 : eraSeed === 1 ? 0 : -2 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 180 }}
                     drag="y"
                     dragControls={dragControls}
                     dragListener={false}
@@ -258,270 +286,130 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                     dragElastic={{ top: 0, bottom: 1 }}
                     style={{ y: dragY }}
                     onDragEnd={handleDragEnd}
-                    className="relative w-full sm:max-w-5xl h-[96dvh] sm:h-[94dvh] bg-base01 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-base02 pointer-events-auto will-change-transform"
+                    className={`relative w-full sm:max-w-6xl h-[96dvh] sm:h-[94dvh] bg-base01 shadow-2xl overflow-hidden flex flex-col border-t-8 pointer-events-auto will-change-transform`}
+                    style={{ 
+                        borderColor: eraColor,
+                        clipPath: eraSeed === 0 ? 'none' : eraSeed === 1 ? 'polygon(0% 2%, 100% 0%, 100% 98%, 0% 100%)' : 'polygon(0% 0%, 100% 3%, 97% 100%, 3% 97%)'
+                    }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Draggable Header (Overlay) */}
                     <div
                         onPointerDown={(e) => dragControls.start(e)}
-                        className="absolute top-0 left-0 right-0 pt-4 pb-10 cursor-grab active:cursor-grabbing shrink-0 touch-none px-4 bg-gradient-to-b from-base00/10 to-transparent z-[200] pointer-events-auto"
+                        className="absolute top-0 left-0 right-0 pt-4 pb-12 cursor-grab active:cursor-grabbing shrink-0 touch-none px-6 z-[200] pointer-events-auto flex items-center justify-between"
                     >
-                        {/* Drag Handle Indicator */}
-                        <div className="flex items-center justify-center mb-6 touch-none py-2">
-                            <div className="w-12 h-1.5 bg-base05/80 rounded-full" />
+                        <div className="flex items-center gap-4">
+                            <div className="bg-base00 px-3 py-1 -skew-x-12 border border-base05 shadow-[4px_4px_0px_var(--base08)]">
+                                <span className="text-[10px] font-black text-base05 uppercase italic skew-x-12 block tracking-widest">{eraLabel}</span>
+                            </div>
                         </div>
 
-                        {/* Header UI Row */}
-                        <div className="flex items-center justify-end relative">
-                            {/* Close Button */}
+                        {/* Close Button - Era Style */}
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1" style={{ backgroundColor: eraColor }} />
                             <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onClose();
-                                }}
-                                className="p-3 bg-black/50 hover:bg-black/80 backdrop-blur-md rounded-full text-white shadow-lg transition-all border border-white/10 group touch-manipulation relative"
-                                title="Close (Esc)"
+                                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                                className="relative px-6 py-2 bg-base00 text-base05 -skew-x-12 hover:scale-105 transition-all border-2 border-base05 font-black uppercase italic tracking-tighter text-sm flex items-center gap-2"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                {bp.hasKeyboard && (
-                                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-[10px] font-sans opacity-0 group-hover:opacity-100 transition-opacity text-white/70 bg-black/60 px-2 py-0.5 rounded backdrop-blur-md pointer-events-none whitespace-nowrap">
-                                        (Esc)
-                                    </span>
-                                )}
+                                <span className="skew-x-12">Close [ESC]</span>
                             </button>
                         </div>
                     </div>
 
                     {/* Scrollable Content */}
-                    <div ref={scrollRef} className={`flex-1 overflow-x-hidden pb-10 ${isDragging ? 'overflow-y-hidden' : 'overflow-y-auto'}`} style={{ overscrollBehaviorX: 'contain' }}>
+                    <div ref={scrollRef} className={`flex-1 overflow-x-hidden pb-10 ${isDragging ? 'overflow-y-hidden' : 'overflow-y-auto'} projects-scroll`} style={{ overscrollBehaviorX: 'contain' }}>
                         {/* Hero / Carousel Section */}
-                        <div className="relative w-full h-[50vh] sm:h-[60vh] bg-base00 border-b border-base02 overflow-hidden transition-colors duration-500">
-                            {/* Dynamic Background */}
+                        <div className="relative w-full h-[50vh] sm:h-[65vh] bg-base00 border-b-4 border-base02 overflow-hidden">
+                            <div className="absolute inset-0 halftone-bg opacity-10 z-10 pointer-events-none mix-blend-overlay" />
                             <SwirlingBackdrop colors={extractedColors} />
 
                             {proj.images && proj.images.length > 0 ? (
-                                proj.images.length > 1 ? (
-                                    <div className="h-full project-sheet-slider relative">
-                                        <SheetPrevArrow onClick={goToPrev} currentSlide={currentSlide} hasKeyboard={bp.hasKeyboard} />
-                                        <SheetNextArrow onClick={goToNext} currentSlide={currentSlide} slideCount={proj.images?.length} hasKeyboard={bp.hasKeyboard} />
+                                <div className="h-full project-sheet-slider relative">
+                                    {proj.images.length > 1 && (
+                                        <>
+                                            <button onClick={goToPrev} disabled={currentSlide === 0} className="absolute left-6 top-1/2 -translate-y-1/2 z-[70] p-4 bg-base00 text-base05 -skew-x-12 border-2 border-base05 shadow-[4px_4px_0px_var(--base08)] disabled:opacity-30 transition-all hover:-translate-x-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6 skew-x-12"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                                            </button>
+                                            <button onClick={goToNext} disabled={currentSlide >= imageCount - 1} className="absolute right-6 top-1/2 -translate-y-1/2 z-[70] p-4 bg-base00 text-base05 -skew-x-12 border-2 border-base05 shadow-[4px_4px_0px_var(--base08)] disabled:opacity-30 transition-all hover:translate-x-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6 skew-x-12"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                                            </button>
+                                        </>
+                                    )}
 
-                                        <div
-                                            ref={swipeAreaRef}
-                                            className="relative h-full overflow-hidden select-none"
-                                            style={{
-                                                cursor: imageCount > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                                                touchAction: 'pan-y pinch-zoom',
-                                                overscrollBehaviorX: 'contain',
-                                            }}
-                                            onMouseDown={handleMouseDown}
-                                            onMouseMove={handleMouseMove}
-                                            onMouseUp={handleMouseUp}
-                                            onMouseLeave={handleMouseLeave}
-                                            onTouchStart={handleTouchStart}
-                                            onTouchEnd={handleTouchEnd}
-                                            onDragStart={(e) => e.preventDefault()}
-                                        >
-                                            <div
-                                                ref={sliderRef}
-                                                className="flex h-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                                                style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)`, willChange: 'transform' }}
-                                            >
-                                                {proj.images.map((img, idx) => {
-                                                    const imageKey = `${img}-${idx}`;
-                                                    const isLoaded = !!loadedSlides[imageKey];
-                                                    return (
-                                                        <div key={imageKey} className="h-[50vh] sm:h-[60vh] relative w-full shrink-0 outline-none focus:outline-none">
-                                                            <div
-                                                                className={`absolute inset-0 animate-shimmer transition-opacity duration-700 ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
-                                                                style={{
-                                                                    backgroundSize: '200% 100%',
-                                                                    backgroundImage: 'linear-gradient(to right, rgba(56,56,56,1), rgba(40,40,40,1), rgba(56,56,56,1))'
-                                                                }}
-                                                            />
-                                                            <Image
-                                                                src={img}
-                                                                alt={`${proj.title} screenshot ${idx + 1}`}
-                                                                fill
-                                                                className={`object-contain transition-all duration-700 ${isLoaded ? 'blur-0 opacity-100' : idx === 0 ? 'blur-md opacity-70 scale-[1.02]' : 'blur-xl opacity-0 scale-105'}`}
-                                                                sizes={SHEET_IMAGE_SIZES}
-                                                                quality={imageQuality}
-                                                                priority={idx === 0}
-                                                                onLoad={() => {
-                                                                    setLoadedSlides((prev) => ({ ...prev, [imageKey]: true }));
-                                                                    if (idx === 0 && firstImageReportedRef.current !== proj.title && typeof window !== 'undefined' && typeof performance !== 'undefined') {
-                                                                        firstImageReportedRef.current = proj.title;
-                                                                        performance.mark('project-sheet-first-image-visible');
-                                                                        const perfState = (window as Window & { __projectSheetPerf?: { intentAt?: number } }).__projectSheetPerf;
-                                                                        const now = performance.now();
-                                                                        const tapToVisible = perfState?.intentAt ? Math.round(now - perfState.intentAt) : null;
-                                                                        if (process.env.NODE_ENV !== 'production') {
-                                                                            console.info('[ProjectSheetPerf]', {
-                                                                                project: proj.title,
-                                                                                tapToFirstImageMs: tapToVisible,
-                                                                            });
-                                                                        }
-                                                                    }
-                                                                }}
-                                                            />
+                                    <div ref={swipeAreaRef} className="relative h-full overflow-hidden select-none" style={{ cursor: imageCount > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default', touchAction: 'pan-y pinch-zoom' }} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseLeave} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                                        <div ref={sliderRef} className="flex h-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)`, willChange: 'transform' }}>
+                                            {proj.images.map((img, idx) => (
+                                                <div key={idx} className="h-full relative w-full shrink-0">
+                                                    <Image src={img} alt={proj.title} fill className={`object-contain transition-all duration-700 ${loadedSlides[`${img}-${idx}`] ? 'blur-0 opacity-100' : 'blur-xl opacity-0'}`} sizes={SHEET_IMAGE_SIZES} quality={imageQuality} priority={idx === 0} onLoad={() => setLoadedSlides(prev => ({ ...prev, [`${img}-${idx}`]: true }))} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    {imageCount > 1 && (
+                                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[70] flex gap-3">
+                                            {proj.images.map((_, i) => (
+                                                <div key={i} className={`h-2 -skew-x-12 border border-base00 transition-all duration-300 ${i === currentSlide ? 'w-8' : 'w-2 bg-base03'}`} style={{ backgroundColor: i === currentSlide ? eraColor : '' }} />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : null}
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="relative -mt-12 px-6 sm:px-12 max-w-5xl mx-auto z-10">
+                            <div className="relative mb-12">
+                                <div className="absolute inset-0 bg-base00 -skew-x-1 translate-x-3 translate-y-3 opacity-20" />
+                                <div className="relative bg-base01 border-2 border-base00 p-8 sm:p-12 -skew-x-1 shadow-2xl">
+                                    <div className="flex flex-col gap-8 skew-x-1">
+                                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8">
+                                            <div className="space-y-4">
+                                                <div className="inline-block px-4 py-1 -skew-x-12 border border-base00" style={{ backgroundColor: eraColor }}>
+                                                    <span className="text-xs font-black uppercase italic tracking-widest text-base00 skew-x-12 block">{proj.threeWordDescriptor}</span>
+                                                </div>
+                                                <h1 className="text-5xl sm:text-7xl font-black text-base05 uppercase italic leading-[0.8] tracking-tighter drop-shadow-[6px_6px_0px_var(--base00)]">{proj.title}</h1>
+                                            </div>
+
+                                            <div className="flex gap-4">
+                                                {proj.githubRepo && (
+                                                    <a href={proj.githubRepo} target="_blank" rel="noopener noreferrer" className="relative group/btn">
+                                                        <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1" />
+                                                        <div className="relative px-6 py-3 bg-base02 text-base05 -skew-x-12 border-2 border-base00 group-hover/btn:bg-base03 transition-all flex items-center gap-3">
+                                                            <span className="font-nerd text-2xl skew-x-12"></span>
+                                                            <span className="text-sm font-black uppercase italic skew-x-12">Source</span>
                                                         </div>
-                                                    );
-                                                })}
+                                                    </a>
+                                                )}
+                                                {proj.link && (
+                                                    <a href={proj.link} target="_blank" rel="noopener noreferrer" className="relative group/btn">
+                                                        <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1" />
+                                                        <div className="relative px-6 py-3 -skew-x-12 border-2 border-base00 group-hover/btn:brightness-110 transition-all flex items-center gap-3" style={{ backgroundColor: eraColor, color: 'var(--base00)' }}>
+                                                            <span className="font-nerd text-2xl skew-x-12">󰖟</span>
+                                                            <span className="text-sm font-black uppercase italic skew-x-12">Live View</span>
+                                                        </div>
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
 
-                                        <div
-                                            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[70] flex items-center rounded-full"
-                                            style={{
-                                                gap: '8px',
-                                                padding: '5px 8px',
-                                                background: 'rgba(24, 24, 24, 0.8)',
-                                                backdropFilter: 'blur(12px)',
-                                                WebkitBackdropFilter: 'blur(12px)',
-                                                border: '1px solid rgba(255, 255, 255, 0.22)',
-                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                                            }}
-                                        >
-                                            {imageCount === 2 ? (
-                                                [0, 1].map((i) => (
-                                                    <button
-                                                        key={`sheet-dot-${i}`}
-                                                        type="button"
-                                                        onClick={() => { if (i > currentSlide) goToNext(); if (i < currentSlide) goToPrev(); }}
-                                                        className="h-2 rounded-[4px] border-none p-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                                                        style={{
-                                                            width: currentSlide === i ? '24px' : '8px',
-                                                            background: currentSlide === i ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                                                            boxShadow: currentSlide === i ? '0 0 8px rgba(255, 255, 255, 0.5)' : 'none',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <div className="relative overflow-hidden" style={{ width: '72px', height: '18px', margin: '-5px -8px' }}>
-                                                    <div
-                                                        className="absolute inset-y-0 flex items-center transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                                                        style={{
-                                                            gap: '8px',
-                                                            transform: `translateX(${8 - dotWindowStart * 16}px)`
-                                                        }}
-                                                    >
-                                                        {proj.images.map((_, i) => (
-                                                            <div
-                                                                key={`sheet-dot-${i}`}
-                                                                className="h-2 shrink-0 rounded-[4px] transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                                                                style={{
-                                                                    width: currentSlide === i ? '24px' : '8px',
-                                                                    background: currentSlide === i ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                                                                    boxShadow: currentSlide === i ? '0 0 8px rgba(255, 255, 255, 0.5)' : 'none',
-                                                                }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <button type="button" className="absolute inset-y-0 left-0 bg-transparent border-none p-0 z-10" style={{ width: '33%', cursor: currentSlide === 0 ? 'default' : 'pointer' }} disabled={currentSlide === 0} onClick={goToPrev} aria-label="Previous image" />
-                                                    <button type="button" className="absolute inset-y-0 bg-transparent border-none p-0 z-10" style={{ left: '33%', width: '34%', cursor: (currentSlide === 0 || currentSlide === imageCount - 1) ? 'pointer' : 'default' }} disabled={currentSlide > 0 && currentSlide < imageCount - 1} onClick={() => { if (currentSlide === 0) goToNext(); else if (currentSlide === imageCount - 1) goToPrev(); }} aria-label="Navigate" />
-                                                    <button type="button" className="absolute inset-y-0 right-0 bg-transparent border-none p-0 z-10" style={{ width: '33%', cursor: currentSlide >= imageCount - 1 ? 'default' : 'pointer' }} disabled={currentSlide >= imageCount - 1} onClick={goToNext} aria-label="Next image" />
+                                        <div className="flex flex-wrap items-center gap-6 text-xs font-black uppercase italic tracking-widest text-base04">
+                                            {proj.startYear && <span className="bg-base02 px-3 py-1.5 border border-base00">{proj.startYear === proj.endYear ? proj.startYear : `${proj.startYear} - ${proj.endYear || 'Present'}`}</span>}
+                                            {repoData && (
+                                                <div className="flex gap-6">
+                                                    <span className="flex items-center gap-2 border-b-4 border-base0A pb-1"><span className="font-nerd text-lg">󰓎</span> {repoData.stargazers_count}</span>
+                                                    <span className="flex items-center gap-2 border-b-4 border-base0B pb-1"><span className="font-nerd text-lg">󰓁</span> {repoData.forks_count}</span>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="h-full relative">
-                                        <Image
-                                            src={proj.images[0]}
-                                            alt={proj.title}
-                                            fill
-                                            className="object-contain"
-                                            sizes={SHEET_IMAGE_SIZES}
-                                            quality={imageQuality}
-                                            priority
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-base01 via-transparent to-transparent opacity-60" />
-                                    </div>
-                                )
-                            ) : (
-                                <div className="h-full flex items-center justify-center text-base04">
-                                    No Preview Available
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Article Content */}
-                        <div className="relative -mt-12 pl-[calc(1.5rem+var(--safe-left))] pr-[calc(1.5rem+var(--safe-right))] sm:pl-[calc(3rem+var(--safe-left))] sm:pr-[calc(3rem+var(--safe-right))] pb-[calc(5rem+var(--safe-bottom))] max-w-3xl mx-auto z-10">
-                            {/* Header Card */}
-                            <div className="bg-base01/90 backdrop-blur-md border border-base02 p-6 sm:p-8 rounded-2xl shadow-xl mb-8">
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
-                                        <h1 className="text-3xl sm:text-4xl font-bold text-base05">{proj.title}</h1>
-                                        <div className="flex gap-2">
-                                            {proj.githubRepo && (
-                                                <a
-                                                    href={proj.githubRepo}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 px-3 py-2 bg-base02 rounded-lg hover:bg-base03 transition-colors text-base05 group/github"
-                                                    title="View Source"
-                                                >
-                                                    <span className="font-nerd text-xl"></span>
-                                                    <span className="text-sm font-semibold">View Source</span>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 opacity-60 group-hover/github:opacity-100 transition-opacity">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                                                    </svg>
-                                                </a>
-                                            )}
-                                            {proj.link && (
-                                                <a
-                                                    href={proj.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-2 bg-base0D rounded-full hover:bg-base0C transition-colors text-base01"
-                                                    title="Visit Live Site"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                                                    </svg>
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center gap-4 text-sm font-mono text-base04">
-                                        {proj.startYear && (
-                                            <span className="bg-base02 px-2 py-1 rounded">
-                                                {proj.startYear === proj.endYear ? proj.startYear : `${proj.startYear} - ${proj.endYear || 'Present'}`}
-                                            </span>
-                                        )}
-
-                                        {repoData && (
-                                            <>
-                                                {repoData.stargazers_count > 0 && (
-                                                    <span className="flex items-center gap-1">
-                                                        <span className="font-nerd">󰓎</span> {repoData.stargazers_count} stars
-                                                    </span>
-                                                )}
-                                                {repoData.forks_count > 0 && (
-                                                    <span className="flex items-center gap-1">
-                                                        <span className="font-nerd">󰓁</span> {repoData.forks_count} forks
-                                                    </span>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
-
-                                    <div className="h-px w-full bg-base02/50 my-2" />
-
-                                    <div className="text-base0D font-bold uppercase tracking-wider text-sm">
-                                        {proj.threeWordDescriptor}
-                                    </div>
                                 </div>
                             </div>
 
-                            {/* Description Body */}
-                            <div className="prose prose-invert prose-lg max-w-none text-base05/90 leading-relaxed font-sans">
-                                <p className="whitespace-pre-wrap">{proj.description}</p>
+                            <div className="relative bg-base00 p-10 border-l-8 shadow-2xl mb-16" style={{ borderColor: eraColor }}>
+                                <p className="text-xl sm:text-2xl text-base05/95 leading-relaxed font-bold italic uppercase tracking-tight whitespace-pre-wrap">{proj.description}</p>
+                                <div className="absolute bottom-0 right-0 w-12 h-12 -skew-x-[45deg] translate-x-6 translate-y-6" style={{ backgroundColor: eraColor }} />
                             </div>
-
                         </div>
                     </div>
                 </motion.div>

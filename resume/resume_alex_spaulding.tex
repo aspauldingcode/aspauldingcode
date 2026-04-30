@@ -100,7 +100,7 @@
 
 % Renders the FontAwesome star visually but substitutes "stars" in the
 % PDF text layer so ATS extractors see a real word instead of a symbol glyph.
-\newcommand{\atsstar}{\BeginAccSupp{ActualText=stars}\faStar{}\EndAccSupp{}}
+\newcommand{\atsstar}{\BeginAccSupp{ActualText=stars}\textnormal{\faStar{}}\EndAccSupp{}}
 
 \newcommand{\resumeSubHeadingListStart}{%
     \begin{itemize}[leftmargin=0pt, label={}]%
@@ -216,7 +216,7 @@
       {\link{https://github.com/aspauldingcode/apple-sharpener}{GitHub}}
       \resumeProjectItemListStart
         \item {Built a macOS customization tool (\textbf{269 stars}); resolved 
-        \textbf{15+ critical bugs} via low-level profiling, Objective-C 
+        \textbf{21+ critical bugs} via low-level profiling, Objective-C 
         runtime hooks, and Mach-O patching.}
       \resumeProjectItemListEnd
 

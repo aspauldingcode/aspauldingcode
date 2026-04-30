@@ -129,6 +129,108 @@
   monospace !important;
 }
 
+.font-kanit {
+  font-family: 'Kanit', sans-serif !important;
+}
+
+/* Persona 6 Stylization Utilities */
+@utility halftone-bg {
+  background-image: radial-gradient(var(--base03) 1px, transparent 0);
+  background-size: 10px 10px;
+}
+
+@utility persona-skew {
+  transform: skewX(-12deg);
+}
+
+@utility persona-skew-rev {
+  transform: skewX(12deg);
+}
+
+@utility persona-border {
+  border: 3px solid var(--base05);
+  box-shadow: 6px 6px 0px var(--base08);
+}
+
+/* Persona 6 Global Scrollbar */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--base00);
+    border-left: 1px solid var(--base02);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--base02);
+    border: 2px solid var(--base00);
+    transition: background 0.3s;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--base09);
+  }
+
+  /* Hyper-Stylized Persona Scroller */
+  .projects-scroll::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  .projects-scroll::-webkit-scrollbar-track {
+    background: var(--base00);
+    border-left: 2px solid var(--base02);
+    /* Subtle Halftone in Track */
+    background-image: radial-gradient(var(--base01) 1px, transparent 0);
+    background-size: 4px 4px;
+  }
+  .projects-scroll::-webkit-scrollbar-thumb {
+    background: var(--base05);
+    border: 2px solid var(--base00);
+    /* Tapered Wedge Shape: Narrower at top (40%), Wider at bottom (100%) */
+    clip-path: polygon(40% 0%, 100% 0%, 100% 100%, 0% 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    border-radius: 2px;
+  }
+  .projects-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--base09);
+    /* Flip the deformation on hover for a kinetic feel */
+    clip-path: polygon(0% 0%, 100% 10%, 60% 100%, 0% 100%);
+    cursor: grab;
+  }
+  .projects-scroll::-webkit-scrollbar-thumb:active {
+    background: var(--base08);
+    cursor: grabbing;
+  }
+}
+
+/* Unified Persona 6 UI Components */
+@layer components {
+  .p6-button {
+    @apply relative -skew-x-12 border-2 border-base00 transition-all duration-500 active:scale-95 touch-manipulation overflow-hidden;
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+  }
+
+  .p6-button:hover {
+    clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%);
+  }
+
+  .p6-button-shadow {
+    @apply absolute inset-0 bg-base00 -skew-x-12 translate-x-1.5 translate-y-1.5 border-2 border-base0D opacity-50 transition-all duration-300 group-hover:translate-x-2 group-hover:translate-y-2 group-hover:opacity-100;
+  }
+
+  .p6-tooltip {
+    @apply absolute px-3 py-1 bg-base00 text-base05 text-[10px] font-black uppercase italic tracking-widest border-2 border-base09 -skew-x-12 pointer-events-none whitespace-nowrap shadow-[4px_4px_0px_var(--base08)] z-[300];
+  }
+
+  .p6-tooltip-text {
+    @apply skew-x-12 block;
+  }
+}
+
 /* Animation Keyframes */
 @keyframes fadeIn {
   from {

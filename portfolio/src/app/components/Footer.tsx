@@ -254,63 +254,72 @@ export default function Footer() {
       </span>
     </>
   );
-
   /* ------------------------------------------------------------
    * Render
    * ------------------------------------------------------------ */
   return (
     <>
       <footer
-        className="fixed bottom-0 left-0 w-full pt-1 pb-[calc(0.25rem+var(--safe-bottom))] sm:pt-2 sm:pb-[calc(0.5rem+var(--safe-bottom))] text-center text-base04 text-[10px] xs:text-xs sm:text-xs bg-base00/80 backdrop-blur-sm z-[60] border-t border-base02 transition-opacity duration-300 overflow-hidden"
+        className="fixed bottom-0 left-0 w-full z-[150] transition-opacity duration-300"
         style={{
           opacity: mounted ? 1 : 0,
-          transform: 'translate3d(0,0,0)',
-          WebkitTransform: 'translate3d(0,0,0)',
         }}
       >
-        {mounted && (
-          <>
-            {/* Hidden measurement element - always unwrapped for accurate width measurement */}
-            <div
-              ref={measureRef}
-              className="absolute top-0 left-0 opacity-0 pointer-events-none flex whitespace-nowrap"
-              aria-hidden="true"
-              style={{ visibility: 'hidden', position: 'absolute' }}
-            >
-              <p className="px-2 leading-tight inline-flex">{footerText}</p>
-            </div>
-            <div
-              ref={containerRef}
-              className="relative w-full h-5 overflow-hidden"
-              onMouseEnter={pauseScroll}
-              onMouseLeave={resumeScroll}
-              onTouchStart={pauseScroll}
-              onTouchEnd={resumeScroll}
-            >
-              <div
-                ref={textRef}
-                className={`flex ${shouldScroll
-                  ? 'whitespace-nowrap billboard-scroll'
-                  : 'justify-center flex-wrap'
-                  }`}
-              >
-                <p className="px-2 leading-tight inline-flex">{footerText}</p>
+        {/* Persona Decorative Slant */}
+        <div className="absolute inset-0 bg-base00 border-t-4 border-base09 -skew-y-1 shadow-[0_-8px_16px_rgba(0,0,0,0.5)] overflow-hidden">
+          <div className="absolute inset-0 halftone-bg opacity-10" />
+        </div>
 
-                {shouldScroll && (
-                  <>
-                    <span className="whitespace-pre inline-flex" aria-label="Loop to start">{'→ '}</span>
-                    <p
-                      className="pl-0 pr-2 leading-tight inline-flex"
-                      aria-hidden="true"
-                    >
-                      {footerText}
-                    </p>
-                  </>
-                )}
+        <div className="relative pt-3 pb-[calc(0.75rem+var(--safe-bottom))] px-4 overflow-hidden">
+          {mounted && (
+            <>
+              {/* Hidden measurement element */}
+              <div
+                ref={measureRef}
+                className="absolute top-0 left-0 opacity-0 pointer-events-none flex whitespace-nowrap"
+                aria-hidden="true"
+                style={{ visibility: 'hidden', position: 'absolute' }}
+              >
+                <div className="px-6 flex items-center gap-4 text-xs font-black uppercase italic tracking-tighter">
+                  {footerText}
+                </div>
               </div>
-            </div>
-          </>
-        )}
+
+              <div
+                ref={containerRef}
+                className="relative w-full h-6 overflow-hidden flex items-center"
+                onMouseEnter={pauseScroll}
+                onMouseLeave={resumeScroll}
+                onTouchStart={pauseScroll}
+                onTouchEnd={resumeScroll}
+              >
+                <div
+                  ref={textRef}
+                  className={`flex items-center gap-6 ${shouldScroll
+                    ? 'whitespace-nowrap'
+                    : 'justify-center w-full'
+                    }`}
+                >
+                  <div className="px-6 flex items-center gap-6 text-xs font-black uppercase italic tracking-tighter text-base05">
+                    {footerText}
+                  </div>
+
+                  {shouldScroll && (
+                    <>
+                      <div className="text-base09 font-black skew-x-12 mx-4">{" >>> "}</div>
+                      <div
+                        className="px-6 flex items-center gap-6 text-xs font-black uppercase italic tracking-tighter text-base05"
+                        aria-hidden="true"
+                      >
+                        {footerText}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </footer>
 
       <style jsx global>{`
