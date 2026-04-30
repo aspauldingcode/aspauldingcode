@@ -284,13 +284,13 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                     dragListener={false}
                     dragConstraints={{ top: 0, bottom: 0 }}
                     dragElastic={{ top: 0, bottom: 1 }}
-                    style={{ y: dragY }}
-                    onDragEnd={handleDragEnd}
-                    className={`relative w-full sm:max-w-6xl h-[96dvh] sm:h-[94dvh] bg-base01 shadow-2xl overflow-hidden flex flex-col border-t-8 pointer-events-auto will-change-transform`}
                     style={{ 
+                        y: dragY,
                         borderColor: eraColor,
                         clipPath: eraSeed === 0 ? 'none' : eraSeed === 1 ? 'polygon(0% 2%, 100% 0%, 100% 98%, 0% 100%)' : 'polygon(0% 0%, 100% 3%, 97% 100%, 3% 97%)'
                     }}
+                    onDragEnd={handleDragEnd}
+                    className={`relative w-full sm:max-w-6xl h-[96dvh] sm:h-[94dvh] bg-base01 shadow-2xl overflow-hidden flex flex-col border-t-8 pointer-events-auto will-change-transform`}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Draggable Header (Overlay) */}
