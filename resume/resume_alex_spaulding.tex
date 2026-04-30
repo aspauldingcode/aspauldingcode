@@ -44,8 +44,6 @@
 % --- PAGE GEOMETRY & LAYOUT ---
 \geometry{
     margin=0.15in, 
-    top=0.3in, 
-    bottom=0.3in, 
     includefoot, 
     footskip=12pt
 }
@@ -61,7 +59,7 @@
 \titleformat{\section}{\resumesubtitle}{}{0em}{}[\color{cvaccent}\titlerule]
 \titlespacing{\section}{0pt}{2pt}{3pt}
 
-% --- GLOBAL LIST SETTINGS (4/5THS WIDTH RULE) ---
+% --- GLOBAL LIST SETTINGS (6/7THS WIDTH RULE) ---
 \setlist[itemize]{
     noitemsep, 
     topsep=0pt, 
@@ -80,6 +78,7 @@
 \newcommand{\resumesubtitleII}[1]{{\normalsize\textbf{#1}}} 
 \newcommand{\resumesubtitleIII}[1]{{\small\textit{#1}}}     
 \newcommand{\resumesubtitleIV}[1]{{\small\textit{#1}}}      
+\newcommand{\resumedate}[1]{{\small\texttt{#1}}}           
 
 % --- STYLISTIC DOTTED DIVIDER ---
 \newcommand{\stylisticdots}{%
@@ -92,7 +91,7 @@
 \newcommand{\resumeSubheading}[4]{
   \item
     \resumesubtitleII{#1} \hfill \resumesubtitleIV{#4} \\
-    \resumesubtitleIII{#3} \stylisticdots \resumesubtitleIV{#2}
+    \resumesubtitleIII{#3} \stylisticdots \resumedate{#2}
 }
 
 \newcommand{\link}[2]{%
@@ -109,11 +108,11 @@
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
 
 \newcommand{\resumeItemListStart}{%
-    \begin{itemize}[leftmargin=3ex, labelsep=0.5em, rightmargin=0.2\textwidth]%
+    \begin{itemize}[leftmargin=3ex, labelsep=0.5em, rightmargin=0.143\textwidth]%
     \small%
 }
 \newcommand{\resumeProjectItemListStart}{%
-    \begin{itemize}[leftmargin=3ex, labelsep=0.5em, rightmargin=0.2\textwidth]%
+    \begin{itemize}[leftmargin=3ex, labelsep=0.5em, rightmargin=0.143\textwidth]%
     \small%
 }
 \newcommand{\resumeItemListEnd}{\end{itemize}}
@@ -121,7 +120,7 @@
 
 \newcommand{\resumeLeadershipItem}[3]{
   \item
-    \resumesubtitleII{#1} -- #2 \stylisticdots \resumesubtitleIV{#3}
+    \resumesubtitleII{#1} -- #2 \stylisticdots \resumedate{#3}
 }
 
 % --- USER DATA ---
@@ -173,15 +172,18 @@
   \resumeSubHeadingListStart
     \resumeSubheading
       {Eastern Washington University}{Feb 2025 -- Present}%
-      {BS in Computer Science, Math Minor}{Spokane, WA}
+      {Bachelor of Science (BS) in Computer Science, Math Minor}{Spokane, WA}
       \resumeItemListStart
-        \item {\textbf{Relevant Coursework}{: Operating Systems, Algorithms, 
-        Relational Databases, Networks, Cybersecurity, Computer Architecture}}
+        \item {\textbf{Relevant Coursework}{: Algorithms, Computer Architecture, 
+        C \& UNIX Programming, Cybersecurity, Relational Databases, Computer Networks}}
       \resumeItemListEnd
     \resumeSubheading
       {The University of Montana}{Sep 2021 -- 2024}%
-      {CS Coursework: Operating Systems \& CLI, Data Structures, 
-      Software Principles I \& II}{Missoula, MT}
+      {Some College}{Missoula, MT}
+      \resumeItemListStart
+        \item {\textbf{Relevant Coursework}{: Data Structures, 
+        Software Principles I \& II, Operating Systems \& Command Line Interface}}
+      \resumeItemListEnd
   \resumeSubHeadingListEnd
 
 % --- TECHNICAL SKILLS ---
@@ -190,17 +192,19 @@
      leftmargin=3ex, 
      label={}, 
      labelsep=0pt, 
-     rightmargin=0.2\textwidth%
+     rightmargin=0.143\textwidth%
  ]
      \small
      \item \textbf{Languages}{: C, C++, Rust, Swift, Python, Java, 
      JavaScript/TypeScript, SQL, Bash, Nix}
-     \item \textbf{Systems \& Security}{: Unix, IPC, macOS/iOS internals, 
-     Reverse Engineering, Mach-O, Kernel/Runtime Mods, Git, CI/CD}
-     \item \textbf{AI Integration}{: OpenAI APIs, LLM integration, Whisper, 
-     GPT, Text-to-Speech synthesis}
+     \item \textbf{Systems \& Security}{: Unix, Inter-Process Communication 
+     (IPC), macOS/iOS internals, Reverse Engineering, Mach-O, 
+     Kernel/Runtime Mods, Git, Continuous Integration/Deployment (CI/CD)}
+     \item \textbf{AI Integration}{: OpenAI APIs, Large Language Model 
+     (LLM) integration, Whisper, GPT, Text-to-Speech synthesis}
      \item \textbf{Frontend \& Backend}{: React, Next.js, Node.js, REST APIs, 
-     Docker, AWS, GCP, HTML/CSS}
+     Docker, Amazon Web Services (AWS), Google Cloud Platform (GCP), 
+     HTML/CSS}
  \end{itemize}
 
 % --- PROJECTS ---
@@ -211,9 +215,9 @@
       {macOS System Customization (Objective-C, C)}%
       {\link{https://github.com/aspauldingcode/apple-sharpener}{GitHub}}
       \resumeProjectItemListStart
-        \item {Built a system-level macOS customization tool used by 
-        \textbf{269 GitHub stars}; resolved \textbf{15+ critical runtime 
-        bugs} through low-level performance profiling.}
+        \item {Built a system-level macOS customization tool earning 
+        \textbf{269 GitHub stars}; resolved \textbf{15+ critical runtime bugs} 
+        through low-level performance profiling.}
         \item {Implemented Objective-C runtime hooks and Mach-O patching to 
         optimize system behaviors and UI responsiveness.}
       \resumeProjectItemListEnd
@@ -240,15 +244,6 @@
         Functions for real-time math rendering.}
       \resumeProjectItemListEnd
 
-    \resumeSubheading
-      {libmipc}{2025 -- Present}%
-      {Low-Level IPC Library (Objective-C, Nix, C)}%
-      {\link{https://github.com/aspauldingcode/libmipc}{GitHub}}
-      \resumeProjectItemListStart
-        \item {Designed a Mach-based IPC library to facilitate secure two-way 
-        communication between sandboxed processes, enabling mediated 
-        system-level file access.}
-      \resumeProjectItemListEnd
   \resumeSubHeadingListEnd
 
 % --- EXPERIENCE ---
@@ -268,8 +263,8 @@
       {Technician}{Missoula, MT}
       \resumeItemListStart
         \item {Engineered autonomous pCO2/pH instruments; performed 
-        precision PCB soldering and \textbf{300+ custom battery pack} 
-        assemblies.}
+        precision Printed Circuit Board (PCB) soldering and \textbf{300+ 
+        custom battery pack} assemblies.}
       \resumeItemListEnd
     \resumeSubheading
       {Wheelbound Productions}{Apr 2018 -- Sep 2018}%
@@ -284,8 +279,9 @@
 % --- LEADERSHIP & AWARDS ---
 \section{\textbf{Leadership \& Awards}}
 \resumeSubHeadingListStart
-  \resumeLeadershipItem{Vice President – ACM}{Led technical events, 
-  Hackathons, and CTFs for the student community}{2025 -- Present}
+  \resumeLeadershipItem{VP – Association for Computing Machinery (ACM)}{Led 
+  technical events, Hackathons, and Capture The Flag (CTF) competitions 
+  for the student community}{2025 -- Present}
   \resumeLeadershipItem{1st Place – Gonzaga University Hackathon}{DevOps 
   Lead; architected CI/CD pipelines for real-time game engine}{2025}
   \resumeLeadershipItem{1st Place – UM Cyber Competition}{CTF winner; 
