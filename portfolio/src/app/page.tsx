@@ -377,7 +377,6 @@ export default function Home() {
                     priority
                     onLoad={() => setProfileLoaded(true)}
                   />
-                  <div className="absolute inset-0 halftone-bg opacity-30 mix-blend-overlay pointer-events-none" />
                 </motion.div>
               </motion.div>
 
@@ -508,14 +507,13 @@ export default function Home() {
             emailConfig={emailConfig}
           />
         )}
-        {isResumeOpen && (
-          <ResumeViewer
-            key="resume-viewer"
-            onCheckClose={() => setIsResumeOpen(false)}
-            cachedResume={resumeBase64}
-          />
-        )}
       </AnimatePresence>
+
+      <ResumeViewer
+        isOpen={isResumeOpen}
+        onCheckClose={() => setIsResumeOpen(false)}
+        cachedResume={resumeBase64}
+      />
     </main>
   );
 }

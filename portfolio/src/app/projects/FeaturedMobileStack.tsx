@@ -154,11 +154,11 @@ export function FeaturedMobileStack({
       if (!root?.contains(document.activeElement)) return;
       if (e.key === 'ArrowLeft' && canGoPrev) {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         handleSwipe(-1);
       } else if (e.key === 'ArrowRight' && canGoNext) {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         handleSwipe(1);
       }
     };
@@ -219,14 +219,11 @@ export function FeaturedMobileStack({
     >
           <AnimatePresence initial={false} custom={direction} mode="popLayout">
             {projects.map((project, i) => {
-              const isPrev = i === index - 1;
-              const isTop = i === index;
-              const isNext = i === index + 1;
-              const isNextNext = i === index + 2;
-
-              if (!isPrev && !isTop && !isNext && !isNextNext) return null;
-
               const depth = i - index;
+              const isTop = depth === 0;
+              const isVisible = Math.abs(depth) <= 2;
+
+              if (!isVisible) return null;
 
               return (
                 <motion.div
@@ -235,16 +232,16 @@ export function FeaturedMobileStack({
                   custom={direction}
                   className="absolute inset-0 overflow-visible"
                   style={{
-                    zIndex: isTop ? 40 : isPrev ? 45 : 30 - depth,
-                    pointerEvents: isTop ? 'auto' : 'none',
+                    zIndex: 40 - Math.abs(depth),
+                    pointerEvents: 'auto',
                   }}
                   initial={((dir: number) => stackCardInitial(isTop, dir)) as any}
                   animate={{
                     x: isTop ? 0 : depth * stackDx,
-                    y: isTop ? 0 : depth * stackDy,
+                    y: isTop ? 0 : Math.abs(depth) * stackDy,
                     rotate: isTop ? 0 : depth * stackRot,
-                    scale: isTop ? 1 : 1 - depth * 0.078,
-                    opacity: isTop ? 1 : isPrev ? 0 : Math.max(0.82, 0.99 - depth * 0.1),
+                    scale: isTop ? 1 : 1 - Math.abs(depth) * 0.08,
+                    opacity: isTop ? 1 : Math.max(0.5, 0.9 - Math.abs(depth) * 0.15),
                   }}
                   exit={((dir: number) => stackCardExit(dir)) as any}
                   transition={{
@@ -309,12 +306,13 @@ export function FeaturedMobileStack({
                       project={project}
                       onViewProject={openPinnedProjectIfTap}
                       onIntent={onIntent}
-                      priority={isTop || isNext || isPrev}
+                      priority={Math.abs(depth) <= 1}
                       quality={quality}
                       repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
                       interactionMode={interactionMode}
                       tabIndex={isTop ? 0 : -1}
                       compactOverlay={compactVertical}
+                      isFeatured={true}
                     />
                   </div>
                 </motion.div>

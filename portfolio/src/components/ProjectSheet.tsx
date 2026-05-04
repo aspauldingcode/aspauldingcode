@@ -381,18 +381,15 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
         const slant = projectSlantForId(proj.id);
 
         return (
-            <motion.div
-                key={proj.id}
-                className="fixed inset-0 z-[250] flex items-end justify-center pointer-events-none"
-                style={{ paddingLeft: 'var(--safe-left)', paddingRight: 'var(--safe-right)' }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { duration: 0.22, ease: [0.2, 1, 0.38, 1] } }}
-                exit={{ opacity: 0, transition: { duration: 0.3, ease: [0.36, 0, 0.2, 1] } }}
-            >
+            <div className="fixed inset-0 z-[250] flex items-end justify-center pointer-events-none">
                 {/* Backdrop — crisp fade + slight “menu slam” zoom */}
-                <div
+                <motion.div
+                    key={`backdrop-${proj.id}`}
                     className="absolute inset-0 z-0 pointer-events-auto overflow-hidden"
                     onClick={onClose}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                 >
                     <motion.div
                         className="absolute inset-0 z-0 bg-black/60 backdrop-blur-md"
@@ -400,7 +397,7 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                         animate={{ opacity: 1, scale: 1, transition: { duration: 0.34, ease: [0.18, 1, 0.34, 1], delay: 0.03 } }}
                     />
                     <div className="absolute inset-0 z-0 halftone-bg opacity-30 pointer-events-none" />
-                </div>
+                </motion.div>
 
                 {/* Sheet — P5 enter: skew + slam up; exit: skew + drop with weight */}
                 <motion.div
@@ -502,6 +499,8 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                             }}
                         />
                     </div>
+                    
+                    {/* Main Clipped Content Wrapper */}
                     <div
                         className="relative z-[1] flex flex-col h-full overflow-hidden bg-base01"
                         style={clipBoth(slant.main)}
@@ -532,13 +531,189 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                                 }}
                             />
                         </div>
+                        
                         {/* Subtle top read on panel */}
                         <div
                             className="pointer-events-none absolute left-0 right-0 top-0 z-[3] h-16 bg-gradient-to-b from-white/10 to-transparent mix-blend-soft-light"
                             aria-hidden
                         />
 
-                        {/* Draggable Header (Overlay) */}
+                        {/* Scrollable Content */}
+                        <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto projects-scroll" style={{ overscrollBehaviorX: 'contain', paddingBottom: 'calc(2.5rem + var(--safe-bottom))' }}>
+                            {/* Hero / Carousel Section */}
+                            <div className="relative w-full h-[50vh] sm:h-[65vh] bg-base00 border-b-4 border-base02 overflow-hidden">
+                                <SwirlingBackdrop colors={extractedColors} />
+
+                                {proj.images && proj.images.length > 0 ? (
+                                    <div className="h-full project-sheet-slider relative">
+                                        {proj.images.length > 1 && (
+                                            <>
+                                                <button onClick={goToPrev} disabled={currentSlide === 0} className="absolute left-6 top-1/2 -translate-y-1/2 z-[70] p-4 bg-base00 text-base05 -skew-x-12 border-2 border-base05 shadow-[4px_4px_0px_var(--base08)] disabled:opacity-30 transition-all hover:-translate-x-1 group/nav">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6 skew-x-12"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                                                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-[10px] font-black uppercase italic tracking-wider opacity-0 pointer-fine:group-hover/nav:opacity-100 transition-opacity text-base00 bg-black/70 px-2 py-0.5 pointer-events-none whitespace-nowrap">PREV [←]</span>
+                                                </button>
+                                                <button onClick={goToNext} disabled={currentSlide >= imageCount - 1} className="absolute right-6 top-1/2 -translate-y-1/2 z-[70] p-4 bg-base00 text-base05 -skew-x-12 border-2 border-base05 shadow-[4px_4px_0px_var(--base08)] disabled:opacity-30 transition-all hover:translate-x-1 group/nav">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6 skew-x-12"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                                                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-[10px] font-black uppercase italic tracking-wider opacity-0 pointer-fine:group-hover/nav:opacity-100 transition-opacity text-base00 bg-black/70 px-2 py-0.5 pointer-events-none whitespace-nowrap">NEXT [→]</span>
+                                                </button>
+                                            </>
+                                        )}
+
+                                        <div ref={swipeAreaRef} className="relative h-full overflow-hidden select-none" style={{ cursor: imageCount > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default', touchAction: 'pan-y pinch-zoom', overscrollBehaviorX: 'contain' }} onDragStart={(event) => event.preventDefault()} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseLeave} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchCancel}>
+                                            <div ref={sliderRef} className="flex h-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" style={{ willChange: 'transform' }}>
+                                                {proj.images.map((img, idx) => (
+                                                    <div key={idx} className="h-full relative w-full shrink-0">
+                                                        <Image src={img} alt={proj.title} fill draggable={false} className={`object-contain transition-opacity duration-300 ${loadedSlides[`${img}-${idx}`] ? 'opacity-100' : 'opacity-60'}`} sizes={SHEET_IMAGE_SIZES} quality={imageQuality} priority={idx <= 1} onLoad={() => setLoadedSlides(prev => ({ ...prev, [`${img}-${idx}`]: true }))} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        
+                                        {imageCount > 1 && (
+                                            <div
+                                                className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[70] flex items-center border-2 border-base05 bg-base00/90 backdrop-blur-md"
+                                                style={{ padding: '5px 8px' }}
+                                            >
+                                                {imageCount === 2 ? (
+                                                    [0, 1].map((i) => (
+                                                        <button
+                                                            key={`sheet-dot-${i}`}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (i > currentSlide) goToNext();
+                                                                if (i < currentSlide) goToPrev();
+                                                            }}
+                                                            className="h-2 -skew-x-12 border border-base00 p-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                                                            style={{
+                                                                width: currentSlide === i ? '24px' : '8px',
+                                                                backgroundColor: currentSlide === i ? eraColor : 'var(--base03)',
+                                                                boxShadow: currentSlide === i ? '0 0 8px color-mix(in srgb, var(--base00) 40%, transparent)' : 'none',
+                                                                cursor: 'pointer',
+                                                                marginInline: '4px',
+                                                            }}
+                                                            aria-label={`Go to image ${i + 1}`}
+                                                        />
+                                                    ))
+                                                ) : (
+                                                    <div className="relative overflow-hidden" style={{ width: '72px', height: '18px', margin: '-5px -8px' }}>
+                                                        <div
+                                                            className="absolute inset-y-0 flex items-center transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                                                            style={{
+                                                                gap: '8px',
+                                                                transform: `translateX(${8 - dotWindowStart * 16}px)`,
+                                                            }}
+                                                        >
+                                                            {proj.images.map((_, i) => (
+                                                                <div
+                                                                    key={`sheet-dot-${i}`}
+                                                                    className="h-2 shrink-0 -skew-x-12 border border-base00 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                                                                    style={{
+                                                                        width: currentSlide === i ? '24px' : '8px',
+                                                                        backgroundColor: currentSlide === i ? eraColor : 'var(--base03)',
+                                                                        boxShadow: currentSlide === i ? '0 0 8px color-mix(in srgb, var(--base00) 40%, transparent)' : 'none',
+                                                                    }}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            className="absolute inset-y-0 left-0 bg-transparent border-none p-0 z-10"
+                                                            style={{ width: '33%', cursor: currentSlide === 0 ? 'default' : 'pointer' }}
+                                                            disabled={currentSlide === 0}
+                                                            onClick={goToPrev}
+                                                            aria-label="Previous image"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="absolute inset-y-0 bg-transparent border-none p-0 z-10"
+                                                            style={{ left: '33%', width: '34%', cursor: (currentSlide === 0 || currentSlide === imageCount - 1) ? 'pointer' : 'default' }}
+                                                            disabled={currentSlide > 0 && currentSlide < imageCount - 1}
+                                                            onClick={() => {
+                                                                if (currentSlide === 0) goToNext();
+                                                                else if (currentSlide === imageCount - 1) goToPrev();
+                                                            }}
+                                                            aria-label="Navigate"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="absolute inset-y-0 right-0 bg-transparent border-none p-0 z-10"
+                                                            style={{ width: '33%', cursor: currentSlide >= imageCount - 1 ? 'default' : 'pointer' }}
+                                                            disabled={currentSlide >= imageCount - 1}
+                                                            onClick={goToNext}
+                                                            aria-label="Next image"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="relative -mt-12 px-6 sm:px-12 max-w-5xl mx-auto z-10">
+                                <div className="relative mb-12">
+                                    <div className="absolute inset-0 bg-base00 -skew-x-1 translate-x-3 translate-y-3 opacity-20" />
+                                    <div className="relative bg-base01 border-2 border-base00 p-8 sm:p-12 -skew-x-1 shadow-2xl">
+                                        <div className="flex flex-col gap-8 skew-x-1">
+                                            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8">
+                                                <div className="space-y-4">
+                                                    <div className="inline-block px-4 py-1 -skew-x-12 border border-base00" style={{ backgroundColor: eraColor }}>
+                                                        <span className="text-xs font-black uppercase italic tracking-widest text-base00 skew-x-12 block">{proj.threeWordDescriptor}</span>
+                                                    </div>
+                                                    <h1 className="text-5xl sm:text-7xl font-black text-base05 uppercase italic leading-[0.8] tracking-tighter drop-shadow-[6px_6px_0px_var(--base00)]">{proj.title}</h1>
+                                                </div>
+
+                                                <div className="flex flex-wrap gap-4">
+                                                    {proj.githubRepo && (
+                                                        <a href={proj.githubRepo} target="_blank" rel="noopener noreferrer" className="relative group/btn">
+                                                            <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1" />
+                                                            <div className="relative px-6 py-3 bg-base02 text-base05 -skew-x-12 border-2 border-base00 pointer-fine:group-hover/btn:bg-base03 transition-all flex items-center gap-3">
+                                                                <span className="font-nerd text-2xl skew-x-12"></span>
+                                                                <span className="text-sm font-black uppercase italic skew-x-12">Source</span>
+                                                            </div>
+                                                            <div className="p6-tooltip top-full left-0 mt-2 opacity-0 pointer-fine:group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[120]">
+                                                                <span className="p6-tooltip-text">SOURCE CODE</span>
+                                                            </div>
+                                                        </a>
+                                                    )}
+                                                    {proj.link && (
+                                                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="relative group/btn">
+                                                            <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1" />
+                                                            <div className="relative px-6 py-3 -skew-x-12 border-2 border-base00 pointer-fine:group-hover/btn:brightness-110 transition-all flex items-center gap-3" style={{ backgroundColor: eraColor, color: 'var(--base00)' }}>
+                                                                <span className="font-nerd text-2xl skew-x-12">󰖟</span>
+                                                                <span className="text-sm font-black uppercase italic skew-x-12">Live View</span>
+                                                            </div>
+                                                            <div className="p6-tooltip top-full right-0 mt-2 opacity-0 pointer-fine:group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[120]">
+                                                                <span className="p6-tooltip-text">VISIT WEBSITE</span>
+                                                            </div>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-6 text-xs font-black uppercase italic tracking-widest text-base04">
+                                                {proj.startYear && <span className="bg-base02 px-3 py-1.5 border border-base00">{proj.startYear === proj.endYear ? proj.startYear : `${proj.startYear} - ${proj.endYear || 'Present'}`}</span>}
+                                                {repoData && (
+                                                    <div className="flex gap-6">
+                                                        <span className="flex items-center gap-2 border-b-4 border-base0A pb-1"><span className="font-nerd text-lg">󰓎</span> {repoData.stargazers_count}</span>
+                                                        <span className="flex items-center gap-2 border-b-4 border-base0B pb-1"><span className="font-nerd text-lg">󰓁</span> {repoData.forks_count}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="relative bg-base00 p-10 border-l-8 shadow-2xl mb-16" style={{ borderColor: eraColor }}>
+                                    <p lang="en" className="project-modal-description text-xl sm:text-2xl text-base05/95 font-semibold">{proj.description}</p>
+                                    <div className="absolute bottom-0 right-0 w-12 h-12 -skew-x-[45deg] translate-x-6 translate-y-6" style={{ backgroundColor: eraColor }} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Draggable Header (Overlay) - Moved outside clipping for safety */}
                     <div
                         onPointerDown={beginHeaderDrag}
                         className="absolute top-0 left-0 right-0 pb-12 cursor-grab active:cursor-grabbing shrink-0 touch-none px-6 z-[140] pointer-events-auto flex items-center justify-end"
@@ -573,198 +748,23 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                             </button>
                         </div>
                     </div>
-
-                    {/* Scrollable Content */}
-                    <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto projects-scroll" style={{ overscrollBehaviorX: 'contain', paddingBottom: 'calc(2.5rem + var(--safe-bottom))' }}>
-                        {/* Hero / Carousel Section */}
-                        <div className="relative w-full h-[50vh] sm:h-[65vh] bg-base00 border-b-4 border-base02 overflow-hidden">
-                            <div className="absolute inset-0 halftone-bg opacity-10 z-10 pointer-events-none" />
-                            <SwirlingBackdrop colors={extractedColors} />
-
-                            {proj.images && proj.images.length > 0 ? (
-                                <div className="h-full project-sheet-slider relative">
-                                    {proj.images.length > 1 && (
-                                        <>
-                                            <button onClick={goToPrev} disabled={currentSlide === 0} className="absolute left-6 top-1/2 -translate-y-1/2 z-[70] p-4 bg-base00 text-base05 -skew-x-12 border-2 border-base05 shadow-[4px_4px_0px_var(--base08)] disabled:opacity-30 transition-all hover:-translate-x-1 group/nav">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6 skew-x-12"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                                                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-[10px] font-black uppercase italic tracking-wider opacity-0 pointer-fine:group-hover/nav:opacity-100 transition-opacity text-base00 bg-black/70 px-2 py-0.5 pointer-events-none whitespace-nowrap">PREV [←]</span>
-                                            </button>
-                                            <button onClick={goToNext} disabled={currentSlide >= imageCount - 1} className="absolute right-6 top-1/2 -translate-y-1/2 z-[70] p-4 bg-base00 text-base05 -skew-x-12 border-2 border-base05 shadow-[4px_4px_0px_var(--base08)] disabled:opacity-30 transition-all hover:translate-x-1 group/nav">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-6 h-6 skew-x-12"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                                                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-[10px] font-black uppercase italic tracking-wider opacity-0 pointer-fine:group-hover/nav:opacity-100 transition-opacity text-base00 bg-black/70 px-2 py-0.5 pointer-events-none whitespace-nowrap">NEXT [→]</span>
-                                            </button>
-                                        </>
-                                    )}
-
-                                    <div ref={swipeAreaRef} className="relative h-full overflow-hidden select-none" style={{ cursor: imageCount > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default', touchAction: 'pan-y pinch-zoom', overscrollBehaviorX: 'contain' }} onDragStart={(event) => event.preventDefault()} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseLeave} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchCancel}>
-                                        <div ref={sliderRef} className="flex h-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" style={{ willChange: 'transform' }}>
-                                            {proj.images.map((img, idx) => (
-                                                <div key={idx} className="h-full relative w-full shrink-0">
-                                                    <Image src={img} alt={proj.title} fill draggable={false} className={`object-contain transition-opacity duration-300 ${loadedSlides[`${img}-${idx}`] ? 'opacity-100' : 'opacity-60'}`} sizes={SHEET_IMAGE_SIZES} quality={imageQuality} priority={idx <= 1} onLoad={() => setLoadedSlides(prev => ({ ...prev, [`${img}-${idx}`]: true }))} />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    
-                                    {imageCount > 1 && (
-                                        <div
-                                            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[70] flex items-center border-2 border-base05 bg-base00/90 backdrop-blur-md"
-                                            style={{ padding: '5px 8px' }}
-                                        >
-                                            {imageCount === 2 ? (
-                                                [0, 1].map((i) => (
-                                                    <button
-                                                        key={`sheet-dot-${i}`}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            if (i > currentSlide) goToNext();
-                                                            if (i < currentSlide) goToPrev();
-                                                        }}
-                                                        className="h-2 -skew-x-12 border border-base00 p-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                                                        style={{
-                                                            width: currentSlide === i ? '24px' : '8px',
-                                                            backgroundColor: currentSlide === i ? eraColor : 'var(--base03)',
-                                                            boxShadow: currentSlide === i ? '0 0 8px color-mix(in srgb, var(--base00) 40%, transparent)' : 'none',
-                                                            cursor: 'pointer',
-                                                            marginInline: '4px',
-                                                        }}
-                                                        aria-label={`Go to image ${i + 1}`}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <div className="relative overflow-hidden" style={{ width: '72px', height: '18px', margin: '-5px -8px' }}>
-                                                    <div
-                                                        className="absolute inset-y-0 flex items-center transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                                                        style={{
-                                                            gap: '8px',
-                                                            transform: `translateX(${8 - dotWindowStart * 16}px)`,
-                                                        }}
-                                                    >
-                                                        {proj.images.map((_, i) => (
-                                                            <div
-                                                                key={`sheet-dot-${i}`}
-                                                                className="h-2 shrink-0 -skew-x-12 border border-base00 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                                                                style={{
-                                                                    width: currentSlide === i ? '24px' : '8px',
-                                                                    backgroundColor: currentSlide === i ? eraColor : 'var(--base03)',
-                                                                    boxShadow: currentSlide === i ? '0 0 8px color-mix(in srgb, var(--base00) 40%, transparent)' : 'none',
-                                                                }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        className="absolute inset-y-0 left-0 bg-transparent border-none p-0 z-10"
-                                                        style={{ width: '33%', cursor: currentSlide === 0 ? 'default' : 'pointer' }}
-                                                        disabled={currentSlide === 0}
-                                                        onClick={goToPrev}
-                                                        aria-label="Previous image"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="absolute inset-y-0 bg-transparent border-none p-0 z-10"
-                                                        style={{ left: '33%', width: '34%', cursor: (currentSlide === 0 || currentSlide === imageCount - 1) ? 'pointer' : 'default' }}
-                                                        disabled={currentSlide > 0 && currentSlide < imageCount - 1}
-                                                        onClick={() => {
-                                                            if (currentSlide === 0) goToNext();
-                                                            else if (currentSlide === imageCount - 1) goToPrev();
-                                                        }}
-                                                        aria-label="Navigate"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="absolute inset-y-0 right-0 bg-transparent border-none p-0 z-10"
-                                                        style={{ width: '33%', cursor: currentSlide >= imageCount - 1 ? 'default' : 'pointer' }}
-                                                        disabled={currentSlide >= imageCount - 1}
-                                                        onClick={goToNext}
-                                                        aria-label="Next image"
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            ) : null}
-                        </div>
-
-                        {/* Content Area */}
-                        <div className="relative -mt-12 px-6 sm:px-12 max-w-5xl mx-auto z-10">
-                            <div className="relative mb-12">
-                                <div className="absolute inset-0 bg-base00 -skew-x-1 translate-x-3 translate-y-3 opacity-20" />
-                                <div className="relative bg-base01 border-2 border-base00 p-8 sm:p-12 -skew-x-1 shadow-2xl">
-                                    <div className="flex flex-col gap-8 skew-x-1">
-                                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8">
-                                            <div className="space-y-4">
-                                                <div className="inline-block px-4 py-1 -skew-x-12 border border-base00" style={{ backgroundColor: eraColor }}>
-                                                    <span className="text-xs font-black uppercase italic tracking-widest text-base00 skew-x-12 block">{proj.threeWordDescriptor}</span>
-                                                </div>
-                                                <h1 className="text-5xl sm:text-7xl font-black text-base05 uppercase italic leading-[0.8] tracking-tighter drop-shadow-[6px_6px_0px_var(--base00)]">{proj.title}</h1>
-                                            </div>
-
-                                            <div className="flex flex-wrap gap-4">
-                                                {proj.githubRepo && (
-                                                    <a href={proj.githubRepo} target="_blank" rel="noopener noreferrer" className="relative group/btn">
-                                                        <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1" />
-                                                        <div className="relative px-6 py-3 bg-base02 text-base05 -skew-x-12 border-2 border-base00 pointer-fine:group-hover/btn:bg-base03 transition-all flex items-center gap-3">
-                                                            <span className="font-nerd text-2xl skew-x-12"></span>
-                                                            <span className="text-sm font-black uppercase italic skew-x-12">Source</span>
-                                                        </div>
-                                                        <div className="p6-tooltip top-full left-0 mt-2 opacity-0 pointer-fine:group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[120]">
-                                                            <span className="p6-tooltip-text">SOURCE CODE</span>
-                                                        </div>
-                                                    </a>
-                                                )}
-                                                {proj.link && (
-                                                    <a href={proj.link} target="_blank" rel="noopener noreferrer" className="relative group/btn">
-                                                        <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1" />
-                                                        <div className="relative px-6 py-3 -skew-x-12 border-2 border-base00 pointer-fine:group-hover/btn:brightness-110 transition-all flex items-center gap-3" style={{ backgroundColor: eraColor, color: 'var(--base00)' }}>
-                                                            <span className="font-nerd text-2xl skew-x-12">󰖟</span>
-                                                            <span className="text-sm font-black uppercase italic skew-x-12">Live View</span>
-                                                        </div>
-                                                        <div className="p6-tooltip top-full right-0 mt-2 opacity-0 pointer-fine:group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[120]">
-                                                            <span className="p6-tooltip-text">VISIT WEBSITE</span>
-                                                        </div>
-                                                    </a>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-wrap items-center gap-6 text-xs font-black uppercase italic tracking-widest text-base04">
-                                            {proj.startYear && <span className="bg-base02 px-3 py-1.5 border border-base00">{proj.startYear === proj.endYear ? proj.startYear : `${proj.startYear} - ${proj.endYear || 'Present'}`}</span>}
-                                            {repoData && (
-                                                <div className="flex gap-6">
-                                                    <span className="flex items-center gap-2 border-b-4 border-base0A pb-1"><span className="font-nerd text-lg">󰓎</span> {repoData.stargazers_count}</span>
-                                                    <span className="flex items-center gap-2 border-b-4 border-base0B pb-1"><span className="font-nerd text-lg">󰓁</span> {repoData.forks_count}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="relative bg-base00 p-10 border-l-8 shadow-2xl mb-16" style={{ borderColor: eraColor }}>
-                                <p lang="en" className="project-modal-description text-xl sm:text-2xl text-base05/95 font-semibold">{proj.description}</p>
-                                <div className="absolute bottom-0 right-0 w-12 h-12 -skew-x-[45deg] translate-x-6 translate-y-6" style={{ backgroundColor: eraColor }} />
-                            </div>
-                        </div>
-                    </div>
-                    </div>
-                    {bp.hasKeyboard && isCloseHintVisible && (
-                        <div
-                            className="fixed pointer-events-none z-[560]"
-                            style={{
-                                left: closeHintPosition.x,
-                                top: closeHintPosition.y,
-                                transform: 'translate(-50%, -100%)',
-                            }}
-                        >
-                            <span ref={closeHintTooltipRef} className="p6-tooltip">
-                                <span className="p6-tooltip-text">DISMISS [{closeHintKey}]</span>
-                            </span>
-                        </div>
-                    )}
                 </motion.div>
-            </motion.div>
+
+                {bp.hasKeyboard && isCloseHintVisible && (
+                    <div
+                        className="fixed pointer-events-none z-[560]"
+                        style={{
+                            left: closeHintPosition.x,
+                            top: closeHintPosition.y,
+                            transform: 'translate(-50%, -100%)',
+                        }}
+                    >
+                        <span ref={closeHintTooltipRef} className="p6-tooltip">
+                            <span className="p6-tooltip-text">DISMISS [{closeHintKey}]</span>
+                        </span>
+                    </div>
+                )}
+            </div>
         );
     };
 

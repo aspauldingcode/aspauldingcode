@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, PanInfo, useMotionValue, useDragControls } from 'framer-motion';
+import { motion, PanInfo, useMotionValue, useDragControls, AnimatePresence } from 'framer-motion';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useFullscreenCloseHint } from '@/hooks/useFullscreenCloseHint';
@@ -11,6 +11,7 @@ import { useTheme } from '../context/ThemeContext';
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface ResumeViewerProps {
+    isOpen: boolean;
     onCheckClose: () => void;
     cachedResume: string | null;
 }
@@ -95,7 +96,7 @@ type ZoomFocalPending =
           scrollHeightBefore: number;
       };
 
-export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewerProps) {
+export default function ResumeViewer({ isOpen, onCheckClose, cachedResume }: ResumeViewerProps) {
     const HINT_PADDING = 12;
     const EXPAND_HINT_HALF_WIDTH = 74;
     const bp = useBreakpoints();
@@ -108,6 +109,9 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     const [resumePagesPainted, setResumePagesPainted] = useState(0);
     const numPagesRef = useRef(0);
     numPagesRef.current = numPages;
+    /** Random seed for animation variation (P5 style) */
+    const [animationSeed] = useState(() => Math.floor(Math.random() * 3));
+    const isMobileForm = !bp.isSm;
     /** Scroll-port “fit width” in px at 100% zoom — multiplied by `zoom` for react-pdf `width` so each zoom level re-rasters from vectors. */
     const [fitBaseWidth, setFitBaseWidth] = useState(880);
     /** Zoom factor (1 = fit-width). Drives PDF canvas width = fitBaseWidth × zoom (not CSS scale). */
@@ -148,7 +152,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     const [closeHintPosition, setCloseHintPosition] = useState({ x: 0, y: 0 });
     const { closeHintKey } = useFullscreenCloseHint();
     const dragY = useMotionValue(0);
-    const dragControls = useDragControls(); // Add drag controls
+    const dragControls = useDragControls();
     const isHeaderDraggingRef = useRef(false);
     const cancelDragRef = useRef(false);
 
@@ -159,7 +163,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     }, [cachedResume, pdfUrl]);
 
     const handleOpenNewTab = () => {
-        // Use the static URL for external opening to ensure browser native features work best
         window.open(pdfUrl, '_blank');
     };
 
@@ -216,7 +219,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
         });
     }, []);
 
-    /** Placeholder height ≈ US Letter (11/8.5) × width so redraw doesn’t collapse to a thin strip. */
     const pageLoadingMinHeight = useMemo(
         () => Math.max(200, Math.floor(pageRenderWidth * (11 / 8.5))),
         [pageRenderWidth],
@@ -329,6 +331,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     }, [abortWheelPinchSession, clearPdfPinchVisual]);
 
     useEffect(() => {
+        if (!isOpen) return;
         const handleKeyDown = (e: KeyboardEvent) => {
             e.stopPropagation();
 
@@ -362,7 +365,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
 
         window.addEventListener('keydown', handleKeyDown, { capture: true });
         return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-    }, [onCheckClose, toggleTheme, zoomIn, zoomOut, zoomReset]);
+    }, [isOpen, onCheckClose, toggleTheme, zoomIn, zoomOut, zoomReset]);
 
     const updateExpandHintPosition = useCallback(() => {
       const button = expandButtonRef.current;
@@ -404,7 +407,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     }, [updateCloseHintPosition]);
 
     useEffect(() => {
-      if ((!isExpandHintVisible && !isCloseHintVisible) || !bp.hasKeyboard) return;
+      if ((!isExpandHintVisible && !isCloseHintVisible) || !bp.hasKeyboard || !isOpen) return;
       if (isExpandHintVisible) updateExpandHintPosition();
       if (isCloseHintVisible) updateCloseHintPosition();
       const rafId = requestAnimationFrame(() => {
@@ -421,7 +424,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
         window.removeEventListener('resize', updateCloseHintPosition);
         window.removeEventListener('scroll', updateCloseHintPosition, true);
       };
-    }, [isExpandHintVisible, isCloseHintVisible, bp.hasKeyboard, updateExpandHintPosition, updateCloseHintPosition]);
+    }, [isExpandHintVisible, isCloseHintVisible, bp.hasKeyboard, isOpen, updateExpandHintPosition, updateCloseHintPosition]);
 
     useLayoutEffect(() => {
       if (!mounted) return;
@@ -473,18 +476,17 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
       };
     }, [dragY]);
 
-    // Pinch: two fingers — during gesture use CSS `zoom` on the PDF layer (no react-pdf width churn);
-    // on release, clear visual zoom and commit one `setZoom` so PDF re-rasters once.
-    // - Init pinch on touchmove when a 2nd finger lands (Safari often never sends touchstart with 2 touches).
     useEffect(() => {
       if (!mounted) return;
       const el = scrollContainerRef.current;
       if (!el) return;
 
+      const coarsePointer =
+        typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
       const dist = (t: TouchList) =>
         Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
 
-      /** If ctrl-wheel left a pending visual layer, commit before touch pinch (same as timer). */
       const flushPendingWheelLayer = (): number => {
         if (wheelPinchCommitTimerRef.current != null) {
           window.clearTimeout(wheelPinchCommitTimerRef.current);
@@ -539,7 +541,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
         const midX = (t[0].clientX + t[1].clientX) / 2;
         const midY = (t[0].clientY + t[1].clientY) / 2;
 
-        // Two-finger pan (native scroll while zoomed)
         const prevMid = lastPinchMidClientRef.current;
         if (prevMid) {
           el.scrollLeft -= midX - prevMid.x;
@@ -605,7 +606,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
       };
     }, [mounted, numPages, commitZoomWithFocal]);
 
-    // Ctrl/meta + wheel (trackpad) and Safari gesture* on fine pointers only — avoids fighting touch pinch on iOS.
     useEffect(() => {
       if (!mounted) return;
       const el = scrollContainerRef.current;
@@ -767,117 +767,91 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
       };
     }, [mounted, numPages, commitZoomWithFocal]);
 
-  useLayoutEffect(() => {
-    if (!mounted) return;
-    const el = scrollContainerRef.current;
-    if (!el) return;
+    useLayoutEffect(() => {
+        if (!mounted) return;
+        const el = scrollContainerRef.current;
+        if (!el) return;
 
-    const pending = zoomFocalPendingRef.current;
-    let cancelLayerFollow: (() => void) | undefined;
-    if (pending) {
-      const p = pending;
-      zoomFocalPendingRef.current = null;
+        const pending = zoomFocalPendingRef.current;
+        if (pending) {
+            const p = pending;
+            zoomFocalPendingRef.current = null;
 
-      const clampScroll = () => {
-        if (!el.isConnected) return;
-        const maxL = Math.max(0, el.scrollWidth - el.clientWidth);
-        const maxT = Math.max(0, el.scrollHeight - el.clientHeight);
-        if (p.mode === 'layerHandoff') {
-          applyLayerHandoffScroll(el, p);
-        } else {
-          const ratio = zoom / p.prevZoom;
-          if (Math.abs(ratio - 1) > 1e-6) {
-            const { focalX, focalY, scrollLeftBeforeCommit, scrollTopBeforeCommit } = p;
-            const contentX = scrollLeftBeforeCommit + focalX;
-            const contentY = scrollTopBeforeCommit + focalY;
-            el.scrollLeft = Math.min(maxL, Math.max(0, contentX * ratio - focalX));
-            el.scrollTop = Math.min(maxT, Math.max(0, contentY * ratio - focalY));
-          }
+            const clampScroll = () => {
+                if (!el.isConnected) return;
+                const maxL = Math.max(0, el.scrollWidth - el.clientWidth);
+                const maxT = Math.max(0, el.scrollHeight - el.clientHeight);
+                if (p.mode === 'layerHandoff') {
+                    applyLayerHandoffScroll(el, p);
+                } else {
+                    const ratio = zoom / p.prevZoom;
+                    if (Math.abs(ratio - 1) > 1e-6) {
+                        const { focalX, focalY, scrollLeftBeforeCommit, scrollTopBeforeCommit } = p;
+                        const contentX = scrollLeftBeforeCommit + focalX;
+                        const contentY = scrollTopBeforeCommit + focalY;
+                        el.scrollLeft = Math.min(maxL, Math.max(0, contentX * ratio - focalX));
+                        el.scrollTop = Math.min(maxT, Math.max(0, contentY * ratio - focalY));
+                    }
+                }
+            };
+
+            clampScroll();
         }
-      };
-
-      clampScroll();
-
-      if (p.mode === 'layerHandoff') {
-        const anchor = {
-          scrollLeft: p.scrollLeft,
-          scrollTop: p.scrollTop,
-          focalX: p.focalX,
-          focalY: p.focalY,
-          scrollWidthBefore: p.scrollWidthBefore,
-          scrollHeightBefore: p.scrollHeightBefore,
-        };
-        const layer = pdfPinchVisualRef.current;
-        /** DOM timers are `number` in browsers; `ReturnType<typeof setTimeout>` is `NodeJS.Timeout` under @types/node. */
-        let debounceTimer: number | null = null;
-        const ro =
-          layer && typeof ResizeObserver !== 'undefined'
-            ? new ResizeObserver(() => {
-                if (debounceTimer != null) window.clearTimeout(debounceTimer);
-                debounceTimer = window.setTimeout(() => {
-                  debounceTimer = null;
-                  applyLayerHandoffScroll(el, anchor);
-                }, 90);
-              })
-            : null;
-        if (ro && layer) {
-          ro.observe(layer);
-        }
-        const hardStop = window.setTimeout(() => {
-          if (debounceTimer != null) window.clearTimeout(debounceTimer);
-          debounceTimer = null;
-          ro?.disconnect();
-        }, 900);
-        cancelLayerFollow = () => {
-          window.clearTimeout(hardStop);
-          if (debounceTimer != null) window.clearTimeout(debounceTimer);
-          ro?.disconnect();
-        };
-      } else {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(clampScroll);
-        });
-      }
-    }
-
-    zoomRef.current = zoom;
-
-    if (zoom <= ZOOM_MIN + 0.001) {
-      el.scrollLeft = 0;
-    }
-
-    return () => {
-      cancelLayerFollow?.();
-    };
-  }, [mounted, zoom, pageRenderWidth]);
+    }, [mounted, zoom]);
 
   if (!mounted) return null;
 
   const zoomPercent = Math.round(zoom * 100);
-  /** At 100% the PDF is fit-width — no horizontal overflow; avoid pointless x-scroll / trackpad sideways pan. */
   const canPanHorizontal = zoom > ZOOM_MIN + 0.001;
   const resumePdfCanvasPending = numPages > 0 && resumePagesPainted < numPages;
 
   return createPortal(
-    <div className="fixed inset-0 z-[500] flex items-end justify-center sm:items-center p-0 sm:p-4 md:p-8 pointer-events-none" style={{ paddingLeft: 'var(--safe-left)', paddingRight: 'var(--safe-right)' }}>
-      {/* Backdrop Container - Match Contact Modal */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-        className="absolute inset-0 z-0 pointer-events-auto overflow-hidden"
-        onClick={onCheckClose}
-      >
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-        <div className="absolute inset-0 halftone-bg opacity-30 pointer-events-none" />
-      </motion.div>
+    <div 
+        className="fixed inset-0 z-[500] flex items-end justify-center sm:items-center p-0 sm:p-4 md:p-8 transition-all duration-75" 
+        style={{ 
+            paddingLeft: 'var(--safe-left)', 
+            paddingRight: 'var(--safe-right)',
+            visibility: isOpen ? 'visible' : 'hidden',
+            pointerEvents: isOpen ? 'auto' : 'none'
+        }}
+    >
+      <AnimatePresence>
+        {isOpen && (
+            <motion.div
+                key="resume-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 z-0 pointer-events-auto overflow-hidden"
+                onClick={onCheckClose}
+            >
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+                <div className="absolute inset-0 halftone-bg opacity-30 pointer-events-none" />
+            </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div
-        initial={{ y: 1000, rotate: -3, scale: 0.95 }}
-        animate={{ y: 0, rotate: 0, scale: 1 }}
-        exit={{ y: 1000, rotate: 3, scale: 0.95 }}
-        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+        variants={{
+          open: { y: 0, rotate: 0, skewX: 0, scale: 1, opacity: 1 },
+          closed: { 
+            y: isMobileForm ? 600 : 1000, 
+            rotate: animationSeed === 0 ? -12 : animationSeed === 1 ? 8 : -5, 
+            skewX: animationSeed === 0 ? 18 : animationSeed === 1 ? -12 : 8, 
+            scale: 0.8, 
+            opacity: 0 
+          }
+        }}
+        initial="closed"
+        animate={isOpen ? "open" : "closed"}
+        transition={{ 
+          type: "spring", 
+          damping: 24, 
+          stiffness: 280, 
+          mass: 0.8,
+          restDelta: 0.001
+        }}
         drag="y"
         dragControls={dragControls}
         dragListener={false}
@@ -887,22 +861,58 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
         onDragEnd={handleDragEnd}
         className="relative z-10 flex h-[95vh] w-full min-w-0 max-w-6xl flex-col pointer-events-auto sm:h-[90vh]"
       >
+        {/* Opening slash — P5 "slashing" effect on entrance */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              key="resume-open-slash"
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 z-[160] h-[min(45%,300px)]"
+              initial={{ x: '-110%', skewX: -25, opacity: 0.9 }}
+              animate={{ x: '140%', skewX: -15, opacity: 0 }}
+              transition={{ duration: 0.45, ease: [0.19, 0.92, 0.24, 1], delay: 0.05 }}
+              style={{
+                background: 'linear-gradient(104deg, transparent 0%, rgba(220,150,86,0.5) 35%, rgba(248,246,242,0.4) 50%, rgba(185,32,48,0.3) 65%, transparent 80%)',
+                mixBlendMode: 'screen',
+              }}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Dossier Folder Shadows */}
-        <div 
-          className="absolute inset-0 bg-base0D translate-x-3 translate-y-3 opacity-40"
-          style={{ clipPath: 'polygon(0% 5%, 15% 0%, 85% 2%, 100% 7%, 98% 100%, 2% 98%)', WebkitClipPath: 'polygon(0% 5%, 15% 0%, 85% 2%, 100% 7%, 98% 100%, 2% 98%)' } as React.CSSProperties}
+        <motion.div 
+          variants={{
+            open: { x: 12, y: 12, opacity: 0.4, rotate: 0 },
+            closed: { 
+              x: animationSeed === 0 ? 40 : -40, 
+              y: 80, 
+              opacity: 0, 
+              rotate: animationSeed === 0 ? -5 : 5 
+            }
+          }}
+          className="absolute inset-0 bg-base0D"
+          style={{ clipPath: 'polygon(0% 5%, 15% 0%, 85% 2%, 100% 5%, 98% 100%, 2% 98%)', WebkitClipPath: 'polygon(0% 5%, 15% 0%, 85% 2%, 100% 5%, 98% 100%, 2% 98%)' } as React.CSSProperties}
         />
-        <div 
-          className="absolute inset-0 bg-base00 translate-x-1.5 translate-y-1.5"
-          style={{ clipPath: 'polygon(2% 7%, 18% 2%, 82% 0%, 98% 5%, 100% 98%, 0% 100%)', WebkitClipPath: 'polygon(2% 7%, 18% 2%, 82% 0%, 98% 5%, 100% 98%, 0% 100%)' } as React.CSSProperties}
+        <motion.div 
+          variants={{
+            open: { x: 6, y: 6, opacity: 1, rotate: 0 },
+            closed: { 
+              x: animationSeed === 0 ? 20 : -20, 
+              y: 40, 
+              opacity: 0, 
+              rotate: animationSeed === 0 ? -2 : 2 
+            }
+          }}
+          className="absolute inset-0 bg-base00"
+          style={{ clipPath: 'polygon(2% 7%, 18% 2%, 82% 0%, 98% 3%, 100% 98%, 0% 100%)', WebkitClipPath: 'polygon(2% 7%, 18% 2%, 82% 0%, 98% 3%, 100% 98%, 2% 100%)' } as React.CSSProperties}
         />
 
         {/* Main Content Area */}
         <div 
           className="relative flex min-h-0 min-w-0 flex-col h-full overflow-hidden bg-base01"
-          style={{ clipPath: 'polygon(0% 5%, 20% 0%, 80% 2%, 100% 8%, 97% 97%, 3% 100%)', WebkitClipPath: 'polygon(0% 5%, 20% 0%, 80% 2%, 100% 8%, 97% 97%, 3% 100%)' } as React.CSSProperties}
+          style={{ clipPath: 'polygon(0% 5%, 20% 0%, 80% 2%, 100% 5%, 97% 97%, 3% 100%)', WebkitClipPath: 'polygon(0% 5%, 20% 0%, 80% 2%, 100% 5%, 97% 97%, 3% 100%)' } as React.CSSProperties}
         >
-          {/* Header - Dossier Tab Style */}
+          {/* Header - Dossier Tab Style (Restored inside clipping for P5 aesthetic) */}
           <div
             onPointerDown={beginHeaderDrag}
             className="w-full relative bg-base0D px-8 cursor-grab active:cursor-grabbing shrink-0 touch-none flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden border-b-2 border-base00"
@@ -1036,7 +1046,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                 style={{ backgroundColor: 'var(--base00)' }}
                 aria-hidden
               />
-              {/* w-max + min-w-full: scrollWidth matches rendered page width so native 2D scroll works */}
               <div
                 ref={pdfPinchVisualRef}
                 className="relative z-[1] mx-auto min-h-full w-max min-w-full origin-top-left space-y-5 bg-base00 px-3 py-6 select-none pb-16 sm:px-6 sm:pb-20"
@@ -1058,7 +1067,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                 >
                   {Array.from({ length: numPages }, (_, index) => (
                     <div key={`resume-page-${index + 1}`} className="resume-page-shell rounded-sm border-2 border-base02 bg-base00 shadow-[6px_6px_0px_var(--base08)] overflow-hidden">
-                      {/* Omit canvasBackground: raster stays white so :root canvas filters match base16 paper/ink. */}
                       <Page
                         pageNumber={index + 1}
                         width={pageRenderWidth}
@@ -1082,7 +1090,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
               </div>
             </div>
 
-            {/* Zoom controls — inset from edges so dossier clip-path does not crop them */}
             <div
               className="pointer-events-none absolute z-40"
               style={{
@@ -1101,7 +1108,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                   disabled={zoomPercent <= Math.round(ZOOM_MIN * 100)}
                   className="p6-button px-2 py-1 sm:px-2.5 sm:py-1.5 bg-base00 text-base0D border border-base0D/80 text-sm font-black leading-none disabled:opacity-35"
                   aria-label="Zoom out"
-                  title="Zoom out (keyboard −)"
                 >
                   −
                 </button>
@@ -1113,8 +1119,6 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                     zoomReset();
                   }}
                   className="min-w-[2.85rem] px-1 py-1 text-[9px] sm:text-[10px] font-black tabular-nums text-base05 uppercase tracking-tighter text-center leading-tight"
-                  aria-label={`Zoom ${zoomPercent} percent. Reset to 100 percent.`}
-                  title="Reset zoom (0)"
                 >
                   {zoomPercent}%
                 </button>
@@ -1128,13 +1132,12 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                   disabled={zoomPercent >= Math.round(ZOOM_MAX * 100)}
                   className="p6-button px-2 py-1 sm:px-2.5 sm:py-1.5 bg-base00 text-base0D border border-base0D/80 text-sm font-black leading-none disabled:opacity-35"
                   aria-label="Zoom in"
-                  title="Zoom in (keyboard + or =)"
                 >
                   +
                 </button>
               </div>
             </div>
-          </div> {/* end PDF Viewer Area */}
+          </div>
 
           {/* Footer Bar */}
           <div className="bg-base0D/10 flex items-center justify-center gap-4 flex-wrap border-t-2 border-base0D/20 px-2" style={{ minHeight: 'calc(3rem + var(--safe-bottom))', paddingBottom: 'var(--safe-bottom)' }}>
@@ -1144,7 +1147,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
           </div>
         </div>
       </motion.div>
-      {bp.hasKeyboard && isExpandHintVisible && (
+      {bp.hasKeyboard && isExpandHintVisible && isOpen && (
         <div
           className="fixed pointer-events-none z-[560]"
           style={{
@@ -1158,7 +1161,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
           </span>
         </div>
       )}
-      {bp.hasKeyboard && isCloseHintVisible && (
+      {bp.hasKeyboard && isCloseHintVisible && isOpen && (
         <div
           className="fixed pointer-events-none z-[560]"
           style={{

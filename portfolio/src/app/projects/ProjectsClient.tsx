@@ -28,15 +28,22 @@ function scrollProjectCardIntoViewVertically(el: HTMLElement) {
     scrollPinnedProjectsToPageTop();
     return;
   }
+  
   const rect = el.getBoundingClientRect();
-  const margin = Math.min(96, Math.max(40, window.innerHeight * 0.1));
-  const topGap = margin - rect.top;
-  const bottomGap = rect.bottom - (window.innerHeight - margin);
-  if (topGap > 0) {
-    window.scrollBy({ top: -topGap, behavior: 'smooth' });
-  } else if (bottomGap > 0) {
-    window.scrollBy({ top: bottomGap, behavior: 'smooth' });
-  }
+  const viewportHeight = window.innerHeight;
+  const elementTop = window.scrollY + rect.top;
+  const elementHeight = rect.height;
+  
+  // Account for header (~64px) and bottom safe area/explore hint (~80px)
+  // We want to center the card in the "active" zone
+  const headerBuffer = 64;
+  const bottomBuffer = 80;
+  const activeZoneHeight = viewportHeight - headerBuffer - bottomBuffer;
+  const activeZoneCenter = headerBuffer + activeZoneHeight / 2;
+  
+  const targetScrollY = elementTop + elementHeight / 2 - activeZoneCenter;
+
+  window.scrollTo({ top: targetScrollY, behavior: 'smooth' });
 }
 
 function ProjectSheetLoading() {
@@ -180,6 +187,8 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
   const [hasOpenedSheet, setHasOpenedSheet] = useState(false);
   const [interactionMode, setInteractionMode] = useState<'mouse' | 'keyboard'>('mouse');
   const hasPrewarmedSheetRef = useRef(false);
+  const lastHoveredElementRef = useRef<HTMLElement | null>(null);
+  const lastMousePos = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const scrollTop = () => {
@@ -277,7 +286,11 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
 
     window.addEventListener('keydown', handleKeyDown);
     
-    const handleMouseMove = () => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // Check for actual movement to avoid accidental switches on scroll/reflow
+      if (Math.abs(e.clientX - lastMousePos.current.x) < 2 && Math.abs(e.clientY - lastMousePos.current.y) < 2) return;
+      lastMousePos.current = { x: e.clientX, y: e.clientY };
+
       if (interactionMode !== 'mouse') {
         setInteractionMode('mouse');
         // Clear keyboard focus so mouse takes priority
@@ -288,11 +301,20 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
         }
       }
     };
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest(PROJECT_CARD_FOCUSABLE_SELECTOR) as HTMLElement;
+      if (target) {
+        lastHoveredElementRef.current = target;
+      }
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseover', handleMouseOver);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseover', handleMouseOver);
     };
   }, [selectedProject, handleModalClose, interactionMode]);
 
@@ -350,9 +372,9 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
    */
   const projectsMainTopPaddingClass = useMemo(() => {
     const defaultPt =
-      'pt-[calc(4.5rem+var(--safe-top))] sm:pt-[calc(5rem+var(--safe-top))] md:pt-[calc(6rem+var(--safe-top))] lg:pt-[calc(6.5rem+var(--safe-top))]';
+      'pt-[calc(3.5rem+var(--safe-top))] sm:pt-[calc(4rem+var(--safe-top))] md:pt-[calc(4.5rem+var(--safe-top))] lg:pt-[calc(5.2rem+var(--safe-top))]';
     const ultraShortPt =
-      'pt-[calc(2.75rem+var(--safe-top))] sm:pt-[calc(2.75rem+var(--safe-top))] md:pt-[calc(2.75rem+var(--safe-top))] lg:pt-[calc(2.75rem+var(--safe-top))]';
+      'pt-[calc(2.5rem+var(--safe-top))] sm:pt-[calc(2.5rem+var(--safe-top))] md:pt-[calc(2.5rem+var(--safe-top))] lg:pt-[calc(2.5rem+var(--safe-top))]';
     if (!bp.isMounted) return defaultPt;
     if (ultraShortViewport) return ultraShortPt;
     if (bp.isLg || !shortHero) return defaultPt;
@@ -380,14 +402,39 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
       ).filter((el) => (el as HTMLElement).tabIndex !== -1) as HTMLElement[];
       if (cards.length === 0) return;
 
-      const currentIndex = cards.indexOf(document.activeElement as HTMLElement);
+      let currentIndex = cards.indexOf(document.activeElement as HTMLElement);
+      const isInitialPress = currentIndex === -1;
       
-      // If nothing focused, focus first card on any arrow/space press
-      if (currentIndex === -1) {
-        e.preventDefault();
-        cards[0].focus({ preventScroll: true });
-        scrollProjectCardIntoViewVertically(cards[0]);
-        return;
+      // If nothing focused, we need to decide where to start
+      if (isInitialPress) {
+        // Sync with current mouse position even if mouse hasn't moved yet (handles page load hover)
+        const currentlyHovered = document.querySelector(`${PROJECT_CARD_FOCUSABLE_SELECTOR}:hover`) as HTMLElement;
+        if (currentlyHovered) {
+          lastHoveredElementRef.current = currentlyHovered;
+        }
+
+        // Priority 1: If we have a hover, start relative to that
+        if (lastHoveredElementRef.current) {
+          currentIndex = cards.indexOf(lastHoveredElementRef.current);
+          if (currentIndex !== -1) {
+            // Apply the movement below from this hovered position
+          } else {
+            currentIndex = 0;
+          }
+        } else {
+          // Priority 2: If no hover and no focus, find the first card in the pinned section specifically
+          const pinnedSection = document.querySelector('[data-pinned-projects-section]');
+          const pinnedCards = pinnedSection 
+            ? Array.from(pinnedSection.querySelectorAll(PROJECT_CARD_FOCUSABLE_SELECTOR))
+              .filter((el) => (el as HTMLElement).tabIndex !== -1) as HTMLElement[]
+            : [];
+          
+          const startCard = pinnedCards[0] || cards[0];
+          e.preventDefault();
+          startCard.focus({ preventScroll: true });
+          scrollProjectCardIntoViewVertically(startCard);
+          return;
+        }
       }
 
       let nextIndex = currentIndex;
@@ -395,7 +442,6 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
       const clamp = (value: number) => Math.max(0, Math.min(cards.length - 1, value));
 
       if (isSpace) {
-        // Space moves by row without wrapping.
         nextIndex = clamp(isShift ? currentIndex - cols : currentIndex + cols);
       } else {
         switch (e.key) {
@@ -414,7 +460,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
         }
       }
 
-      if (nextIndex !== currentIndex) {
+      if (nextIndex !== currentIndex || isInitialPress) {
         e.preventDefault();
         cards[nextIndex].focus({ preventScroll: true });
         scrollProjectCardIntoViewVertically(cards[nextIndex]);
@@ -493,7 +539,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
             ? ultraShortViewport
               ? 'relative flex w-full min-h-0 flex-1 flex-col items-stretch justify-start pt-0 pb-1 sm:pb-2 md:pb-2 lg:pb-3 max-lg:min-h-0'
               : 'relative flex w-full flex-col items-center justify-start min-h-fit pt-0 pb-2 sm:pb-2 md:pb-3 lg:pb-4 max-lg:min-h-0'
-            : 'relative flex w-full flex-col items-center justify-start min-h-fit pt-1 pb-3 sm:pt-2 sm:pb-5 md:pt-6 md:pb-10 lg:pt-8 lg:pb-14 max-lg:min-h-0'
+            : 'relative flex w-full flex-col items-center justify-start min-h-fit pt-1 pb-10 sm:pt-2 sm:pb-12 md:pt-6 md:pb-14 lg:pt-8 lg:pb-16 max-lg:min-h-0'
         }
       >
         <div
@@ -521,13 +567,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
                 <div
                   className={`mx-auto flex min-h-0 w-full max-w-7xl flex-row items-stretch justify-center gap-2 sm:gap-3 lg:gap-4 ${ultraShortViewport ? 'flex-1' : ''}`}
                 >
-                  {ultraShortViewport ? (
-                    <AlexProjectsInlineTitle
-                      className="hidden min-h-0 self-stretch lg:flex"
-                      isHidden={!!selectedProject}
-                    />
-                  ) : null}
-                  <PinnedVerticalRail className="hidden min-h-0 self-stretch lg:flex" />
+                  {/* Side-rail labels are hidden in desktop mode to avoid double-rendering with the main bottom label */}
                   <div
                     className={
                       'grid min-h-0 grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 w-full min-w-0 flex-1 justify-items-center self-stretch'
@@ -551,17 +591,18 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
                           repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
                           interactionMode={interactionMode}
                           compactOverlay={shortHero}
+                          isFeatured={true}
                         />
                       </div>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6 w-full max-w-7xl mx-auto justify-items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-10 gap-x-3 sm:gap-x-5 lg:gap-x-6 w-full max-w-7xl mx-auto justify-items-center">
                   {featuredProjects.map((project) => (
                     <div
                       key={`featured-${project.id}`}
-                      className="aspect-[4/5] w-full max-w-[450px] scale-100 sm:scale-[1.02] lg:scale-105 transition-transform duration-500 px-1 sm:p-2"
+                      className="w-full max-w-[450px] aspect-[4/5] max-h-[60vh] scale-100 lg:scale-105 transition-transform duration-500 px-1 py-2 sm:p-2"
                     >
                       <ProjectCard
                         project={project}
@@ -571,6 +612,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
                         quality={isLowEnd ? 75 : 90}
                         repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
                         interactionMode={interactionMode}
+                        isFeatured={true}
                       />
                     </div>
                   ))}
@@ -593,67 +635,69 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
             </div>
 
             {/* Aesthetic Divider - Tablet/Desktop Grid (Persona-inspired Stylization) */}
-            {showDesktopPinnedHero ? (
-              !shortHero ? (
-                <div className="relative w-full flex flex-col items-center justify-center mt-32 mb-20 sm:mt-36 sm:mb-24 overflow-visible">
-                  <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-base02 to-transparent" />
+            {showDesktopPinnedHero && (
+              <div 
+                className={
+                  shortHero 
+                    ? "relative w-full flex flex-col items-center justify-center mt-3 mb-4 sm:mt-4 sm:mb-5 overflow-visible"
+                    : "relative w-full flex flex-col items-center justify-center mt-6 mb-6 sm:mt-8 sm:mb-8 overflow-visible"
+                }
+              >
+                <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-base02 to-transparent" />
 
-                  <div className="relative group overflow-visible">
-                    <div className="absolute inset-0 bg-base08 translate-x-1.5 translate-y-1.5 -skew-x-12 opacity-80 pointer-fine:group-hover:translate-x-2 pointer-fine:group-hover:translate-y-2 transition-transform duration-300" />
+                <div className="relative group overflow-visible">
+                  <div className="absolute inset-0 bg-base08 translate-x-1.5 translate-y-1.5 -skew-x-12 opacity-80 pointer-fine:group-hover:translate-x-2 pointer-fine:group-hover:translate-y-2 transition-transform duration-300" />
 
-                    <div className="relative bg-base00 border-2 border-base09 px-12 py-4 -skew-x-12 flex items-center gap-8 shadow-2xl transition-all duration-300">
-                      <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
-                      <h3 className="text-sm sm:text-base font-black uppercase tracking-[0.6em] text-base05 skew-x-0 whitespace-nowrap">
-                        Pinned Projects
-                      </h3>
-                      <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
-                    </div>
-
-                    <div className="absolute -top-3 -left-3 w-6 h-6 border-t-4 border-l-4 border-base0B z-20" />
-                    <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-4 border-r-4 border-base0B z-20" />
+                  <div 
+                    className={
+                      shortHero
+                        ? "relative bg-base00 border-2 border-base09 px-8 py-2.5 -skew-x-12 flex items-center gap-6 shadow-2xl transition-all duration-300"
+                        : "relative bg-base00 border-2 border-base09 px-12 py-4 -skew-x-12 flex items-center gap-8 shadow-2xl transition-all duration-300"
+                    }
+                  >
+                    <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
+                    <h3 className="text-sm sm:text-base font-black uppercase tracking-[0.6em] text-base05 skew-x-0 whitespace-nowrap">
+                      Pinned Projects
+                    </h3>
+                    <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
                   </div>
+
+                  <div className="absolute -top-3 -left-3 w-6 h-6 border-t-4 border-l-4 border-base0B z-20" />
+                  <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-4 border-r-4 border-base0B z-20" />
                 </div>
-              ) : (
-                <div
-                  className={
-                    ultraShortViewport
-                      ? 'relative mb-3 mt-3 flex w-full flex-col items-center justify-center overflow-visible'
-                      : 'relative mt-8 mb-10 flex w-full flex-col items-center justify-center overflow-visible sm:mt-10 sm:mb-12'
-                  }
-                >
-                  <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-base02 to-transparent" />
-                </div>
-              )
-            ) : null}
+              </div>
+            )}
           </motion.div>
         </div>
 
-        {/* Scroll Hint Indicator (Persona-styled) */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 1 }}
-          className="hidden lg:flex absolute bottom-4 left-1/2 -translate-x-1/2 flex-col items-center gap-2 pointer-events-none z-30"
-        >
-          <div className="bg-base09 px-4 py-1 -skew-x-12 shadow-[4px_4px_0px_var(--base08)]">
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] text-base00 ml-[0.5em] italic">
-              Explore
-            </span>
-          </div>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ 
-              repeat: Infinity, 
-              duration: 2,
-              ease: "easeInOut" 
-            }}
-            className="text-base09"
+        {/* Scroll Hint Indicator (Persona-styled) - Hidden on short viewports to avoid clutter */}
+        {!shortHero && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5, duration: 1 }}
+            className="hidden lg:flex absolute bottom-4 left-1/2 -translate-x-1/2 flex-col items-center gap-2 pointer-events-none z-30"
           >
-            <svg className="w-6 h-6 drop-shadow-[0_0_10px_rgba(220,150,86,0.5)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 13l-7 7-7-7" />
-            </svg>
+            <div className="bg-base09 px-4 py-1 -skew-x-12 shadow-[4px_4px_0px_var(--base08)]">
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] text-base00 ml-[0.5em] italic">
+                Explore
+              </span>
+            </div>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ 
+                repeat: Infinity, 
+                duration: 2,
+                ease: "easeInOut" 
+              }}
+              className="text-base09"
+            >
+              <svg className="w-6 h-6 drop-shadow-[0_0_10px_rgba(220,150,86,0.5)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 13l-7 7-7-7" />
+              </svg>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        )}
       </section>
 
         {/* Regular Projects Grid */}
@@ -666,7 +710,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
           {regularProjects.map((project, index) => (
             <div
               key={project.id}
-              className="aspect-[4/5] w-full scale-90 sm:scale-100 transition-transform duration-300 px-1 sm:p-2"
+              className="aspect-[4/5] w-full transition-transform duration-300 px-1 sm:p-2"
             >
               <ProjectCard
                 project={project}

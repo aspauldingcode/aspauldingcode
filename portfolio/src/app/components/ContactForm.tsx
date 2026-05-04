@@ -395,14 +395,25 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
       </motion.div>
 
       <motion.div
-        initial={isMobileForm ? { opacity: 0 } : { y: 1000, rotate: 5, scale: 0.9 }}
-        animate={isMobileForm ? { opacity: 1 } : { y: 0, rotate: 0, scale: 1 }}
-        exit={isMobileForm ? { opacity: 0 } : { y: 1000, rotate: -5, scale: 0.9 }}
-        transition={
-          isMobileForm
-            ? { duration: 0.22, ease: 'easeOut' }
-            : { type: 'spring', damping: 25, stiffness: 200 }
-        }
+        variants={{
+          open: { y: 0, rotate: 0, skewX: 0, scale: 1, opacity: 1 },
+          closed: { 
+            y: isMobileForm ? 600 : 1000, 
+            rotate: isMobileForm ? -5 : -12, 
+            skewX: isMobileForm ? 8 : 15, 
+            scale: 0.8, 
+            opacity: 0 
+          }
+        }}
+        initial="closed"
+        animate="open"
+        exit="closed"
+        transition={{ 
+          type: "spring", 
+          damping: 22, 
+          stiffness: 240, 
+          mass: 0.8
+        }}
         drag={isMobileForm ? false : 'y'}
         dragControls={isMobileForm ? undefined : dragControls}
         dragListener={false}
@@ -410,10 +421,82 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
         dragElastic={{ top: 0, bottom: 1 }}
         style={isMobileForm ? undefined : { y: dragY }}
         onDragEnd={isMobileForm ? undefined : handleDragEnd}
-        className="relative z-[50] flex min-h-0 w-full max-h-[min(88dvh,100svh)] flex-col pointer-events-auto will-change-[opacity] sm:max-h-[90vh] sm:max-w-2xl sm:will-change-auto"
+        className="relative z-[50] flex min-h-0 w-full max-h-[min(88dvh,100svh)] flex-col pointer-events-auto sm:max-h-[90vh] sm:max-w-2xl"
       >
-        <div className="absolute inset-0 bg-base08 translate-x-3 translate-y-3 opacity-60" style={{ clipPath: 'polygon(1% 0%, 99% 2%, 97% 98%, 0% 99%)', WebkitClipPath: 'polygon(1% 0%, 99% 2%, 97% 98%, 0% 99%)' } as React.CSSProperties} />
-        <div className="absolute inset-0 bg-base00 translate-x-1.5 translate-y-1.5" style={{ clipPath: 'polygon(0% 2%, 98% 0%, 100% 98%, 2% 100%)', WebkitClipPath: 'polygon(0% 2%, 98% 0%, 100% 98%, 2% 100%)' } as React.CSSProperties} />
+        <motion.div 
+          variants={{
+            open: { x: 12, y: 12, opacity: 0.6, rotate: 0 },
+            closed: { x: 30, y: 60, opacity: 0, rotate: -5 }
+          }}
+          className="absolute inset-0 bg-base08" 
+          style={{ clipPath: 'polygon(1% 0%, 99% 2%, 97% 98%, 0% 99%)', WebkitClipPath: 'polygon(1% 0%, 99% 2%, 97% 98%, 0% 99%)' } as React.CSSProperties} 
+        />
+        <motion.div 
+          variants={{
+            open: { x: 6, y: 6, opacity: 1, rotate: 0 },
+            closed: { x: 15, y: 30, opacity: 0, rotate: -2 }
+          }}
+          className="absolute inset-0 bg-base00" 
+          style={{ clipPath: 'polygon(0% 2%, 98% 0%, 100% 98%, 2% 100%)', WebkitClipPath: 'polygon(0% 2%, 98% 0%, 100% 98%, 2% 100%)' } as React.CSSProperties} 
+        />
+
+        {/* Draggable Header (Overlay) - Moved outside clipping for safety */}
+        <div onPointerDown={beginHeaderDrag} className={`w-full relative z-[10] bg-base08 py-6 px-8 shrink-0 touch-none flex items-center justify-between overflow-hidden ${isMobileForm ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}>
+          {/* Diagonal grid of alternating stars / spirals — each cell has a unique rotation */}
+          <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden>
+            <div
+              className="absolute left-1/2 top-1/2 text-base00/40"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${TITLEBAR_GRID_COLS}, 10px)`,
+                gridAutoRows: '10px',
+                columnGap: '11px',
+                rowGap: '12px',
+                width: 'max-content',
+                transform: 'translate(-50%, -50%) rotate(45deg)',
+                transformOrigin: 'center',
+              }}
+            >
+              {CONTACT_TITLEBAR_PATTERN.map((cell, idx) => (
+                <span
+                  key={idx}
+                  className="flex items-center justify-center w-[10px] h-[10px]"
+                  style={{ transform: `rotate(${cell.deg}deg)` }}
+                >
+                  {cell.kind === 'star' ? <ContactTitlebarStarGlyph /> : <ContactTitlebarSpiralGlyph />}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="relative z-[2] flex flex-col">
+            <h2 className="text-2xl sm:text-4xl font-black text-base00 uppercase italic tracking-tighter -skew-x-12 leading-none">Calling Card</h2>
+            <div className="h-1 sm:h-1.5 w-32 bg-base00 mt-1 sm:mt-2 -skew-x-12" />
+          </div>
+          <button
+            ref={closeButtonRef}
+            onClick={onClose}
+            onMouseEnter={() => {
+              if (!bp.hasFinePointer) return;
+              showCloseHint();
+            }}
+            onMouseLeave={() => {
+              if (!bp.hasFinePointer) return;
+              setIsCloseHintVisible(false);
+            }}
+            onFocus={() => {
+              if (!bp.hasKeyboard) return;
+              showCloseHint();
+            }}
+            onBlur={() => setIsCloseHintVisible(false)}
+            className="group/close relative z-[2] p-2 transition-transform active:scale-90"
+            aria-label="Abort form panel"
+          >
+            <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1 opacity-50 pointer-fine:group-hover/close:translate-x-1.5 pointer-fine:group-hover/close:translate-y-1.5 transition-transform" />
+            <div className="relative bg-base00 p-1.5 -skew-x-12 border-2 border-base09">
+              <svg className="w-5 h-5 text-base09 skew-x-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </div>
+          </button>
+        </div>
 
         <div
           className="relative flex min-h-0 flex-col h-full overflow-hidden bg-base01"
@@ -426,65 +509,6 @@ export default function ContactForm({ onClose, emailConfig }: ContactFormProps) 
                 } as React.CSSProperties)
           }
         >
-          <div className="absolute inset-0 z-0 halftone-bg opacity-10 pointer-events-none" />
-
-          <div onPointerDown={beginHeaderDrag} className={`w-full relative z-[1] bg-base08 py-6 px-8 shrink-0 touch-none flex items-center justify-between overflow-hidden ${isMobileForm ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}>
-            {/* Diagonal grid of alternating stars / spirals — each cell has a unique rotation */}
-            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden>
-              <div
-                className="absolute left-1/2 top-1/2 text-base00/40"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(${TITLEBAR_GRID_COLS}, 10px)`,
-                  gridAutoRows: '10px',
-                  columnGap: '11px',
-                  rowGap: '12px',
-                  width: 'max-content',
-                  transform: 'translate(-50%, -50%) rotate(45deg)',
-                  transformOrigin: 'center',
-                }}
-              >
-                {CONTACT_TITLEBAR_PATTERN.map((cell, idx) => (
-                  <span
-                    key={idx}
-                    className="flex items-center justify-center w-[10px] h-[10px]"
-                    style={{ transform: `rotate(${cell.deg}deg)` }}
-                  >
-                    {cell.kind === 'star' ? <ContactTitlebarStarGlyph /> : <ContactTitlebarSpiralGlyph />}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="relative z-[2] flex flex-col">
-              <h2 className="text-2xl sm:text-4xl font-black text-base00 uppercase italic tracking-tighter -skew-x-12 leading-none">Calling Card</h2>
-              <div className="h-1 sm:h-1.5 w-32 bg-base00 mt-1 sm:mt-2 -skew-x-12" />
-            </div>
-            <button
-              ref={closeButtonRef}
-              onClick={onClose}
-              onMouseEnter={() => {
-                if (!bp.hasFinePointer) return;
-                showCloseHint();
-              }}
-              onMouseLeave={() => {
-                if (!bp.hasFinePointer) return;
-                setIsCloseHintVisible(false);
-              }}
-              onFocus={() => {
-                if (!bp.hasKeyboard) return;
-                showCloseHint();
-              }}
-              onBlur={() => setIsCloseHintVisible(false)}
-              className="group/close relative z-[2] p-2 transition-transform active:scale-90"
-              aria-label="Abort form panel"
-            >
-              <div className="absolute inset-0 bg-base00 -skew-x-12 translate-x-1 translate-y-1 opacity-50 pointer-fine:group-hover/close:translate-x-1.5 pointer-fine:group-hover/close:translate-y-1.5 transition-transform" />
-              <div className="relative bg-base00 p-1.5 -skew-x-12 border-2 border-base09">
-                <svg className="w-5 h-5 text-base09 skew-x-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </div>
-            </button>
-          </div>
-
           <div
             ref={formScrollRef}
             className="relative z-[1] flex-1 min-h-0 overflow-y-auto overscroll-y-contain px-6 py-8 sm:px-10 sm:py-12 space-y-10 projects-scroll sm:scroll-smooth"
