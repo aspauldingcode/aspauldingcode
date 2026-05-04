@@ -134,7 +134,7 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     const wheelPinchBaseZoomRef = useRef(1);
     const wheelPinchLayerScaleRef = useRef(1);
     const wheelPinchPrevLayerScaleRef = useRef(1);
-    const wheelPinchCommitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const wheelPinchCommitTimerRef = useRef<number | null>(null);
     /** Last ctrl/meta wheel pointer position in scroll-container coords — for scroll preservation on commit. */
     const lastCtrlWheelFocalRef = useRef<{ focalX: number; focalY: number } | null>(null);
     const pdfPinchVisualRef = useRef<HTMLDivElement | null>(null);
@@ -281,8 +281,8 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
     }, []);
 
     const abortWheelPinchSession = useCallback(() => {
-      if (wheelPinchCommitTimerRef.current) {
-        clearTimeout(wheelPinchCommitTimerRef.current);
+      if (wheelPinchCommitTimerRef.current != null) {
+        window.clearTimeout(wheelPinchCommitTimerRef.current);
         wheelPinchCommitTimerRef.current = null;
       }
       const layer = pdfPinchVisualRef.current;
@@ -486,8 +486,8 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
 
       /** If ctrl-wheel left a pending visual layer, commit before touch pinch (same as timer). */
       const flushPendingWheelLayer = (): number => {
-        if (wheelPinchCommitTimerRef.current) {
-          clearTimeout(wheelPinchCommitTimerRef.current);
+        if (wheelPinchCommitTimerRef.current != null) {
+          window.clearTimeout(wheelPinchCommitTimerRef.current);
           wheelPinchCommitTimerRef.current = null;
         }
         const layer = pdfPinchVisualRef.current;
@@ -615,10 +615,10 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
         typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
       const scheduleWheelPinchCommit = () => {
-        if (wheelPinchCommitTimerRef.current) {
-          clearTimeout(wheelPinchCommitTimerRef.current);
+        if (wheelPinchCommitTimerRef.current != null) {
+          window.clearTimeout(wheelPinchCommitTimerRef.current);
         }
-        wheelPinchCommitTimerRef.current = setTimeout(() => {
+        wheelPinchCommitTimerRef.current = window.setTimeout(() => {
           wheelPinchCommitTimerRef.current = null;
           const scrollEl = scrollContainerRef.current;
           const base = wheelPinchBaseZoomRef.current;
@@ -684,8 +684,8 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
 
       const onGestureStart = (ev: Event) => {
         (ev as { preventDefault?: () => void }).preventDefault?.();
-        if (wheelPinchCommitTimerRef.current) {
-          clearTimeout(wheelPinchCommitTimerRef.current);
+        if (wheelPinchCommitTimerRef.current != null) {
+          window.clearTimeout(wheelPinchCommitTimerRef.current);
           wheelPinchCommitTimerRef.current = null;
         }
         const wLayer = pdfPinchVisualRef.current;
@@ -754,8 +754,8 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
       }
 
       return () => {
-        if (wheelPinchCommitTimerRef.current) {
-          clearTimeout(wheelPinchCommitTimerRef.current);
+        if (wheelPinchCommitTimerRef.current != null) {
+          window.clearTimeout(wheelPinchCommitTimerRef.current);
           wheelPinchCommitTimerRef.current = null;
         }
         el.removeEventListener('wheel', onWheel, { capture: true });
@@ -808,7 +808,8 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
           scrollHeightBefore: p.scrollHeightBefore,
         };
         const layer = pdfPinchVisualRef.current;
-        let debounceTimer: ReturnType<typeof window.setTimeout> | null = null;
+        /** DOM timers are `number` in browsers; `ReturnType<typeof setTimeout>` is `NodeJS.Timeout` under @types/node. */
+        let debounceTimer: number | null = null;
         const ro =
           layer && typeof ResizeObserver !== 'undefined'
             ? new ResizeObserver(() => {
