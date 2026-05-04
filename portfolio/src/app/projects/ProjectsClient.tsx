@@ -448,8 +448,8 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
 
   /** Browsers scroll focused elements into view using transformed bounds; skewed cards nudge window.scrollX — snap X without clobbering vertical (e.g. scroll-to-top on pinned cards). */
   useEffect(() => {
-    const snapPageX = (target: EventTarget | null) => {
-      const t = target as HTMLElement | null;
+    const snapPageX = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
       if (!t?.matches?.(PROJECT_CARD_FOCUSABLE_SELECTOR)) return;
       const fix = () => {
         if (window.scrollX !== 0) {
