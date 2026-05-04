@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Project } from '@/app/projects/projectData';
@@ -28,7 +28,12 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
     const [isLoaded, setIsLoaded] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+    const [mounted, setMounted] = useState(false);
     const lastOrientationRef = React.useRef({ beta: 0, gamma: 0 });
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     React.useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -160,7 +165,7 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
                                 />
                                 
                                 {/* "Persona Heritage" Shader - Custom variants for P3 (Blue), P4 (Yellow), P5 (Red) */}
-                                {isFeatured && (
+                                {isFeatured && mounted && (
                                     <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden select-none">
                                         {/* "Twinkle" Shader — Always visible on featured grid, focused only if stacked */}
                                         <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden mix-blend-screen opacity-100 transition-opacity duration-500">

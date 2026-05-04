@@ -75,6 +75,11 @@ interface ProjectsClientProps {
 }
 
 function FloatingShapes() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const seeded = (seed: number) => {
     const value = Math.sin(seed * 9999.91) * 10000;
     return value - Math.floor(value);
@@ -122,7 +127,7 @@ function FloatingShapes() {
       </motion.div>
 
       {/* Floating Debris */}
-      {[...Array(6)].map((_, i) => {
+      {mounted && [...Array(6)].map((_, i) => {
         const xSeed = seeded(i + 1);
         const ySeed = seeded(i + 11);
         const rotSeed = seeded(i + 21);
