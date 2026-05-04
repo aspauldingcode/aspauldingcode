@@ -360,7 +360,6 @@ export default function Home() {
               >
                 <motion.div
                   layoutId="profile-image"
-                  initial={false}
                   animate={{
                     width: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.w : responsiveStyles.squareSize,
                     height: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.h : responsiveStyles.squareSize,

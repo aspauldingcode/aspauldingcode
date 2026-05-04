@@ -101,16 +101,16 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
             }}
             onBlur={() => setIsFocused(false)}
         >
-            {/* Persona Offset Shadow Layer — keep translate small so focus/hover ink does not widen scroll overflow */}
-            {/* Persona Offset Shadow Layer — re-introduced as a sharp, vibrant accent for focus/hover clarity */}
-            <div className={`absolute inset-0 bg-base08 translate-x-1 translate-y-1 opacity-0 group-focus-visible:opacity-100 transition-all duration-150 rounded-3xl ${interactionMode === 'mouse' ? 'pointer-fine:group-hover:opacity-100 pointer-fine:group-hover:translate-x-1.5 pointer-fine:group-hover:translate-y-1.5' : ''}`} />
-            
-            <motion.div
-                className={`w-full h-full transition-all duration-300 relative z-0 group-focus-visible:z-50 pointer-fine:group-hover:z-50 ${isFocused && interactionMode === 'keyboard' ? 'z-50' : ''}`}
-                animate={isFocused && interactionMode === 'keyboard' ? { x: -6, y: -6 } : { x: 0, y: 0 }}
-                whileHover={interactionMode === 'mouse' ? { x: -6, y: -6 } : {}}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            >
+            <div className={`relative w-full h-full transition-all duration-300 group-focus-visible:z-50 pointer-fine:group-hover:z-50 ${isFocused && interactionMode === 'keyboard' ? 'z-50' : ''}`}>
+                {/* Persona Offset Shadow Layer — re-introduced as a sharp, vibrant accent for focus/hover clarity */}
+                <div className={`absolute inset-0 bg-base08 translate-x-1 translate-y-1 opacity-0 group-focus-visible:opacity-100 transition-all duration-150 rounded-3xl ${interactionMode === 'mouse' ? 'pointer-fine:group-hover:opacity-100 pointer-fine:group-hover:translate-x-1.5 pointer-fine:group-hover:translate-y-1.5' : ''}`} />
+                
+                <motion.div
+                    className="w-full h-full relative z-10"
+                    animate={isFocused && interactionMode === 'keyboard' ? { x: -6, y: -6 } : { x: 0, y: 0 }}
+                    whileHover={interactionMode === 'mouse' ? { x: -6, y: -6 } : {}}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
                 {/* Main Glass Container — theme-reversed keeps greyscale dark-palette in light mode so text stays readable over the hardcoded dark gradient; accent colors (base08–0F) remain light-mode flavoured */}
                 <div className={`relative flex flex-col w-full h-full overflow-hidden rounded-3xl border-2 border-base05/10 bg-base01/70 backdrop-blur-xl transition-all duration-500 theme-reversed group-focus-visible:border-base09 ${interactionMode === 'mouse' ? 'pointer-fine:group-hover:border-base09' : ''} isolation-isolate`}>
 
@@ -295,6 +295,7 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
                     />
                 </div>
             </motion.div>
+            </div>
         </div>
     );
 });
