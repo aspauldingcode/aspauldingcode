@@ -820,7 +820,9 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
                 }, 90);
               })
             : null;
-        ro?.observe(layer);
+        if (ro && layer) {
+          ro.observe(layer);
+        }
         const hardStop = window.setTimeout(() => {
           if (debounceTimer != null) window.clearTimeout(debounceTimer);
           debounceTimer = null;
