@@ -808,11 +808,11 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
           scrollHeightBefore: p.scrollHeightBefore,
         };
         const layer = pdfPinchVisualRef.current;
-        let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+        let debounceTimer: ReturnType<typeof window.setTimeout> | null = null;
         const ro =
           layer && typeof ResizeObserver !== 'undefined'
             ? new ResizeObserver(() => {
-                if (debounceTimer) clearTimeout(debounceTimer);
+                if (debounceTimer != null) window.clearTimeout(debounceTimer);
                 debounceTimer = window.setTimeout(() => {
                   debounceTimer = null;
                   applyLayerHandoffScroll(el, anchor);
@@ -821,13 +821,13 @@ export default function ResumeViewer({ onCheckClose, cachedResume }: ResumeViewe
             : null;
         ro?.observe(layer);
         const hardStop = window.setTimeout(() => {
-          if (debounceTimer) clearTimeout(debounceTimer);
+          if (debounceTimer != null) window.clearTimeout(debounceTimer);
           debounceTimer = null;
           ro?.disconnect();
         }, 900);
         cancelLayerFollow = () => {
           window.clearTimeout(hardStop);
-          if (debounceTimer) clearTimeout(debounceTimer);
+          if (debounceTimer != null) window.clearTimeout(debounceTimer);
           ro?.disconnect();
         };
       } else {
