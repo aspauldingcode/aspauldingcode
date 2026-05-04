@@ -3,12 +3,41 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Project } from './projectData';
-import ProjectsHeader from '../components/ProjectsHeader';
+import ProjectsHeader, { AlexProjectsInlineTitle } from '../components/ProjectsHeader';
 import ProjectCard from '@/components/ProjectCard';
 import { GitHubRepoData } from '@/lib/github';
 import { motion } from 'framer-motion';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
+import { FeaturedMobileStack } from './FeaturedMobileStack';
+import { PinnedVerticalRail } from './PinnedVerticalRail';
+
+const PROJECT_CARD_FOCUSABLE_SELECTOR = '[role="button"][aria-label^="View details"]';
+
+/** Pinned / featured cards: document top so the fixed header title stays sharp (it blurs with scrollY). */
+function scrollPinnedProjectsToPageTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+}
+
+/**
+ * Never scroll horizontally: `scrollIntoView` / focus heuristics use the full transformed + outline
+ * bounds (skewed cards extend past layout width), which nudges the window on edge columns.
+ */
+function scrollProjectCardIntoViewVertically(el: HTMLElement) {
+  if (el.closest('[data-pinned-projects-section]')) {
+    scrollPinnedProjectsToPageTop();
+    return;
+  }
+  const rect = el.getBoundingClientRect();
+  const margin = Math.min(96, Math.max(40, window.innerHeight * 0.1));
+  const topGap = margin - rect.top;
+  const bottomGap = rect.bottom - (window.innerHeight - margin);
+  if (topGap > 0) {
+    window.scrollBy({ top: -topGap, behavior: 'smooth' });
+  } else if (bottomGap > 0) {
+    window.scrollBy({ top: bottomGap, behavior: 'smooth' });
+  }
+}
 
 function ProjectSheetLoading() {
   return (
@@ -39,6 +68,11 @@ interface ProjectsClientProps {
 }
 
 function FloatingShapes() {
+  const seeded = (seed: number) => {
+    const value = Math.sin(seed * 9999.91) * 10000;
+    return value - Math.floor(value);
+  };
+
   const shapes = [
     // P1/P2: Gothic Butterfly (Outline)
     <svg key="p12" viewBox="0 0 100 100" className="w-full h-full stroke-current fill-none stroke-[2]">
@@ -82,13 +116,20 @@ function FloatingShapes() {
 
       {/* Floating Debris */}
       {[...Array(6)].map((_, i) => (
+        (() => {
+          const xSeed = seeded(i + 1);
+          const ySeed = seeded(i + 11);
+          const rotSeed = seeded(i + 21);
+          const scaleSeed = seeded(i + 31);
+          const durationSeed = seeded(i + 41);
+          return (
         <motion.div
           key={i}
           initial={{ 
-            x: Math.random() * 100 + '%', 
-            y: Math.random() * 100 + '%',
-            rotate: Math.random() * 360,
-            scale: 0.4 + Math.random() * 0.8,
+            x: `${(xSeed * 100).toFixed(3)}%`, 
+            y: `${(ySeed * 100).toFixed(3)}%`,
+            rotate: Number((rotSeed * 360).toFixed(3)),
+            scale: Number((0.4 + scaleSeed * 0.8).toFixed(3)),
             opacity: 0.05
           }}
           animate={{ 
@@ -96,7 +137,7 @@ function FloatingShapes() {
             rotate: [0, 360],
           }}
           transition={{ 
-            duration: 30 + Math.random() * 40, 
+            duration: Number((30 + durationSeed * 40).toFixed(3)), 
             repeat: Infinity, 
             ease: "linear" 
           }}
@@ -104,131 +145,9 @@ function FloatingShapes() {
         >
           {shapes[i % shapes.length]}
         </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function FeaturedMobileStack({ 
-  projects, 
-  onViewProject, 
-  onIntent, 
-  githubData,
-  quality,
-  interactionMode
-}: { 
-  projects: Project[], 
-  onViewProject: (p: Project) => void,
-  onIntent: () => void,
-  githubData: Record<string, GitHubRepoData>,
-  quality: number,
-  interactionMode: 'mouse' | 'keyboard'
-}) {
-  const [index, setIndex] = useState(0);
-  const dragActive = useRef(false);
-
-  const handleDragStart = () => {
-    dragActive.current = true;
-  };
-
-  const handleDragEnd = (event: any, info: any) => {
-    if (info.offset.x > 100) {
-      setIndex((prev) => (prev === 0 ? projects.length - 1 : prev - 1));
-    } else if (info.offset.x < -100) {
-      setIndex((prev) => (prev === projects.length - 1 ? 0 : prev + 1));
-    }
-    
-    setTimeout(() => {
-      dragActive.current = false;
-    }, 100);
-  };
-
-  const handleProjectClick = (project: Project) => {
-    if (!dragActive.current) {
-      onViewProject(project);
-    }
-  };
-
-  return (
-    <div className="relative w-full aspect-[3/4] max-w-[82vw] sm:max-w-[420px] mx-auto flex items-center justify-center perspective-1000">
-      <div className="absolute -bottom-10 left-0 right-0 flex justify-center gap-3 z-20">
-        {projects.map((_, i) => (
-          <div 
-            key={i} 
-            className={`h-2 -skew-x-12 transition-all duration-300 border border-base00 ${i === index ? 'w-8 bg-base09' : 'w-2 bg-base03'}`}
-          />
-        ))}
-      </div>
-
-      <div className="relative w-full h-full touch-pan-y overflow-visible">
-        {projects.map((project, i) => {
-          const isCurrent = i === index;
-          const isNext = i === (index + 1) % projects.length;
-          const isPrev = i === (index - 1 + projects.length) % projects.length;
-          
-          if (!isCurrent && !isNext && !isPrev) return null;
-
-          return (
-            <motion.div
-              key={project.id}
-              className="absolute inset-0 cursor-grab active:cursor-grabbing p-4"
-              style={{
-                zIndex: isCurrent ? 10 : 5,
-                display: isCurrent || isNext || isPrev ? 'block' : 'none',
-              }}
-              initial={false}
-              animate={{
-                x: isCurrent ? 0 : isNext ? '12%' : '-12%',
-                y: isCurrent ? 0 : 12,
-                scale: isCurrent ? 1 : 0.88,
-                opacity: isCurrent ? 1 : 0.3,
-                rotate: isCurrent ? 0 : isNext ? 4 : -4,
-                filter: isCurrent ? "grayscale(0%) brightness(100%)" : "grayscale(50%) brightness(70%)",
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 260,
-                damping: 25
-              }}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <ProjectCard
-                project={project}
-                onViewProject={handleProjectClick}
-                onIntent={onIntent}
-                priority={isCurrent}
-                quality={quality}
-                repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
-                onFocus={() => {
-                  if (isNext) setIndex((prev) => (prev + 1) % projects.length);
-                  if (isPrev) setIndex((prev) => (prev - 1 + projects.length) % projects.length);
-                }}
-                interactionMode={interactionMode}
-              />
-            </motion.div>
           );
-        })}
-      </div>
-
-      {/* Aesthetic Divider - Positioned under dots for Mobile Stack - Persona Stylized */}
-      <div className="absolute -bottom-28 left-0 right-0 flex items-center justify-center pointer-events-auto">
-        <div className="absolute inset-0 flex items-center" aria-hidden="true">
-          <div className="w-full border-t-2 border-base09 opacity-30"></div>
-        </div>
-        <div className="relative group">
-          <div className="absolute inset-0 bg-base08 -skew-x-12 translate-x-1 translate-y-1" />
-          <div className="relative bg-base00 border-2 border-base09 px-6 py-2 -skew-x-12 flex items-center gap-3">
-            <span className="text-base09 font-nerd text-sm animate-pulse">󰓎</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-base05 skew-x-12 block ml-1">
-              Pinned Projects
-            </span>
-            <span className="text-base09 font-nerd text-sm animate-pulse">󰓎</span>
-          </div>
-        </div>
-      </div>
+        })()
+      ))}
     </div>
   );
 }
@@ -248,6 +167,16 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
   const [githubData, setGithubData] = useState<Record<string, GitHubRepoData>>(initialGithubData);
   const { isLowEnd } = useNetworkStatus();
   const bp = useBreakpoints();
+  /** Viewport height ≤550px: compact pinned hero (deck + desktop grid + label) */
+  const shortHero = bp.isMounted && bp.isH550;
+  /** Title moves beside the pinned rail; frees vertical space under the fixed chrome. */
+  const ultraShortViewport = bp.isMounted && bp.height < 350;
+  /**
+   * Wide pinned grid + vertical rail only when lg-wide and not ultra-short.
+   * Height under 350px: always use `FeaturedMobileStack` so the swipe deck still renders on wide but very short viewports.
+   */
+  const showDesktopPinnedHero =
+    !bp.isMounted || (bp.width >= 1024 && !ultraShortViewport);
   const [hasOpenedSheet, setHasOpenedSheet] = useState(false);
   const [interactionMode, setInteractionMode] = useState<'mouse' | 'keyboard'>('mouse');
   const hasPrewarmedSheetRef = useRef(false);
@@ -341,7 +270,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
         setInteractionMode('keyboard');
       }
 
-      if (key === 'escape' && selectedProject) {
+      if ((key === 'escape' || e.key === '`' || e.code === 'Backquote') && selectedProject) {
         handleModalClose();
       }
     };
@@ -413,6 +342,25 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
     return 1;
   }, [bp.isMounted, bp.width]);
 
+  /**
+   * Below lg width and h≤550: pinned deck dots sit under the fixed “Alex’s Projects” bar.
+   * Trim main top padding on that layout only; keep default clearance elsewhere.
+   * Height under 350px: title beside rail. Main keeps **2.75rem** below safe for the home control; slide dots are
+   * fixed at `var(--safe-top)`. `FeaturedMobileStack` applies **-mt + same extra height** so the deck kisses the dots.
+   */
+  const projectsMainTopPaddingClass = useMemo(() => {
+    const defaultPt =
+      'pt-[calc(4.5rem+var(--safe-top))] sm:pt-[calc(5rem+var(--safe-top))] md:pt-[calc(6rem+var(--safe-top))] lg:pt-[calc(6.5rem+var(--safe-top))]';
+    const ultraShortPt =
+      'pt-[calc(2.75rem+var(--safe-top))] sm:pt-[calc(2.75rem+var(--safe-top))] md:pt-[calc(2.75rem+var(--safe-top))] lg:pt-[calc(2.75rem+var(--safe-top))]';
+    if (!bp.isMounted) return defaultPt;
+    if (ultraShortViewport) return ultraShortPt;
+    if (bp.isLg || !shortHero) return defaultPt;
+    return 'pt-[calc(4rem+var(--safe-top))] sm:pt-[calc(4.2rem+var(--safe-top))] md:pt-[calc(4.45rem+var(--safe-top))]';
+  }, [bp.isMounted, bp.isLg, shortHero, ultraShortViewport]);
+
+  const projectsMainBottomPaddingClass = ultraShortViewport ? 'pb-4 sm:pb-5' : 'pb-10 sm:pb-20';
+
   // Advanced Keyboard Grid Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -426,54 +374,69 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
       const isSpace = e.key === ' ';
       const isShift = e.shiftKey;
 
-      // Find all focusable project cards
-      const cards = Array.from(document.querySelectorAll('[role="button"][aria-label^="View details"]')) as HTMLElement[];
+      // Focusable project cards (skip tabIndex -1, e.g. back faces of pinned mobile stack)
+      const cards = Array.from(
+        document.querySelectorAll(PROJECT_CARD_FOCUSABLE_SELECTOR)
+      ).filter((el) => (el as HTMLElement).tabIndex !== -1) as HTMLElement[];
       if (cards.length === 0) return;
 
       const currentIndex = cards.indexOf(document.activeElement as HTMLElement);
       
       // If nothing focused, focus first card on any arrow/space press
       if (currentIndex === -1) {
-        cards[0].focus();
         e.preventDefault();
+        cards[0].focus({ preventScroll: true });
+        scrollProjectCardIntoViewVertically(cards[0]);
         return;
       }
 
       let nextIndex = currentIndex;
       const cols = bp.width >= 1024 ? 3 : bp.width >= 640 ? 2 : 1;
+      const clamp = (value: number) => Math.max(0, Math.min(cards.length - 1, value));
 
       if (isSpace) {
-        // Space moves down a row, Shift-Space moves up a row
-        nextIndex = isShift 
-          ? (currentIndex - cols + cards.length) % cards.length
-          : (currentIndex + cols) % cards.length;
+        // Space moves by row without wrapping.
+        nextIndex = clamp(isShift ? currentIndex - cols : currentIndex + cols);
       } else {
         switch (e.key) {
           case 'ArrowLeft':
-            nextIndex = (currentIndex - 1 + cards.length) % cards.length;
+            nextIndex = clamp(currentIndex - 1);
             break;
           case 'ArrowRight':
-            nextIndex = (currentIndex + 1) % cards.length;
+            nextIndex = clamp(currentIndex + 1);
             break;
           case 'ArrowUp':
-            nextIndex = (currentIndex - cols + cards.length) % cards.length;
+            nextIndex = clamp(currentIndex - cols);
             break;
           case 'ArrowDown':
-            nextIndex = (currentIndex + cols) % cards.length;
+            nextIndex = clamp(currentIndex + cols);
             break;
         }
       }
 
       if (nextIndex !== currentIndex) {
         e.preventDefault();
-        cards[nextIndex].focus();
-        cards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        cards[nextIndex].focus({ preventScroll: true });
+        scrollProjectCardIntoViewVertically(cards[nextIndex]);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedProject, bp.width]);
+
+  /** Tab / programmatic focus on featured pins: same as arrow nav — page top so header isn’t scroll-blurred. */
+  useEffect(() => {
+    if (selectedProject) return;
+    const onFocusIn = (e: Event) => {
+      const t = e.target as HTMLElement;
+      if (!t?.matches?.(PROJECT_CARD_FOCUSABLE_SELECTOR)) return;
+      if (!t.closest('[data-pinned-projects-section]')) return;
+      scrollPinnedProjectsToPageTop();
+    };
+    document.addEventListener('focusin', onFocusIn, true);
+    return () => document.removeEventListener('focusin', onFocusIn, true);
+  }, [selectedProject]);
 
   useEffect(() => {
     // Apply specialized persona scroller to the entire page
@@ -483,8 +446,32 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
     };
   }, []);
 
+  /** Browsers scroll focused elements into view using transformed bounds; skewed cards nudge window.scrollX — snap X without clobbering vertical (e.g. scroll-to-top on pinned cards). */
+  useEffect(() => {
+    const snapPageX = (target: EventTarget | null) => {
+      const t = target as HTMLElement | null;
+      if (!t?.matches?.(PROJECT_CARD_FOCUSABLE_SELECTOR)) return;
+      const fix = () => {
+        if (window.scrollX !== 0) {
+          window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' });
+        }
+      };
+      queueMicrotask(fix);
+      requestAnimationFrame(fix);
+      requestAnimationFrame(() => requestAnimationFrame(fix));
+    };
+    document.addEventListener('focus', snapPageX, true);
+    return () => document.removeEventListener('focus', snapPageX, true);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-base00 text-base05 relative">
+    <div
+      className={
+        ultraShortViewport
+          ? 'relative flex min-h-dvh flex-col bg-base00 text-base05'
+          : 'relative min-h-screen bg-base00 text-base05'
+      }
+    >
 
       {/* Persona Background Elements */}
       <FloatingShapes />
@@ -492,7 +479,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
 
       {/* Main Grid Layout */}
       <motion.main
-        className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 pt-12 sm:pt-16 pb-14 sm:pb-20 relative z-10 overflow-x-hidden projects-scroll"
+        className={`mx-auto w-full max-w-[1920px] flex-1 px-4 sm:px-8 md:px-12 ${projectsMainTopPaddingClass} ${projectsMainBottomPaddingClass} relative z-10 projects-scroll ${ultraShortViewport ? 'flex min-h-0 flex-col' : ''}`}
         animate={{
           filter: selectedProject ? "blur(5px)" : "blur(0px)",
           scale: selectedProject ? 0.98 : 1,
@@ -500,35 +487,95 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
         {/* Hero Section - Featured/Pinned Projects (Compact on Mobile) */}
-      <section className="relative w-full flex flex-col items-center justify-start min-h-fit py-8 sm:pt-12 sm:pb-16 md:pt-14 md:pb-20">
-        <div className="w-full flex flex-col items-center gap-4 sm:gap-8 lg:gap-10">
+      <section
+        className={
+          shortHero
+            ? ultraShortViewport
+              ? 'relative flex w-full min-h-0 flex-1 flex-col items-stretch justify-start pt-0 pb-1 sm:pb-2 md:pb-2 lg:pb-3 max-lg:min-h-0'
+              : 'relative flex w-full flex-col items-center justify-start min-h-fit pt-0 pb-2 sm:pb-2 md:pb-3 lg:pb-4 max-lg:min-h-0'
+            : 'relative flex w-full flex-col items-center justify-start min-h-fit pt-1 pb-3 sm:pt-2 sm:pb-5 md:pt-6 md:pb-10 lg:pt-8 lg:pb-14 max-lg:min-h-0'
+        }
+      >
+        <div
+          className={
+            shortHero
+              ? ultraShortViewport
+                ? 'flex w-full min-h-0 flex-1 flex-col items-stretch gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2'
+                : 'flex w-full min-h-0 flex-col items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3'
+              : 'flex w-full min-h-0 flex-col items-center gap-1.5 sm:gap-2 md:gap-5 lg:gap-8'
+          }
+        >
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full"
+            className={ultraShortViewport && shortHero ? 'flex min-h-0 w-full flex-1 flex-col' : 'w-full'}
           >
-            {/* Responsive featured projects display */}
-            {!bp.isMounted || bp.width >= 1024 ? (
-              /* 3-column layout centered for featured projects (Desktop/Tablet) */
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12 w-full max-w-7xl mx-auto justify-items-center">
-                {featuredProjects.map((project) => (
-                  <div
-                    key={`featured-${project.id}`}
-                    className="aspect-[4/5] w-full max-w-[450px] scale-100 sm:scale-[1.02] lg:scale-105 transition-transform duration-500 p-2"
-                  >
-                    <ProjectCard
-                      project={project}
-                      onViewProject={handleViewProject}
-                      onIntent={prewarmProjectSheet}
-                      priority={true}
-                      quality={isLowEnd ? 75 : 90}
-                      repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
-                      interactionMode={interactionMode}
+            {/* Featured / pinned cards only (for focus → scroll to page top) */}
+            <div
+              data-pinned-projects-section
+              className={ultraShortViewport && shortHero ? 'flex min-h-0 w-full flex-1 flex-col' : 'w-full'}
+            >
+            {showDesktopPinnedHero ? (
+              shortHero ? (
+                <div
+                  className={`mx-auto flex min-h-0 w-full max-w-7xl flex-row items-stretch justify-center gap-2 sm:gap-3 lg:gap-4 ${ultraShortViewport ? 'flex-1' : ''}`}
+                >
+                  {ultraShortViewport ? (
+                    <AlexProjectsInlineTitle
+                      className="hidden min-h-0 self-stretch lg:flex"
+                      isHidden={!!selectedProject}
                     />
+                  ) : null}
+                  <PinnedVerticalRail className="hidden min-h-0 self-stretch lg:flex" />
+                  <div
+                    className={
+                      'grid min-h-0 grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 w-full min-w-0 flex-1 justify-items-center self-stretch'
+                    }
+                  >
+                    {featuredProjects.map((project) => (
+                      <div
+                        key={`featured-${project.id}`}
+                        className={
+                          ultraShortViewport
+                            ? 'aspect-[5/3] mx-auto w-full max-w-[440px] max-h-[min(calc(100svh-6.5rem),420px)] px-0.5 sm:px-1 lg:max-h-[min(calc(100dvh-7rem),480px)]'
+                            : 'aspect-[5/3] mx-auto w-full max-w-[440px] max-h-[min(38svh,260px)] px-0.5 sm:px-1'
+                        }
+                      >
+                        <ProjectCard
+                          project={project}
+                          onViewProject={handleViewProject}
+                          onIntent={prewarmProjectSheet}
+                          priority={true}
+                          quality={isLowEnd ? 75 : 90}
+                          repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
+                          interactionMode={interactionMode}
+                          compactOverlay={shortHero}
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6 w-full max-w-7xl mx-auto justify-items-center">
+                  {featuredProjects.map((project) => (
+                    <div
+                      key={`featured-${project.id}`}
+                      className="aspect-[4/5] w-full max-w-[450px] scale-100 sm:scale-[1.02] lg:scale-105 transition-transform duration-500 px-1 sm:p-2"
+                    >
+                      <ProjectCard
+                        project={project}
+                        onViewProject={handleViewProject}
+                        onIntent={prewarmProjectSheet}
+                        priority={true}
+                        quality={isLowEnd ? 75 : 90}
+                        repoData={project.githubRepo ? githubData[project.githubRepo] : undefined}
+                        interactionMode={interactionMode}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
               /* Tinder-style Swipe Stack (Mobile/Tablet) */
               <FeaturedMobileStack 
@@ -538,34 +585,45 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
                 githubData={githubData}
                 quality={isLowEnd ? 70 : 85}
                 interactionMode={interactionMode}
+                compactVertical={shortHero}
+                inlinePageTitle={ultraShortViewport}
+                inlinePageTitleHidden={!!selectedProject}
               />
             )}
+            </div>
 
             {/* Aesthetic Divider - Tablet/Desktop Grid (Persona-inspired Stylization) */}
-            {!bp.isMounted || bp.width >= 1024 ? (
-              <div className="relative w-full flex flex-col items-center justify-center mt-32 mb-20 sm:mt-36 sm:mb-24 overflow-visible">
-                {/* Background Line */}
-                <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-base02 to-transparent" />
-                
-                {/* Stylized Box */}
-                <div className="relative group overflow-visible">
-                  {/* Offset Shadow Layer */}
-                  <div className="absolute inset-0 bg-base08 translate-x-1.5 translate-y-1.5 -skew-x-12 opacity-80 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform duration-300" />
-                  
-                  {/* Main Label Box */}
-                  <div className="relative bg-base00 border-2 border-base09 px-12 py-4 -skew-x-12 flex items-center gap-8 shadow-2xl transition-all duration-300">
-                    <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
-                    <h3 className="text-sm sm:text-base font-black uppercase tracking-[0.6em] text-base05 skew-x-0 whitespace-nowrap">
-                      Pinned Projects
-                    </h3>
-                    <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
+            {showDesktopPinnedHero ? (
+              !shortHero ? (
+                <div className="relative w-full flex flex-col items-center justify-center mt-32 mb-20 sm:mt-36 sm:mb-24 overflow-visible">
+                  <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-base02 to-transparent" />
+
+                  <div className="relative group overflow-visible">
+                    <div className="absolute inset-0 bg-base08 translate-x-1.5 translate-y-1.5 -skew-x-12 opacity-80 pointer-fine:group-hover:translate-x-2 pointer-fine:group-hover:translate-y-2 transition-transform duration-300" />
+
+                    <div className="relative bg-base00 border-2 border-base09 px-12 py-4 -skew-x-12 flex items-center gap-8 shadow-2xl transition-all duration-300">
+                      <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
+                      <h3 className="text-sm sm:text-base font-black uppercase tracking-[0.6em] text-base05 skew-x-0 whitespace-nowrap">
+                        Pinned Projects
+                      </h3>
+                      <span className="text-base08 font-nerd text-xl sm:text-2xl animate-pulse shrink-0">󰓎</span>
+                    </div>
+
+                    <div className="absolute -top-3 -left-3 w-6 h-6 border-t-4 border-l-4 border-base0B z-20" />
+                    <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-4 border-r-4 border-base0B z-20" />
                   </div>
-                  
-                  {/* Accent Corner Ticks - Fixed Positioning */}
-                  <div className="absolute -top-3 -left-3 w-6 h-6 border-t-4 border-l-4 border-base0B z-20" />
-                  <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-4 border-r-4 border-base0B z-20" />
                 </div>
-              </div>
+              ) : (
+                <div
+                  className={
+                    ultraShortViewport
+                      ? 'relative mb-3 mt-3 flex w-full flex-col items-center justify-center overflow-visible'
+                      : 'relative mt-8 mb-10 flex w-full flex-col items-center justify-center overflow-visible sm:mt-10 sm:mb-12'
+                  }
+                >
+                  <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-base02 to-transparent" />
+                </div>
+              )
             ) : null}
           </motion.div>
         </div>
@@ -575,7 +633,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5, duration: 1 }}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-30"
+          className="hidden lg:flex absolute bottom-4 left-1/2 -translate-x-1/2 flex-col items-center gap-2 pointer-events-none z-30"
         >
           <div className="bg-base09 px-4 py-1 -skew-x-12 shadow-[4px_4px_0px_var(--base08)]">
             <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] text-base00 ml-[0.5em] italic">
@@ -600,7 +658,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
 
         {/* Regular Projects Grid */}
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-10"
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-y-2 gap-x-3 sm:gap-y-3 sm:gap-x-5 lg:gap-x-6 lg:gap-y-4 xl:gap-x-8 xl:gap-y-5 ${ultraShortViewport ? 'shrink-0' : ''}`}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -608,7 +666,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
           {regularProjects.map((project, index) => (
             <div
               key={project.id}
-              className="aspect-[4/5] w-full scale-90 sm:scale-100 transition-transform duration-300 p-2"
+              className="aspect-[4/5] w-full scale-90 sm:scale-100 transition-transform duration-300 px-1 sm:p-2"
             >
               <ProjectCard
                 project={project}
@@ -636,7 +694,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
       )}
 
       {/* Keep header on top of everything */}
-      <ProjectsHeader isSheetOpen={!!selectedProject} />
+      <ProjectsHeader isSheetOpen={!!selectedProject} hideMainTitle={ultraShortViewport} />
     </div>
   );
 }

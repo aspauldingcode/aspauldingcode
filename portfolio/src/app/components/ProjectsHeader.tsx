@@ -2,16 +2,60 @@
 
 import { MouseEvent, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
 import { usePathname, useRouter } from 'next/navigation';
+import { pinnedRailLabelTypographyClass } from '@/app/projects/PinnedVerticalRail';
 
 interface ProjectsHeaderProps {
   isSheetOpen?: boolean;
+  /** When true, the centered fixed title is omitted (e.g. title is shown inline beside the pinned rail). */
+  hideMainTitle?: boolean;
+}
+
+/**
+ * Same shell as `PinnedVerticalRail`: offset skew shadow, `persona-skew` frame (`border-base09`), −90° label
+ * column and `pinnedRailLabelTypographyClass` — no stars — so Alex’s title lines up with the pinned label.
+ */
+export function AlexProjectsInlineTitle({
+  className = '',
+  isHidden = false,
+}: {
+  className?: string;
+  /** Match main header: fade when project sheet is open. */
+  isHidden?: boolean;
+}) {
+  return (
+    <motion.aside
+      animate={{
+        opacity: isHidden ? 0 : 1,
+        filter: isHidden ? 'blur(10px)' : 'blur(0px)',
+        scale: isHidden ? 0.9 : 1,
+      }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      aria-label="Alex's projects"
+      className={`pointer-events-none flex h-full min-h-0 shrink-0 flex-col self-stretch overflow-visible w-[3.5rem] min-[400px]:w-14 sm:w-[4rem] ${className}`}
+    >
+      <div className="relative flex h-full min-h-0 flex-1 flex-col">
+        <div
+          className="pointer-events-none absolute inset-0 origin-center bg-base08 opacity-90"
+          style={{ transform: 'skewX(-12deg) translate(2px, 2px)' }}
+        />
+        <div className="persona-skew relative flex min-h-0 flex-1 items-center justify-center overflow-visible border border-base09 bg-base00 px-0.5 py-1 shadow-[2px_2px_0_var(--base08)] h-550:px-0.5 h-550:py-0.5 sm:px-1 sm:py-2 sm:h-550:py-0.5">
+          <div className="flex h-full w-full min-w-0 items-center justify-center">
+            <div className="-rotate-90 flex w-max flex-row flex-nowrap items-center justify-center origin-center">
+              <h1 className={pinnedRailLabelTypographyClass}>{'Alex\'s\nProjects'}</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.aside>
+  );
 }
 
 export default function ProjectsHeader({
-  isSheetOpen = false
+  isSheetOpen = false,
+  hideMainTitle = false,
 }: ProjectsHeaderProps) {
   const { scrollY } = useScroll();
   const bp = useBreakpoints();
@@ -108,7 +152,7 @@ export default function ProjectsHeader({
             </button>
 
             {/* Unified Hover Hint */}
-            <div className={`p6-tooltip left-full ml-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${showTooltip ? 'opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0' : 'opacity-0'}`}>
+            <div className={`p6-tooltip left-full ml-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${showTooltip ? 'opacity-0 pointer-fine:group-hover:opacity-100 -translate-x-2 pointer-fine:group-hover:translate-x-0' : 'opacity-0'}`}>
               <span className="p6-tooltip-text">home</span>
             </div>
 
@@ -122,6 +166,7 @@ export default function ProjectsHeader({
       </div>
 
       {/* Main Header Title - Centered and Fades on Scroll */}
+      {!hideMainTitle ? (
       <div
         className="fixed top-0 left-0 right-0 z-[200] pointer-events-none pt-[calc(1rem+var(--safe-top))] pl-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] sm:pt-[calc(1.25rem+var(--safe-top))] sm:pl-[calc(1.25rem+var(--safe-left))] sm:pr-[calc(1.25rem+var(--safe-right))] lg:pt-[calc(1.5rem+var(--safe-top))] lg:pl-[calc(1.5rem+var(--safe-left))] lg:pr-[calc(1.5rem+var(--safe-right))]"
         style={{
@@ -155,8 +200,8 @@ export default function ProjectsHeader({
               <div className="absolute inset-0 bg-base09 -skew-x-12 translate-x-3 translate-y-2 opacity-30" />
               <div className="absolute inset-0 bg-base08 -skew-x-12 translate-x-1.5 translate-y-1 opacity-50" />
               
-              <div className="relative border-2 border-base05 px-8 py-2 -skew-x-12 bg-base00/90 backdrop-blur-md shadow-2xl">
-                <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-base05 whitespace-nowrap leading-none uppercase italic tracking-tighter skew-x-0">
+              <div className="relative border-2 border-base05 px-8 py-2 h-600:px-6 h-600:py-1.5 h-500:px-5 h-500:py-1 -skew-x-12 bg-base00/90 backdrop-blur-md shadow-2xl">
+                <h1 className="text-xl sm:text-2xl md:text-4xl h-600:text-lg h-500:text-base font-black text-base05 whitespace-nowrap leading-none uppercase italic tracking-tighter skew-x-0">
                   Alex&apos;s Projects
                 </h1>
               </div>
@@ -164,6 +209,7 @@ export default function ProjectsHeader({
           </motion.div>
         </div>
       </div>
+      ) : null}
     </>
   );
 

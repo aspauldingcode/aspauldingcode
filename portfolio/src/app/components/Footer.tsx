@@ -2,9 +2,12 @@
 
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef, useState } from 'react';
+import { useBreakpoints } from '@/hooks/useBreakpoints';
 
 export default function Footer() {
   const { mounted } = useTheme();
+  const bp = useBreakpoints();
+  const shortViewport = bp.isMounted && bp.isH550;
   const currentYear = new Date().getFullYear();
   const copyrightYears =
     currentYear > 2024 ? `2024-${currentYear}` : '2024';
@@ -183,7 +186,7 @@ export default function Footer() {
         </a>
       </span>
 
-      <span className="whitespace-pre"> and </span>
+      <span className="whitespace-pre"> • </span>
 
       <span className="whitespace-pre">
         open source on{' '}
@@ -266,11 +269,30 @@ export default function Footer() {
         }}
       >
         {/* Persona Decorative Slant */}
-        <div className="absolute inset-0 bg-base00 border-t-4 border-base09 -skew-y-1 shadow-[0_-8px_16px_rgba(0,0,0,0.5)] overflow-hidden">
+        <div
+          className={
+            shortViewport
+              ? 'absolute inset-0 bg-base00 border-t-2 border-base09 -skew-y-1 shadow-[0_-6px_12px_rgba(0,0,0,0.45)] overflow-hidden'
+              : 'absolute inset-0 bg-base00 border-t-4 border-base09 -skew-y-1 shadow-[0_-8px_16px_rgba(0,0,0,0.5)] overflow-hidden'
+          }
+        >
           <div className="absolute inset-0 halftone-bg opacity-10" />
         </div>
+        <div
+          className={
+            shortViewport
+              ? 'absolute inset-x-0 bottom-0 h-[calc(0.45rem+var(--safe-bottom))] bg-base00'
+              : 'absolute inset-x-0 bottom-0 h-[calc(0.75rem+var(--safe-bottom))] bg-base00'
+          }
+        />
 
-        <div className="relative pt-3 pb-[calc(0.75rem+var(--safe-bottom))] px-4 overflow-hidden">
+        <div
+          className={
+            shortViewport
+              ? 'relative pt-1.5 pb-[calc(0.4rem+var(--safe-bottom))] px-3 overflow-hidden'
+              : 'relative pt-3 pb-[calc(0.75rem+var(--safe-bottom))] px-4 overflow-hidden'
+          }
+        >
           {mounted && (
             <>
               {/* Hidden measurement element */}
@@ -280,14 +302,24 @@ export default function Footer() {
                 aria-hidden="true"
                 style={{ visibility: 'hidden', position: 'absolute' }}
               >
-                <div className="px-6 flex items-center gap-4 text-xs font-black uppercase italic tracking-tighter">
+                <div
+                  className={
+                    shortViewport
+                      ? 'px-4 flex items-center gap-4 text-[10px] font-black uppercase italic tracking-tighter'
+                      : 'px-6 flex items-center gap-4 text-xs font-black uppercase italic tracking-tighter'
+                  }
+                >
                   {footerText}
                 </div>
               </div>
 
               <div
                 ref={containerRef}
-                className="relative w-full h-6 overflow-hidden flex items-center"
+                className={
+                  shortViewport
+                    ? 'relative w-full h-5 overflow-hidden flex items-center'
+                    : 'relative w-full h-6 overflow-hidden flex items-center'
+                }
                 onMouseEnter={pauseScroll}
                 onMouseLeave={resumeScroll}
                 onTouchStart={pauseScroll}
@@ -300,21 +332,31 @@ export default function Footer() {
                     : 'justify-center w-full'
                     }`}
                 >
-                  <div className="px-6 flex items-center gap-6 text-xs font-black uppercase italic tracking-tighter text-base05">
-                    {footerText}
-                  </div>
+                <div
+                  className={
+                    shortViewport
+                      ? 'px-4 flex items-center gap-4 text-[10px] font-black uppercase italic tracking-tighter text-base05'
+                      : 'px-6 flex items-center gap-6 text-xs font-black uppercase italic tracking-tighter text-base05'
+                  }
+                >
+                  {footerText}
+                </div>
 
-                  {shouldScroll && (
-                    <>
-                      <div className="text-base09 font-black skew-x-12 mx-4">{" >>> "}</div>
-                      <div
-                        className="px-6 flex items-center gap-6 text-xs font-black uppercase italic tracking-tighter text-base05"
-                        aria-hidden="true"
-                      >
-                        {footerText}
-                      </div>
-                    </>
-                  )}
+                {shouldScroll && (
+                  <>
+                    <div className="text-base09 font-black skew-x-12 mx-4">{" >>> "}</div>
+                    <div
+                      className={
+                        shortViewport
+                          ? 'px-4 flex items-center gap-4 text-[10px] font-black uppercase italic tracking-tighter text-base05'
+                          : 'px-6 flex items-center gap-6 text-xs font-black uppercase italic tracking-tighter text-base05'
+                      }
+                      aria-hidden="true"
+                    >
+                      {footerText}
+                    </div>
+                  </>
+                )}
                 </div>
               </div>
             </>

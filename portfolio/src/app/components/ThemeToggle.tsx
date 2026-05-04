@@ -145,6 +145,7 @@ export default function ThemeToggle() {
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
               strokeWidth={3}
+              suppressHydrationWarning
             >
               {getThemeIcon()}
             </svg>
@@ -152,7 +153,7 @@ export default function ThemeToggle() {
         </button>
 
         {/* Unified Hover Hint */}
-        <div className={`p6-tooltip right-full mr-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${showTooltip ? 'opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0' : 'opacity-0'}`}>
+        <div className={`p6-tooltip right-full mr-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${showTooltip ? 'opacity-0 pointer-fine:group-hover:opacity-100 translate-x-2 pointer-fine:group-hover:translate-x-0' : 'opacity-0'}`}>
           <span className="p6-tooltip-text">{mounted ? theme : 'auto'}</span>
         </div>
       </div>

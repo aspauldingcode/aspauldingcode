@@ -42,12 +42,12 @@ export default function ProjectModalContent({ project, githubData }: ProjectModa
 
       {/* Description */}
       <div className="space-y-4">
-        <p className="text-base05 leading-relaxed text-lg">
+        <p lang="en" className="project-modal-description text-base05 text-lg">
           {project.description}
         </p>
         
         {project.shortDescription && (
-          <p className="text-base04 text-sm">
+          <p lang="en" className="project-modal-description text-base04 text-sm">
             {project.shortDescription}
           </p>
         )}

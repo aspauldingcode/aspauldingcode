@@ -4,11 +4,13 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Project } from '../app/projects/projectData';
 import Image from 'next/image';
 import { useTheme } from '../app/context/ThemeContext';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, useDragControls } from 'framer-motion';
 import { useBreakpoints } from '@/hooks/useBreakpoints';
 import { useSliderSwipeMachine } from '@/hooks/useSliderSwipeMachine';
+import { useFullscreenCloseHint } from '@/hooks/useFullscreenCloseHint';
 
 import { GitHubRepoData } from '../lib/github';
+import { clipBoth, projectSlantForId } from '@/lib/projectSlantVariants';
 
 interface ProjectModalProps {
   project: Project | null;
@@ -32,7 +34,7 @@ const CustomPrevArrow = ({
   if (currentSlide === 0) return null;
 
   return (
-    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center group/nav">
       <button
         type="button"
         onPointerDown={(event) => event.stopPropagation()}
@@ -40,7 +42,7 @@ const CustomPrevArrow = ({
           event.stopPropagation();
           onClick?.(event);
         }}
-        title="Previous Image (Arrow Left)"
+        aria-label="Previous image"
         className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
         style={{
           filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
@@ -58,7 +60,9 @@ const CustomPrevArrow = ({
         </svg>
       </button>
       {hasKeyboard && (
-        <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(←)</span>
+        <div className="p6-tooltip top-full left-0 mt-2 opacity-0 pointer-fine:group-hover/nav:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+          <span className="p6-tooltip-text">PREV [←]</span>
+        </div>
       )}
     </div>
   );
@@ -76,7 +80,7 @@ const CustomNextArrow = ({
   const isFirstSlide = currentSlide === 0;
 
   return (
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+    <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center group/nav">
       <button
         type="button"
         onPointerDown={(event) => event.stopPropagation()}
@@ -84,7 +88,7 @@ const CustomNextArrow = ({
           event.stopPropagation();
           onClick?.(event);
         }}
-        title="Next Image (Arrow Right)"
+        aria-label="Next image"
         className={`p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation ${isFirstSlide ? 'animate-pulse' : ''}`}
         style={{
           filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
@@ -105,7 +109,9 @@ const CustomNextArrow = ({
         </svg>
       </button>
       {hasKeyboard && (
-        <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(→)</span>
+        <div className="p6-tooltip top-full right-0 mt-2 opacity-0 pointer-fine:group-hover/nav:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+          <span className="p6-tooltip-text">NEXT [→]</span>
+        </div>
       )}
     </div>
   );
@@ -119,6 +125,7 @@ export default function ProjectModal({
   onSwipe,
   githubData
 }: ProjectModalProps) {
+  const HINT_PADDING = 12;
 
   const bp = useBreakpoints();
   const [canScrollDown, setCanScrollDown] = useState(false);
@@ -126,8 +133,17 @@ export default function ProjectModal({
   const [hasUserSwiped, setHasUserSwiped] = useState(false);
   const [loadedSlides, setLoadedSlides] = useState<Record<string, boolean>>({});
   const [dotWindowStart, setDotWindowStart] = useState(0);
+  const { closeHintKeyHuman } = useFullscreenCloseHint();
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const closeHintTooltipRef = useRef<HTMLSpanElement>(null);
+  const [isCloseHintVisible, setIsCloseHintVisible] = useState(false);
+  const [closeHintPosition, setCloseHintPosition] = useState({ x: 0, y: 0 });
+  const isModalDraggingRef = useRef(false);
+  const cancelDragRef = useRef(false);
+  const modalDragControls = useDragControls();
+  const modalBoundsCleanupRef = useRef<null | (() => void)>(null);
   const { setDimmed } = useTheme();
   const imageCount = project?.images.length ?? 0;
 
@@ -228,7 +244,7 @@ export default function ProjectModal({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Close on Escape
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' || e.key === '`' || e.code === 'Backquote') {
         onClose();
         return;
       }
@@ -299,7 +315,22 @@ export default function ProjectModal({
   const likeBorderColor = useTransform(x, [0, 40], [dimmedColor, green]);
   const passBorderColor = useTransform(x, [-40, 0], [red, dimmedColor]);
 
+  const modalLatestPanRef = useRef({ offset: { x: 0, y: 0 }, velocity: { x: 0, y: 0 } });
+
+  const clearModalBoundsWatcher = useCallback(() => {
+    modalBoundsCleanupRef.current?.();
+    modalBoundsCleanupRef.current = null;
+  }, []);
+
   const handleDragEnd = useCallback((_event: any, info: any) => {
+    clearModalBoundsWatcher();
+    if (cancelDragRef.current) {
+      cancelDragRef.current = false;
+      isModalDraggingRef.current = false;
+      x.set(0);
+      y.set(0);
+      return;
+    }
     const { offset, velocity } = info;
     const absX = Math.abs(offset.x);
     const absY = Math.abs(offset.y);
@@ -307,6 +338,7 @@ export default function ProjectModal({
     // Swipe down to dismiss
     const isAtTop = scrollContainerRef.current ? scrollContainerRef.current.scrollTop <= 5 : true;
     if (offset.y > 100 && velocity.y > 0 && isAtTop && absY > absX) {
+      isModalDraggingRef.current = false;
       onClose();
       return;
     }
@@ -323,9 +355,86 @@ export default function ProjectModal({
           onPass(project);
         }
       }
+      isModalDraggingRef.current = false;
       onClose();
+      return;
     }
-  }, [project, onLike, onPass, onClose, onSwipe]);
+    isModalDraggingRef.current = false;
+    x.set(0);
+    y.set(0);
+  }, [project, onLike, onPass, onClose, onSwipe, x, y, clearModalBoundsWatcher]);
+
+  const updateCloseHintPosition = useCallback(() => {
+    const button = closeButtonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    const tooltipRect = closeHintTooltipRef.current?.getBoundingClientRect();
+    const hintHalfWidth = Math.max(56, (tooltipRect?.width ?? 168) / 2);
+    const hintHeight = Math.max(20, tooltipRect?.height ?? 28);
+    const minX = HINT_PADDING + hintHalfWidth;
+    const maxX = window.innerWidth - HINT_PADDING - hintHalfWidth;
+    const minY = HINT_PADDING + hintHeight;
+    const maxY = window.innerHeight - HINT_PADDING;
+    setCloseHintPosition({
+      x: maxX < minX ? window.innerWidth / 2 : Math.min(maxX, Math.max(minX, anchorX)),
+      y: maxY < minY ? Math.max(HINT_PADDING, rect.top - 10) : Math.min(maxY, Math.max(minY, rect.top - 10)),
+    });
+  }, [HINT_PADDING]);
+
+  const showCloseHint = useCallback(() => {
+    setIsCloseHintVisible(true);
+    requestAnimationFrame(() => {
+      updateCloseHintPosition();
+    });
+  }, [updateCloseHintPosition]);
+
+  useEffect(() => {
+    if (!isCloseHintVisible || !bp.hasKeyboard) return;
+    updateCloseHintPosition();
+    const rafId = requestAnimationFrame(updateCloseHintPosition);
+    window.addEventListener('resize', updateCloseHintPosition);
+    window.addEventListener('scroll', updateCloseHintPosition, true);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', updateCloseHintPosition);
+      window.removeEventListener('scroll', updateCloseHintPosition, true);
+    };
+  }, [isCloseHintVisible, bp.hasKeyboard, updateCloseHintPosition]);
+
+  useEffect(() => {
+    const endModalDrag = () => {
+      modalDragControls.stop();
+    };
+
+    window.addEventListener('pointerup', endModalDrag);
+    window.addEventListener('mouseup', endModalDrag, true);
+    window.addEventListener('pointercancel', endModalDrag);
+    window.addEventListener('lostpointercapture', endModalDrag);
+    const onDocOut = (event: MouseEvent) => {
+      if (event.relatedTarget !== null) return;
+      endModalDrag();
+    };
+    const onDocLeave = () => endModalDrag();
+    document.documentElement.addEventListener('mouseout', onDocOut);
+    document.documentElement.addEventListener('mouseleave', onDocLeave);
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') endModalDrag();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('blur', endModalDrag);
+
+    return () => {
+      window.removeEventListener('pointerup', endModalDrag);
+      window.removeEventListener('mouseup', endModalDrag, true);
+      window.removeEventListener('pointercancel', endModalDrag);
+      window.removeEventListener('lostpointercapture', endModalDrag);
+      document.documentElement.removeEventListener('mouseout', onDocOut);
+      document.documentElement.removeEventListener('mouseleave', onDocLeave);
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('blur', endModalDrag);
+    };
+  }, [modalDragControls]);
 
 
 
@@ -335,6 +444,11 @@ export default function ProjectModal({
 
 
   if (!project) return null;
+
+  const slant = projectSlantForId(project.id);
+  const eraSeed = project.title.length % 3;
+  const eraColor =
+    eraSeed === 0 ? 'var(--base0D)' : eraSeed === 1 ? 'var(--base0A)' : 'var(--base08)';
 
   return (
     <motion.div
@@ -346,7 +460,7 @@ export default function ProjectModal({
     >
       {/* Backdrop */}
       <div
-        className="absolute top-0 left-0 right-0 bottom-7 sm:bottom-9 bg-black bg-opacity-50 backdrop-blur-sm"
+        className="absolute top-0 left-0 right-0 bottom-7 sm:bottom-9 z-0 bg-black bg-opacity-50 backdrop-blur-sm"
         onClick={onClose}
       />
 
@@ -354,8 +468,35 @@ export default function ProjectModal({
       <motion.div
         ref={modalRef}
         drag
+        dragControls={modalDragControls}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         dragElastic={0.8}
+        onDrag={(_, info) => {
+          modalLatestPanRef.current = { offset: info.offset, velocity: info.velocity };
+        }}
+        onDragStart={() => {
+          isModalDraggingRef.current = true;
+          cancelDragRef.current = false;
+          modalLatestPanRef.current = { offset: { x: 0, y: 0 }, velocity: { x: 0, y: 0 } };
+          clearModalBoundsWatcher();
+          const onLeaveViewport = (e: PointerEvent) => {
+            if (!isModalDraggingRef.current) return;
+            if (e.pointerType === 'mouse' && e.buttons === 0) {
+              modalDragControls.stop();
+              return;
+            }
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const { clientX: cx, clientY: cy } = e;
+            if (cx < 0 || cy < 0 || cx >= w || cy >= h) {
+              modalDragControls.stop();
+            }
+          };
+          window.addEventListener('pointermove', onLeaveViewport, { capture: true });
+          modalBoundsCleanupRef.current = () => {
+            window.removeEventListener('pointermove', onLeaveViewport, { capture: true });
+          };
+        }}
         onDragEnd={handleDragEnd}
         style={{ x, y, rotate, scale }}
         initial={{ scale: 0.95, opacity: 0 }}
@@ -366,26 +507,126 @@ export default function ProjectModal({
           damping: 25,
           stiffness: 300
         }}
-        className="relative w-full max-w-md h-[80vh] bg-base01 rounded-2xl shadow-2xl border border-base02 overflow-hidden select-none flex flex-col"
+        className="relative z-10 isolate w-full max-w-md h-[80vh] select-none overflow-visible flex flex-col"
       >
+        <div
+          className="absolute inset-0 translate-x-2.5 translate-y-2.5 opacity-55 pointer-events-none z-0"
+          style={clipBoth(slant.shadowFar)}
+          aria-hidden
+        >
+          <div className="absolute inset-0" style={{ backgroundColor: eraColor }} />
+          <div
+            className="absolute inset-0 opacity-80"
+            style={{
+              background:
+                'linear-gradient(118deg, rgba(255,252,248,0.38) 0%, transparent 32%, transparent 58%, rgba(0,0,0,0.14) 100%)',
+              mixBlendMode: 'overlay',
+            }}
+          />
+          <div
+            className="absolute inset-0 opacity-50"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, transparent 45%)',
+              mixBlendMode: 'soft-light',
+            }}
+          />
+        </div>
+        <div
+          className="absolute inset-0 translate-x-1 translate-y-1 pointer-events-none z-0"
+          style={clipBoth(slant.shadowNear)}
+          aria-hidden
+        >
+          <div className="absolute inset-0 bg-base00" />
+          <div
+            className="absolute inset-0 opacity-40"
+            style={{
+              background:
+                'linear-gradient(95deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)',
+              mixBlendMode: 'screen',
+            }}
+          />
+        </div>
+        <div
+          className="relative z-[1] flex flex-col h-full overflow-hidden bg-base01 isolate"
+          style={clipBoth(slant.main)}
+        >
+          <div
+            className="relative z-[26] h-2.5 shrink-0 overflow-hidden sm:h-3 pointer-events-none"
+            aria-hidden
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                ...clipBoth(slant.highlightRail),
+                background: `linear-gradient(100deg, transparent 0%, color-mix(in srgb, ${eraColor} 55%, transparent) 18%, ${eraColor} 38%, rgba(255,250,245,0.5) 52%, color-mix(in srgb, ${eraColor} 70%, #1e3a5f) 78%, transparent 100%)`,
+                boxShadow:
+                  'inset 0 -2px 0 rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35)',
+              }}
+            />
+            <div
+              className="absolute inset-0 opacity-[0.42] mix-blend-overlay halftone-bg"
+              style={clipBoth(slant.highlightRail)}
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                ...clipBoth(slant.highlightRail),
+                background:
+                  'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 47%, transparent 54%)',
+                mixBlendMode: 'soft-light',
+                opacity: 0.35,
+              }}
+            />
+          </div>
+          <div
+            className="pointer-events-none absolute left-0 right-0 top-0 z-[3] h-16 bg-gradient-to-b from-white/10 to-transparent mix-blend-soft-light"
+            aria-hidden
+          />
+
         {/* Close button - matches Contact / Resume modal style */}
-        <div className="absolute top-4 right-4 z-30 flex flex-col items-center">
+        <div className="absolute top-2 right-3 sm:top-3 sm:right-4 z-30 flex flex-col items-center group/close">
           <button
+            ref={closeButtonRef}
             onClick={onClose}
+            onMouseEnter={() => {
+              if (!bp.hasFinePointer) return;
+              showCloseHint();
+            }}
+            onMouseLeave={() => {
+              if (!bp.hasFinePointer) return;
+              setIsCloseHintVisible(false);
+            }}
+            onFocus={() => {
+              if (!bp.hasKeyboard) return;
+              showCloseHint();
+            }}
+            onBlur={() => setIsCloseHintVisible(false)}
             className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
             style={{
               filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
             }}
-            title="Close (Esc)"
+            aria-label="Dismiss modal"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          {bp.hasKeyboard && (
-            <span className="text-[10px] font-mono text-base04 opacity-50 mt-1 pointer-events-none">(esc)</span>
-          )}
         </div>
+        {bp.hasKeyboard && isCloseHintVisible && (
+          <div
+            className="fixed pointer-events-none z-[560]"
+            style={{
+              left: closeHintPosition.x,
+              top: closeHintPosition.y,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <span ref={closeHintTooltipRef} className="p6-tooltip">
+              <span className="p6-tooltip-text">DISMISS [{closeHintKeyHuman}]</span>
+            </span>
+          </div>
+        )}
 
         {/* Scrollable content container */}
         <div
@@ -577,24 +818,27 @@ export default function ProjectModal({
             )}
 
             <div className="mb-4">
-              <p className="text-base04 text-sm leading-relaxed">
+              <p lang="en" className="project-modal-description text-base04 text-sm">
                 {project.description}
               </p>
 
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-wrap gap-2 mt-4">
                 {project.githubRepo && (
                   <a
                     href={project.githubRepo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-2 bg-base02 hover:bg-base03 text-base05 text-sm rounded-lg transition-colors group/github"
+                    className="inline-flex flex-1 sm:flex-none min-w-[140px] items-center justify-center gap-2 px-3 py-2 bg-base02 hover:bg-base03 text-base05 text-sm rounded-lg transition-colors relative group/github"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <span className="font-nerd text-lg"></span>
                     <span className="font-semibold">View Source</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 opacity-60 group-hover/github:opacity-100 transition-opacity">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 opacity-60 pointer-fine:group-hover/github:opacity-100 transition-opacity">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                     </svg>
+                    <div className="p6-tooltip top-full left-0 mt-2 opacity-0 pointer-fine:group-hover/github:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      <span className="p6-tooltip-text">SOURCE CODE</span>
+                    </div>
                   </a>
                 )}
                 {project.link && (
@@ -602,10 +846,13 @@ export default function ProjectModal({
                     href={project.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-2 bg-base0E hover:bg-base0F text-base00 text-sm rounded-lg transition-colors"
+                    className="inline-flex flex-1 sm:flex-none min-w-[140px] items-center justify-center px-3 py-2 bg-base0E hover:bg-base0F text-base00 text-sm rounded-lg transition-colors relative group/live"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {project.githubRepo ? 'Visit Live Site →' : 'Visit Project →'}
+                    <div className="p6-tooltip top-full right-0 mt-2 opacity-0 pointer-fine:group-hover/live:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      <span className="p6-tooltip-text">VISIT WEBSITE</span>
+                    </div>
                   </a>
                 )}
               </div>
@@ -661,13 +908,13 @@ export default function ProjectModal({
 
         {/* Swipe indicators - show only after significant horizontal movement */}
         <motion.div
-          className="absolute top-8 left-8 border-4 px-4 py-1 rounded text-3xl font-bold z-50 pointer-events-none transform -rotate-12 bg-base00/40 backdrop-blur-sm"
+          className="absolute top-20 left-6 sm:top-24 sm:left-8 border-4 px-4 py-1 text-3xl font-bold z-50 pointer-events-none transform -rotate-12 bg-base00/40 backdrop-blur-sm"
           style={{ opacity: indicatorOpacity, color: likeColor, borderColor: likeBorderColor }}
         >
           LIKE
         </motion.div>
         <motion.div
-          className="absolute top-8 right-8 border-4 px-4 py-1 rounded text-3xl font-bold z-50 pointer-events-none transform rotate-12 bg-base00/40 backdrop-blur-sm"
+          className="absolute top-20 right-6 sm:top-24 sm:right-8 border-4 px-4 py-1 text-3xl font-bold z-50 pointer-events-none transform rotate-12 bg-base00/40 backdrop-blur-sm"
           style={{ opacity: indicatorOpacity, color: passColor, borderColor: passBorderColor }}
         >
           PASS
@@ -713,6 +960,7 @@ export default function ProjectModal({
             </div>
           </div>
         )}
+      </div>
       </motion.div>
     </motion.div>
   );

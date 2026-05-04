@@ -48,8 +48,10 @@ export interface BreakpointState {
     isWide: boolean;
     // Combined
     isWideShort: boolean;
-    // Keyboard presence
+    /** True when primary input can hover (mouse / trackpad). Used for keyboard shortcut badges. */
     hasKeyboard: boolean;
+    /** True when primary pointer is fine (mouse). Matches `pointer-fine:` tooltips — false on most phones. */
+    hasFinePointer: boolean;
     // Raw values
     height: number;
     width: number;
@@ -84,6 +86,8 @@ function computeBreakpointState(height: number, width: number, isMounted: boolea
         // Keyboard presence (proxy via hover capability)
         // Only check window if mounted to prevent hydration mismatch
         hasKeyboard: isMounted && typeof window !== 'undefined' ? window.matchMedia('(hover: hover)').matches : false,
+        hasFinePointer:
+            isMounted && typeof window !== 'undefined' ? window.matchMedia('(pointer: fine)').matches : false,
         // Raw values for custom calculations
         height,
         width,
@@ -131,8 +135,15 @@ export function useBreakpoints(): BreakpointState {
         };
 
         window.addEventListener('resize', handleResize);
+        const mqPointer = window.matchMedia('(pointer: fine)');
+        const mqHover = window.matchMedia('(hover: hover)');
+        const handlePointerOrHoverChange = () => updateBreakpoints();
+        mqPointer.addEventListener('change', handlePointerOrHoverChange);
+        mqHover.addEventListener('change', handlePointerOrHoverChange);
         return () => {
             window.removeEventListener('resize', handleResize);
+            mqPointer.removeEventListener('change', handlePointerOrHoverChange);
+            mqHover.removeEventListener('change', handlePointerOrHoverChange);
             cancelAnimationFrame(rafId);
             if (resizeRafId) cancelAnimationFrame(resizeRafId);
         };

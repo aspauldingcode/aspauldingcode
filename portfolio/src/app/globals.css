@@ -1,6 +1,22 @@
 @import "tailwindcss";
 
+/* Touch taps: skip hover-only visuals (tooltips, clip morphs, etc.); needs mouse/trackpad. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
 @theme {
+  /* All-caps Persona UI: positive tracking so Kanit stays readable at display sizes */
+  --tracking-tighter: 0.042em;
+  --tracking-tight: 0.058em;
+  --tracking-wide: 0.034em;
+  --tracking-wider: 0.068em;
+  --tracking-widest: 0.125em;
+
   /* Colors */
   --color-base00: var(--base00);
   --color-base01: var(--base01);
@@ -87,6 +103,32 @@
   right: env(safe-area-inset-right);
 }
 
+/* Same face as project modal body (Barlow Semi Condensed) — reuse outside sheets */
+@utility font-p5-body {
+  font-family: var(--font-p5-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+  Justified modal copy: no auto-hyphens (avoids constant mid-word breaks);
+  word-spacing left to the engine; light tracking for Barlow Semi Condensed.
+*/
+@utility project-modal-description {
+  font-family: var(--font-p5-body), ui-sans-serif, system-ui, sans-serif;
+  text-align: justify;
+  text-align-last: start;
+  text-justify: inter-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: normal;
+  overflow-wrap: break-word;
+  letter-spacing: 0.013em;
+  word-spacing: normal;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-wrap: pretty;
+  line-height: 1.62;
+}
+
 /* Nerd Font Icons Support */
 @font-face {
   font-family: 'NerdFont';
@@ -152,58 +194,108 @@
   box-shadow: 6px 6px 0px var(--base08);
 }
 
-/* Persona 6 Global Scrollbar */
+/* Persona Asymmetric Global Scrollbars */
 @layer base {
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+  button,
+  a,
+  [role='button'],
+  input[type='button'],
+  input[type='submit'],
+  input[type='reset'] {
+    touch-action: manipulation;
   }
 
-  ::-webkit-scrollbar-track {
-    background: var(--base00);
-    border-left: 1px solid var(--base02);
+  /* `uppercase` alone inherits body tracking — too tight for Kanit; explicit tracking-* still wins (higher specificity). */
+  .uppercase {
+    letter-spacing: 0.052em;
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: var(--base02);
-    border: 2px solid var(--base00);
-    transition: background 0.3s;
+  /* Projects page: class toggled in ProjectsClient — block sideways scroll from focus/skew ink without clipping card art in nested containers */
+  html.projects-scroll,
+  html.projects-scroll body {
+    overflow-x: clip;
+    overscroll-behavior-x: none;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--base09);
+  /* Standards path (Firefox and modern fallback): disable native palette, enforce Persona colors */
+  @supports (scrollbar-color: auto) {
+    * {
+      scrollbar-color: var(--base09) var(--base00);
+      scrollbar-width: auto;
+      scrollbar-gutter: stable both-edges;
+    }
   }
 
-  /* Hyper-Stylized Persona Scroller */
-  .projects-scroll::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-  }
-  .projects-scroll::-webkit-scrollbar-track {
-    background: var(--base00);
-    border-left: 2px solid var(--base02);
-    /* Subtle Halftone in Track */
-    background-image: radial-gradient(var(--base01) 1px, transparent 0);
-    background-size: 4px 4px;
-  }
-  .projects-scroll::-webkit-scrollbar-thumb {
-    background: var(--base05);
-    border: 2px solid var(--base00);
-    /* Tapered Wedge Shape: Narrower at top (40%), Wider at bottom (100%) */
-    clip-path: polygon(40% 0%, 100% 0%, 100% 100%, 0% 100%);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    border-radius: 2px;
-  }
-  .projects-scroll::-webkit-scrollbar-thumb:hover {
-    background: var(--base09);
-    /* Flip the deformation on hover for a kinetic feel */
-    clip-path: polygon(0% 0%, 100% 10%, 60% 100%, 0% 100%);
-    cursor: grab;
-  }
-  .projects-scroll::-webkit-scrollbar-thumb:active {
-    background: var(--base08);
-    cursor: grabbing;
+  /* Full custom path (Chromium/Safari): asymmetric Persona scrollbars */
+  @supports selector(::-webkit-scrollbar) {
+    *::-webkit-scrollbar {
+      width: 16px;
+      height: 16px;
+      background: transparent;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--base00) 94%, var(--base02) 6%) 0%,
+        color-mix(in srgb, var(--base00) 82%, var(--base03) 18%) 100%
+      );
+      border-left: 3px solid var(--base0E);
+      border-right: 1px solid var(--base02);
+      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--base00) 75%, transparent);
+    }
+
+    *::-webkit-scrollbar-track-piece {
+      background-image: radial-gradient(color-mix(in srgb, var(--base05) 18%, transparent) 1px, transparent 1px);
+      background-size: 6px 6px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: linear-gradient(
+        160deg,
+        var(--base09) 0%,
+        color-mix(in srgb, var(--base08) 70%, var(--base09) 30%) 65%,
+        var(--base08) 100%
+      );
+      border: 2px solid var(--base00);
+      box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--base07) 28%, transparent),
+        0 0 0 1px color-mix(in srgb, var(--base08) 35%, transparent),
+        0 0 18px color-mix(in srgb, var(--base08) 35%, transparent);
+      clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 24%);
+      min-height: 46px;
+      min-width: 46px;
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      transform: translateX(-1px);
+      background: linear-gradient(160deg, var(--base0A) 0%, var(--base09) 45%, var(--base08) 100%);
+      box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--base07) 45%, transparent),
+        0 0 0 2px color-mix(in srgb, var(--base09) 45%, transparent),
+        0 0 22px color-mix(in srgb, var(--base09) 42%, transparent);
+    }
+
+    *::-webkit-scrollbar-thumb:active {
+      transform: translateX(0);
+      background: linear-gradient(160deg, var(--base08) 0%, var(--base09) 100%);
+    }
+
+    *::-webkit-scrollbar-button {
+      height: 14px;
+      width: 14px;
+      background-color: var(--base00);
+      border-left: 3px solid var(--base09);
+      border-right: 1px solid var(--base02);
+      background-image: linear-gradient(45deg, transparent 35%, color-mix(in srgb, var(--base09) 70%, transparent) 35%, color-mix(in srgb, var(--base09) 70%, transparent) 65%, transparent 65%);
+    }
+
+    *::-webkit-scrollbar-corner {
+      background: var(--base00);
+      border-top: 2px solid var(--base09);
+      border-left: 2px solid var(--base08);
+    }
   }
 }
 
@@ -214,12 +306,14 @@
     clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
   }
 
-  .p6-button:hover {
-    clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%);
+  @media (hover: hover) and (pointer: fine) {
+    .p6-button:hover {
+      clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%);
+    }
   }
 
   .p6-button-shadow {
-    @apply absolute inset-0 bg-base00 -skew-x-12 translate-x-1.5 translate-y-1.5 border-2 border-base0D opacity-50 transition-all duration-300 group-hover:translate-x-2 group-hover:translate-y-2 group-hover:opacity-100;
+    @apply absolute inset-0 bg-base00 -skew-x-12 translate-x-1.5 translate-y-1.5 border-2 border-base0D opacity-50 transition-all duration-300 pointer-fine:group-hover:translate-x-2 pointer-fine:group-hover:translate-y-2 pointer-fine:group-hover:opacity-100 pointer-events-none;
   }
 
   .p6-tooltip {
@@ -229,6 +323,118 @@
   .p6-tooltip-text {
     @apply skew-x-12 block;
   }
+
+  /* Resume dossier: base00 for entire PDF port (react-pdf / canvas default to white before hooks + portal CSS run). */
+  .resume-pdf-viewer {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    background: var(--base00);
+  }
+
+  .resume-pdf-viewer .react-pdf__Document {
+    background: var(--base00) !important;
+    min-height: min(50vh, 28rem);
+  }
+
+  .resume-pdf-viewer .react-pdf__message {
+    background: var(--base00) !important;
+    min-height: min(50vh, 28rem);
+  }
+
+  /* Page sets inline backgroundColor white by default; !important keeps load/redraw matched to base16 */
+  .resume-pdf-viewer .react-pdf__Page {
+    background: var(--base00) !important;
+    background-color: var(--base00) !important;
+  }
+
+  /* Hide pdf.js canvas while raster runs (default white clear) so base00 shows; reveal after onRenderSuccess. */
+  .resume-pdf-viewer.resume-pdf-canvas-pending .react-pdf__Page__canvas {
+    opacity: 0 !important;
+    transition: none !important;
+  }
+
+  .resume-pdf-viewer.resume-pdf-canvas-pending .react-pdf__Page .annotationLayer {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: none !important;
+  }
+
+  .resume-pdf-viewer .react-pdf__Page__canvas {
+    display: block;
+    max-width: none;
+    background: var(--base00) !important;
+    transition: opacity 0.12s ease-out;
+  }
+
+  :root.dark .resume-pdf-viewer .react-pdf__Page__canvas {
+    filter: brightness(0.84) invert(1) hue-rotate(180deg) saturate(0.84) contrast(1.02);
+  }
+
+  :root:not(.dark) .resume-pdf-viewer .react-pdf__Page__canvas {
+    filter: brightness(0.93) sepia(0.08) saturate(0.84) contrast(0.98);
+  }
+
+  .resume-pdf-viewer .react-pdf__Page__annotations {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+  }
+
+  .resume-pdf-viewer .react-pdf__Page__annotations a {
+    color: var(--base0D) !important;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  /* Default pdf.js hover is bright yellow; match Persona / base16 (accent + shadow). */
+  .resume-pdf-viewer
+    .annotationLayer
+    :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton)
+    > a:hover {
+    opacity: 1 !important;
+    color: var(--base0A) !important;
+    background: color-mix(in srgb, var(--base09) 32%, transparent) !important;
+    box-shadow: 0 2px 14px color-mix(in srgb, var(--base08) 40%, transparent) !important;
+  }
+
+  .resume-pdf-viewer
+    .annotationLayer
+    :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton)
+    > a:focus-visible {
+    outline: 2px solid var(--base09) !important;
+    outline-offset: 2px;
+  }
+
+  .resume-pdf-viewer canvas {
+    background-color: var(--base00) !important;
+  }
+}
+
+/*
+  WebKit clip-path rotation fix.
+  After a device rotation, iOS Safari can leave polygon clip-path masks stale
+  (shows square/unclipped edges) because the GPU compositor doesn't invalidate
+  the mask layer. Toggling a 1ms opacity animation on every clipped element is
+  the minimal force-recomposite needed for WebKit to re-evaluate the polygon
+  with the new element dimensions.
+
+  ClientLayout adds `.clip-path-refresh` to :root on orientationchange;
+  this rule fires and immediately removes itself after 1ms.
+*/
+#resume-pdf-scroll {
+  background-color: var(--base00);
+}
+
+@keyframes clip-path-refresh {
+  from { opacity: 0.9999; }
+  to   { opacity: 1;      }
+}
+
+:root.clip-path-refresh [style*="clip-path"],
+:root.clip-path-refresh [style*="clipPath"] {
+  animation: clip-path-refresh 1ms both !important;
 }
 
 /* Animation Keyframes */
@@ -261,6 +467,9 @@
   --safe-bottom: env(safe-area-inset-bottom);
   --safe-left: env(safe-area-inset-left);
   --safe-right: env(safe-area-inset-right);
+
+  /* Fixed Persona footer (slant + ticker + padding) + home-indicator safe inset */
+  --layout-fixed-footer-reserve: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 
   /* Base16 Default Dark Theme */
   --base00: #181818;
@@ -296,6 +505,13 @@
   --base0F: #a16946;
   /* Deprecated */
   color-scheme: dark;
+}
+
+/* Shorter fixed footer reserve when the viewport is shallow (matches `useBreakpoints` isH550). */
+@media (max-height: 550px) {
+  :root {
+    --layout-fixed-footer-reserve: calc(2.7rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Base16 Light Theme */
@@ -373,6 +589,9 @@ body {
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x pan-y;
+  letter-spacing: 0.021em;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 /* Ensure proper scrolling behavior */

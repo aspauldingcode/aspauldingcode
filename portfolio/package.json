@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "vercel-build": "next build"
   },
   "dependencies": {
@@ -19,8 +19,10 @@
     "glob": "^13.0.6",
     "lru-cache": "^11.0.0",
     "next": "^16.1.6",
+    "pdfjs-dist": "^5.7.284",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-pdf": "^10.4.1",
     "tailwind-merge": "^3.5.0",
     "uuid": "^13.0.0",
     "vercel": "^50.25.4"
