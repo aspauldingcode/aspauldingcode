@@ -364,9 +364,11 @@ export default function Home() {
                   animate={{
                     width: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.w : responsiveStyles.squareSize,
                     height: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.h : responsiveStyles.squareSize,
+                    skewX: -2,
                   }}
+                  initial={{ skewX: -2 }}
                   transition={springTransition}
-                  className="relative border-4 border-base09 bg-base01 shadow-[12px_12px_0px_var(--base08)] overflow-hidden -skew-x-2"
+                  className="relative border-4 border-base09 bg-base01 shadow-[12px_12px_0px_var(--base08)] overflow-hidden will-change-transform"
                 >
                   <Image
                     src={responsiveStyles.showPortrait ? regularProfileSrc : squareProfileSrc}

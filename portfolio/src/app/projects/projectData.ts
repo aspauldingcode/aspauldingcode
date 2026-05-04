@@ -11,6 +11,7 @@ export interface Project {
   endYear?: number; // Optional - if not provided, project is ongoing
   link?: string;
   githubRepo?: string; // GitHub repository URL
+  era?: 'p3' | 'p4' | 'p5'; // Persona era for special effects
 }
 
 const rawProjects: Project[] = [
@@ -30,7 +31,8 @@ const rawProjects: Project[] = [
     threeWordDescriptor: "WordPress Website",
     startYear: 2018,
     endYear: 2018,
-    link: "https://dumonds.com"
+    link: "https://dumonds.com",
+    era: 'p4'
   },
   {
     id: 2,
@@ -50,7 +52,8 @@ const rawProjects: Project[] = [
     shortDescription: "Apple Watch app using AI for whispered speech recognition and ChatGPT responses, perfect for discrete conversations.",
     threeWordDescriptor: "Apple Watch App",
     startYear: 2023,
-    githubRepo: "https://github.com/aspauldingcode/Whisperer"
+    githubRepo: "https://github.com/aspauldingcode/Whisperer",
+    era: 'p3'
   },
   {
     id: 3,
@@ -205,7 +208,8 @@ const rawProjects: Project[] = [
     threeWordDescriptor: "Portfolio Website",
     startYear: 2024,
     link: "https://aspauldingcode.com",
-    githubRepo: "https://github.com/aspauldingcode/aspauldingcode"
+    githubRepo: "https://github.com/aspauldingcode/aspauldingcode",
+    era: 'p5'
   }
 ];
 

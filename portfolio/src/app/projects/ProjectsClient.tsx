@@ -122,39 +122,39 @@ function FloatingShapes() {
       </motion.div>
 
       {/* Floating Debris */}
-      {[...Array(6)].map((_, i) => (
-        (() => {
-          const xSeed = seeded(i + 1);
-          const ySeed = seeded(i + 11);
-          const rotSeed = seeded(i + 21);
-          const scaleSeed = seeded(i + 31);
-          const durationSeed = seeded(i + 41);
-          return (
-        <motion.div
-          key={i}
-          initial={{ 
-            x: `${(xSeed * 100).toFixed(3)}%`, 
-            y: `${(ySeed * 100).toFixed(3)}%`,
-            rotate: Number((rotSeed * 360).toFixed(3)),
-            scale: Number((0.4 + scaleSeed * 0.8).toFixed(3)),
-            opacity: 0.05
-          }}
-          animate={{ 
-            y: ['-20%', '120%'],
-            rotate: [0, 360],
-          }}
-          transition={{ 
-            duration: Number((30 + durationSeed * 40).toFixed(3)), 
-            repeat: Infinity, 
-            ease: "linear" 
-          }}
-          className={`absolute w-16 h-16 sm:w-24 sm:h-24 ${i % 2 === 0 ? 'text-base0D' : 'text-base0E'}`}
-        >
-          {shapes[i % shapes.length]}
-        </motion.div>
-          );
-        })()
-      ))}
+      {[...Array(6)].map((_, i) => {
+        const xSeed = seeded(i + 1);
+        const ySeed = seeded(i + 11);
+        const rotSeed = seeded(i + 21);
+        const scaleSeed = seeded(i + 31);
+        const durationSeed = seeded(i + 41);
+        const shapeIdx = i % shapes.length;
+
+        return (
+          <motion.div
+            key={i}
+            initial={{ 
+              x: `${xSeed * 100}%`, 
+              y: `${ySeed * 100}%`,
+              rotate: rotSeed * 360,
+              scale: 0.4 + scaleSeed * 0.8,
+              opacity: 0.05
+            }}
+            animate={{ 
+              y: [`${ySeed * 100}%`, `${(ySeed * 100) - 10}%`],
+              rotate: [rotSeed * 360, rotSeed * 360 + 360],
+            }}
+            transition={{ 
+              duration: 30 + durationSeed * 40, 
+              repeat: Infinity, 
+              ease: "linear" 
+            }}
+            className="absolute w-12 h-12 text-base03 pointer-events-none"
+          >
+            {shapes[shapeIdx]}
+          </motion.div>
+        );
+      })}
     </div>
   );
 }

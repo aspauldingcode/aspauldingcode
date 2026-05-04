@@ -98,7 +98,7 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
         >
             {/* Persona Offset Shadow Layer — keep translate small so focus/hover ink does not widen scroll overflow */}
             {/* Persona Offset Shadow Layer — re-introduced as a sharp, vibrant accent for focus/hover clarity */}
-            <div className={`absolute inset-0 bg-base08 translate-x-1 translate-y-1 opacity-0 group-focus-visible:opacity-100 transition-all duration-300 rounded-3xl ${interactionMode === 'mouse' ? 'pointer-fine:group-hover:opacity-100 pointer-fine:group-hover:translate-x-1.5 pointer-fine:group-hover:translate-y-1.5' : ''}`} />
+            <div className={`absolute inset-0 bg-base08 translate-x-1 translate-y-1 opacity-0 group-focus-visible:opacity-100 transition-all duration-150 rounded-3xl ${interactionMode === 'mouse' ? 'pointer-fine:group-hover:opacity-100 pointer-fine:group-hover:translate-x-1.5 pointer-fine:group-hover:translate-y-1.5' : ''}`} />
             
             <motion.div
                 className={`w-full h-full transition-all duration-300 relative z-0 group-focus-visible:z-50 pointer-fine:group-hover:z-50 ${isFocused && interactionMode === 'keyboard' ? 'z-50' : ''}`}
@@ -162,83 +162,41 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
                                 {/* "Persona Heritage" Shader - Custom variants for P3 (Blue), P4 (Yellow), P5 (Red) */}
                                 {isFeatured && (
                                     <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden select-none">
-                                        {/* 1. Era-Specific Base Beam (P3: Smooth, P4: Static, P5: Sharp) */}
-                                        <div 
-                                            className="absolute inset-[-50%] opacity-20 mix-blend-screen transition-transform duration-500 ease-out"
-                                            style={{
-                                                background: eraSeed === 0 
-                                                    ? `linear-gradient(110deg, transparent 40%, var(--base0D) 50%, transparent 60%)` // P3 Moonlight
-                                                    : eraSeed === 1
-                                                    ? `repeating-linear-gradient(90deg, transparent, transparent 2px, var(--base0A) 3px, transparent 4px)` // P4 Scanlines
-                                                    : `linear-gradient(105deg, transparent 35%, var(--base08) 40%, transparent 45%)`, // P5 Slash
-                                                transform: `translateX(${(mousePos.x - 50) * 0.3}%) skewX(-15deg)`,
-                                                filter: eraSeed === 1 ? 'contrast(2) brightness(1.5)' : 'none'
-                                            }}
-                                        />
-
-                                        {/* 2. Interactive Sparkle Grid (Era-Specific Shapes) */}
-                                        <div 
-                                            className="absolute inset-0 opacity-60 mix-blend-color-dodge"
-                                            style={{
-                                                backgroundImage: eraSeed === 0
-                                                    ? `radial-gradient(circle, var(--base0D) 1px, transparent 1px)` // P3 Bubbles
-                                                    : eraSeed === 1
-                                                    ? `conic-gradient(from 0deg at 50% 50%, var(--base0A) 0deg, transparent 90deg)` // P4 Pop-art
-                                                    : `radial-gradient(circle, white 1.5px, transparent 1.5px)`, // P5 Halftone
-                                                backgroundSize: eraSeed === 1 ? '20px 20px' : '10px 10px',
-                                                maskImage: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, black 0%, transparent 45%)`,
-                                                WebkitMaskImage: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, black 0%, transparent 45%)`
-                                            }}
-                                        />
-
-                                        {/* 3. Heritage Glitter Particles */}
-                                        <div className="absolute inset-0 z-30">
-                                            {[...Array(14)].map((_, i) => (
-                                                <motion.div
-                                                    key={i}
-                                                    className="absolute"
-                                                    style={{
-                                                        backgroundColor: eraColor,
-                                                        width: eraSeed === 0 ? '4px' : eraSeed === 1 ? '6px' : '5px',
-                                                        height: eraSeed === 0 ? '4px' : eraSeed === 1 ? '6px' : '5px',
-                                                        clipPath: eraSeed === 0 
-                                                            ? 'circle(50%)' // P3
-                                                            : eraSeed === 1 
-                                                            ? 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' // P4 Diamond
-                                                            : 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)', // P5 Star
-                                                        left: `${5 + Math.random() * 90}%`,
-                                                        top: `${5 + Math.random() * 90}%`,
-                                                        filter: `drop-shadow(0 0 2px ${eraColor})`,
-                                                    }}
-                                                    animate={{
-                                                        scale: [0, 1, 0],
-                                                        y: eraSeed === 0 ? [0, -20, 0] : [0, 0, 0],
-                                                        rotate: [0, 90, 180],
-                                                        opacity: [0, 0.8, 0]
-                                                    }}
-                                                    transition={{
-                                                        duration: 1 + Math.random() * 1,
-                                                        repeat: Infinity,
-                                                        delay: Math.random() * 5,
-                                                        ease: "easeInOut"
-                                                    }}
-                                                />
-                                            ))}
+                                        {/* "Twinkle" Shader — Always visible on featured grid, focused only if stacked */}
+                                        <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden mix-blend-screen opacity-100 transition-opacity duration-500">
+                                            {[...Array(14)].map((_, i) => {
+                                                const seed = (i + 1) * 123.45;
+                                                const x = (Math.sin(seed) * 0.5 + 0.5) * 100;
+                                                const y = (Math.cos(seed * 0.7) * 0.5 + 0.5) * 100;
+                                                const delay = Math.abs(Math.sin(seed * 1.2)) * 3;
+                                                const duration = 1.5 + Math.abs(Math.cos(seed * 0.5)) * 2;
+                                                const scale = 0.25 + Math.abs(Math.sin(seed * 2.1)) * 0.5;
+                                                
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className="absolute animate-[twinkle_var(--tw-duration)_infinite_ease-in-out]"
+                                                        style={{
+                                                            left: `${x}%`,
+                                                            top: `${y}%`,
+                                                            color: 'white',
+                                                            filter: 'drop-shadow(0 0 1px white)',
+                                                            opacity: 0,
+                                                            transform: `scale(${scale})`,
+                                                            // @ts-ignore
+                                                            '--tw-duration': `${duration}s`,
+                                                            animationDelay: `${delay}s`
+                                                        }}
+                                                    >
+                                                        <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current">
+                                                            <path d="M12 1.5l2.8 8.6h9l-7.3 5.3 2.8 8.6-7.3-5.3-7.3 5.3 2.8-8.6-7.3-5.3h9z" />
+                                                        </svg>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-
-                                        {/* 4. Persona Signature Overlay (Scanlines/Noise) */}
-                                        <div className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none">
-                                            <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20" />
-                                            {eraSeed === 1 && (
-                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent bg-[length:100%_4px]" />
-                                            )}
-                                        </div>
-
                                     </div>
                                 )}
-
-                                {/* Persona Halftone Overlay */}
-                                <div className="absolute inset-0 halftone-bg pointer-events-none opacity-30 mix-blend-overlay" />
                             </>
                         ) : (
                             <div className="flex h-full w-full items-center justify-center bg-base02 font-mono uppercase tracking-widest text-base05/50">

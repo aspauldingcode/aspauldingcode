@@ -437,6 +437,22 @@
   animation: clip-path-refresh 1ms both !important;
 }
 
+@keyframes shimmer-fast {
+  0% { transform: translate(-5%, -5%) rotate(0deg); opacity: 0.2; }
+  25% { opacity: 0.6; }
+  50% { transform: translate(5%, 5%) rotate(2deg); opacity: 0.2; }
+  75% { opacity: 0.6; }
+  100% { transform: translate(-5%, -5%) rotate(0deg); opacity: 0.2; }
+}
+
+@keyframes twinkle {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
+  25% { opacity: 0.8; }
+  50% { transform: translate(5%, 5%) rotate(5deg); opacity: 0.3; }
+  75% { opacity: 0.8; }
+  100% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
+}
+
 /* Animation Keyframes */
 @keyframes fadeIn {
   from {

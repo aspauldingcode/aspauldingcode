@@ -312,7 +312,7 @@ export function FeaturedMobileStack({
                       interactionMode={interactionMode}
                       tabIndex={isTop ? 0 : -1}
                       compactOverlay={compactVertical}
-                      isFeatured={true}
+                      isFeatured={isTop}
                     />
                   </div>
                 </motion.div>
