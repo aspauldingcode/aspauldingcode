@@ -65,9 +65,6 @@ type PlaybackState = {
   tracks: TidalTrack[];
   currentIndex: number;
   nextIndex: number | null;
-  progress: number;
-  currentTime: number;
-  duration: number;
   errorMessage: string | null;
 };
 
@@ -81,7 +78,6 @@ type PlaybackAction =
   | { type: 'PAUSED' }
   | { type: 'CROSSFADE_STARTED'; nextIndex: number }
   | { type: 'CROSSFADE_FINISHED'; nextIndex: number }
-  | { type: 'PROGRESS_UPDATED'; currentTime: number; duration: number }
   | { type: 'SELECT_TRACK'; index: number };
 
 function getNextPlayableIndexFromTracks(tracks: TidalTrack[], from: number) {
@@ -128,9 +124,6 @@ function createInitialState(trackTitles: TidalPlayerProps['trackTitles']): Playb
     tracks: placeholderTracks,
     currentIndex: resumeIndex >= 0 ? resumeIndex : 0,
     nextIndex: null,
-    progress: 0,
-    currentTime: 0,
-    duration: 0,
     errorMessage: null,
   };
 }
@@ -179,9 +172,6 @@ function playbackReducer(state: PlaybackState, action: PlaybackAction): Playback
         ...state,
         currentIndex: action.index,
         nextIndex: getNextPlayableIndexFromTracks(state.tracks, action.index),
-        progress: 0,
-        currentTime: 0,
-        duration: 0,
       };
     }
     case 'PLAY_STARTED': {
@@ -224,19 +214,6 @@ function playbackReducer(state: PlaybackState, action: PlaybackAction): Playback
         phase: 'playing',
         currentIndex: nextIndex,
         nextIndex: getNextPlayableIndexFromTracks(state.tracks, nextIndex),
-        progress: 0,
-        currentTime: 0,
-        duration: 0,
-      };
-    }
-    case 'PROGRESS_UPDATED': {
-      const duration = Number.isFinite(action.duration) && action.duration > 0 ? action.duration : 0;
-      const currentTime = Number.isFinite(action.currentTime) && action.currentTime > 0 ? action.currentTime : 0;
-      return {
-        ...state,
-        duration,
-        currentTime,
-        progress: duration > 0 ? clamp01(currentTime / duration) : 0,
       };
     }
     default:
@@ -288,6 +265,10 @@ export default function TidalPlayer({
   const activeDeckRef = useRef<'A' | 'B'>('A');
   const crossfadingRef = useRef(false);
   const crossfadeToRef = useRef<(index: number, transitionId: number) => Promise<void>>(() => Promise.resolve());
+  // DOM refs for the progress display — updated directly by the ticker to avoid re-renders.
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const currentTimeRef = useRef<HTMLSpanElement>(null);
+  const durationTimeRef = useRef<HTMLSpanElement>(null);
   const isVisibleRef = useRef(false);
   const hasAutoplayStartedRef = useRef(false);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -439,7 +420,7 @@ export default function TidalPlayer({
       const latestState = stateRef.current;
       const active = activeDeckRef.current === 'A' ? a : b;
       const activeTrackId = latestState.tracks[latestState.currentIndex]?.id ?? null;
-      persistResumeSnapshot(activeTrackId, active.currentTime || latestState.currentTime);
+      persistResumeSnapshot(activeTrackId, active.currentTime || 0);
       progressTimerRef.current && clearInterval(progressTimerRef.current);
       hlsARef.current?.destroy();
       hlsBRef.current?.destroy();
@@ -537,24 +518,29 @@ export default function TidalPlayer({
       if (!audio) return;
       const d = getEffectiveDuration(audio);
       const t = audio.currentTime || 0;
-      dispatch({ type: 'PROGRESS_UPDATED', currentTime: t, duration: d });
-      const currentTrackId = state.tracks[currentIndex]?.id ?? null;
-      persistResumeSnapshot(currentTrackId, t);
 
-      const isPlaying = state.phase === 'playing' || state.phase === 'crossfading';
+      // Write progress directly to DOM — no React re-render needed.
+      if (progressBarRef.current) progressBarRef.current.style.width = `${clamp01(d > 0 ? t / d : 0) * 100}%`;
+      if (currentTimeRef.current) currentTimeRef.current.textContent = formatTime(t);
+      if (durationTimeRef.current) durationTimeRef.current.textContent = formatTime(d);
+
+      const s = stateRef.current;
+      persistResumeSnapshot(s.tracks[currentIndex]?.id ?? null, t);
+
+      const phase = s.phase;
+      const isPlaying = phase === 'playing' || phase === 'crossfading';
       if (!crossfadingRef.current && isPlaying && d > 0 && d - t <= CROSSFADE_MS / 1000) {
         const edgeKey = `${activeDeckRef.current}:${currentIndex}`;
         if (nearEndTriggeredRef.current === edgeKey) return;
         nearEndTriggeredRef.current = edgeKey;
-        const next = getNextPlayableIndex(currentIndex);
+        const next = getNextPlayableIndexFromTracks(s.tracks, currentIndex);
         if (next >= 0) {
           const transitionId = beginTransition();
           void crossfadeToRef.current(next, transitionId);
         }
       }
     }, PROGRESS_INTERVAL_MS);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [beginTransition, getNextPlayableIndex, persistResumeSnapshot, state.phase, state.tracks]);
+  }, [activeAudio, beginTransition, persistResumeSnapshot]);
 
   const stopProgressTicker = useCallback(() => {
     if (progressTimerRef.current) clearInterval(progressTimerRef.current);
@@ -715,27 +701,20 @@ export default function TidalPlayer({
   const applyVisibilityState: (nextVisible: boolean) => Promise<void> = useCallback(async (nextVisible: boolean) => {
     const wasVisible = isVisibleRef.current;
     isVisibleRef.current = nextVisible;
+    const s = stateRef.current;
 
     if (nextVisible) {
       if (!hasAutoplayStartedRef.current) {
         hasAutoplayStartedRef.current = true;
-        const fallbackIndex = getFirstPlayableIndex(state.tracks);
-        const targetIndex = isTrackPlayable(state.currentIndex) ? state.currentIndex : fallbackIndex;
+        const fallbackIndex = getFirstPlayableIndex(s.tracks);
+        const curIdx = s.currentIndex;
+        const targetIndex = (s.tracks[curIdx]?.streamUrl && s.tracks[curIdx]?.loadState === 'ready') ? curIdx : fallbackIndex;
         if (targetIndex >= 0) {
-          if (targetIndex !== state.currentIndex) {
-            dispatch({ type: 'SELECT_TRACK', index: targetIndex });
-          }
-          const currentTrackId = state.tracks[targetIndex]?.id ?? null;
-          const resumeTime = hasAppliedInitialResumeRef.current
-            ? 0
-            : getFreshResumeTimeForTrack(currentTrackId);
+          if (targetIndex !== curIdx) dispatch({ type: 'SELECT_TRACK', index: targetIndex });
+          const currentTrackId = s.tracks[targetIndex]?.id ?? null;
+          const resumeTime = hasAppliedInitialResumeRef.current ? 0 : getFreshResumeTimeForTrack(currentTrackId);
           hasAppliedInitialResumeRef.current = true;
-          const started = await playTrackOnActiveDeck(
-            targetIndex,
-            INTRO_FADE_IN_MS,
-            beginTransition(),
-            resumeTime
-          );
+          const started = await playTrackOnActiveDeck(targetIndex, INTRO_FADE_IN_MS, beginTransition(), resumeTime);
           if (!started) {
             hasAutoplayStartedRef.current = false;
             dispatch({ type: 'PLAY_FAILED', message: 'Autoplay did not start. Tap a track to retry.' });
@@ -744,35 +723,26 @@ export default function TidalPlayer({
           hasAutoplayStartedRef.current = false;
           dispatch({ type: 'PLAY_FAILED', message: 'Tracks are still loading. Autoplay will retry.' });
         }
-      } else if (state.phase !== 'playing' && state.phase !== 'crossfading') {
+      } else if (s.phase !== 'playing' && s.phase !== 'crossfading') {
         const audio = activeAudio();
-        if (!isTrackPlayable(state.currentIndex)) {
-          const firstPlayable = getFirstPlayableIndex(state.tracks);
+        const curIdx = s.currentIndex;
+        const curTrack = s.tracks[curIdx];
+        const curPlayable = !!curTrack?.streamUrl && curTrack?.loadState === 'ready';
+        if (!curPlayable) {
+          const firstPlayable = getFirstPlayableIndex(s.tracks);
           if (firstPlayable >= 0) {
-            if (firstPlayable !== state.currentIndex) {
-              dispatch({ type: 'SELECT_TRACK', index: firstPlayable });
-            }
-            const started = await playTrackOnActiveDeck(
-              firstPlayable,
-              INTRO_FADE_IN_MS,
-              beginTransition(),
-              0
-            );
-            if (!started) {
-              dispatch({ type: 'PLAY_FAILED', message: 'Playback is blocked until media is ready.' });
-            }
+            if (firstPlayable !== curIdx) dispatch({ type: 'SELECT_TRACK', index: firstPlayable });
+            const started = await playTrackOnActiveDeck(firstPlayable, INTRO_FADE_IN_MS, beginTransition(), 0);
+            if (!started) dispatch({ type: 'PLAY_FAILED', message: 'Playback is blocked until media is ready.' });
           } else {
             dispatch({ type: 'PLAY_FAILED', message: 'Tracks are still loading. Autoplay will retry.' });
           }
         } else {
-          dispatch({ type: 'PLAY_REQUESTED', index: state.currentIndex });
-          const resumed = await audio
-            ?.play()
-            .then(() => true)
-            .catch(() => false);
+          dispatch({ type: 'PLAY_REQUESTED', index: curIdx });
+          const resumed = await audio?.play().then(() => true).catch(() => false);
           if (resumed && audio && !audio.paused) {
-            dispatch({ type: 'PLAY_STARTED', index: state.currentIndex });
-            startProgressTicker(state.currentIndex);
+            dispatch({ type: 'PLAY_STARTED', index: curIdx });
+            startProgressTicker(curIdx);
           } else {
             dispatch({ type: 'PLAY_FAILED', message: 'Playback is blocked until media is ready.' });
             stopProgressTicker();
@@ -784,14 +754,13 @@ export default function TidalPlayer({
 
     if (wasVisible) {
       beginTransition();
-      const activeTrackId = state.tracks[state.currentIndex]?.id ?? null;
-      persistResumeSnapshot(activeTrackId, activeAudio()?.currentTime ?? state.currentTime);
+      persistResumeSnapshot(s.tracks[s.currentIndex]?.id ?? null, activeAudio()?.currentTime ?? 0);
       activeAudio()?.pause();
       standbyAudio()?.pause();
       dispatch({ type: 'PAUSED' });
       stopProgressTicker();
     }
-  }, [state.tracks, state.currentIndex, state.currentTime, state.phase, getFreshResumeTimeForTrack, isTrackPlayable, playTrackOnActiveDeck, beginTransition, activeAudio, standbyAudio, persistResumeSnapshot, startProgressTicker, stopProgressTicker]);
+  }, [getFreshResumeTimeForTrack, playTrackOnActiveDeck, beginTransition, activeAudio, standbyAudio, persistResumeSnapshot, startProgressTicker, stopProgressTicker]);
 
   useEffect(() => {
     const observerTarget = containerRef?.current;
@@ -850,46 +819,34 @@ export default function TidalPlayer({
     };
   }, [containerRef, applyVisibilityState]);
 
-  // When tracks hydrate from 'pending' → 'ready' AFTER the player is already
-  // visible, the IntersectionObserver won't fire again. Retry autoplay here.
+  // When tracks hydrate from 'pending' → 'ready' while the player is already
+  // visible, the IntersectionObserver won't fire again — retry autoplay.
   const prevPlayableCountRef = useRef(0);
   useEffect(() => {
-    const playableCount = state.tracks.filter(
-      (t) => t.loadState === 'ready' && !!t.streamUrl
-    ).length;
+    const playableCount = state.tracks.filter((t) => t.loadState === 'ready' && !!t.streamUrl).length;
     const gained = playableCount > prevPlayableCountRef.current;
     prevPlayableCountRef.current = playableCount;
-
+    const phase = state.phase;
     if (
-      gained &&
       playableCount > 0 &&
+      (gained || isVisibleRef.current) &&
       isVisibleRef.current &&
       !hasAutoplayStartedRef.current &&
-      state.phase !== 'playing' &&
-      state.phase !== 'crossfading' &&
-      state.phase !== 'starting'
+      phase !== 'playing' &&
+      phase !== 'crossfading' &&
+      phase !== 'starting'
     ) {
       void applyVisibilityState(true);
     }
   }, [state.tracks, state.phase, applyVisibilityState]);
 
   useEffect(() => {
-    if (!isVisibleRef.current) return;
-    if (hasAutoplayStartedRef.current) return;
-    if (state.phase === 'playing' || state.phase === 'crossfading' || state.phase === 'starting') return;
-    const firstPlayable = getFirstPlayableIndex(state.tracks);
-    if (firstPlayable < 0) return;
-    void applyVisibilityState(true);
-  }, [state.tracks, state.phase, applyVisibilityState]);
-
-  useEffect(() => {
     const onVisibilityChange = () => {
-      const isPageVisible = document.visibilityState === 'visible';
-      if (!isPageVisible) {
+      if (document.visibilityState !== 'visible') {
         isVisibleRef.current = false;
         beginTransition();
-        const activeTrackId = state.tracks[state.currentIndex]?.id ?? null;
-        persistResumeSnapshot(activeTrackId, activeAudio()?.currentTime ?? state.currentTime);
+        const s = stateRef.current;
+        persistResumeSnapshot(s.tracks[s.currentIndex]?.id ?? null, activeAudio()?.currentTime ?? 0);
         activeAudio()?.pause();
         standbyAudio()?.pause();
         dispatch({ type: 'PAUSED' });
@@ -898,13 +855,14 @@ export default function TidalPlayer({
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, [beginTransition, activeAudio, persistResumeSnapshot, standbyAudio, state.currentIndex, state.currentTime, state.tracks, stopProgressTicker]);
+  }, [beginTransition, activeAudio, persistResumeSnapshot, standbyAudio, stopProgressTicker]);
 
   useEffect(() => {
     const audio = activeAudio();
     if (!audio) return;
     const onEnded = () => {
-      const next = getNextPlayableIndex(state.currentIndex);
+      const s = stateRef.current;
+      const next = getNextPlayableIndexFromTracks(s.tracks, s.currentIndex);
       if (next >= 0 && isVisibleRef.current) {
         void playOrCrossfadeTo(next);
       } else {
@@ -913,7 +871,7 @@ export default function TidalPlayer({
     };
     audio.addEventListener('ended', onEnded);
     return () => audio.removeEventListener('ended', onEnded);
-  }, [activeAudio, state.currentIndex, getNextPlayableIndex, playOrCrossfadeTo]);
+  }, [activeAudio, playOrCrossfadeTo]);
 
   const selectedTrack = useMemo(
     () => state.tracks[state.currentIndex] ?? null,
@@ -928,10 +886,14 @@ export default function TidalPlayer({
     [state.tracks]
   );
   const canPlaySelected = !!selectedTrack?.streamUrl && selectedTrack?.loadState === 'ready';
-  const themeAccentPool = ['var(--base0B)', 'var(--base0A)', 'var(--base0D)', 'var(--base08)'];
-  const eraColor = themeAccentPool[Math.abs(state.currentIndex) % themeAccentPool.length];
-  const styleSeed = selectedTrack ? Number.parseInt(selectedTrack.id, 10) || selectedTrack.title.length : 0;
-  const slant = projectSlantForId(styleSeed);
+  const eraColor = useMemo(() => {
+    const pool = ['var(--base0B)', 'var(--base0A)', 'var(--base0D)', 'var(--base08)'];
+    return pool[Math.abs(state.currentIndex) % pool.length];
+  }, [state.currentIndex]);
+  const slant = useMemo(() => {
+    const seed = selectedTrack ? Number.parseInt(selectedTrack.id, 10) || selectedTrack.title.length : 0;
+    return projectSlantForId(seed);
+  }, [selectedTrack]);
   if (!state.tracks.length) {
     return (
       <div className="flex items-center justify-center h-[352px] rounded-xl bg-base01 border border-base02 text-base04 text-xs px-4 text-center">
@@ -1011,16 +973,14 @@ export default function TidalPlayer({
             <div className="space-y-2">
               <div className="h-1.5 bg-base02 overflow-hidden border border-base03/50">
                 <div
-                  className="h-full transition-all duration-200"
-                  style={{
-                    backgroundColor: eraColor,
-                    width: `${Math.max(0, Math.min(100, state.progress * 100))}%`,
-                  }}
+                  ref={progressBarRef}
+                  className="h-full"
+                  style={{ backgroundColor: eraColor, width: '0%' }}
                 />
               </div>
               <div className="flex items-center justify-between text-[10px] font-mono text-base04">
-                <span>{formatTime(state.currentTime)}</span>
-                <span>{formatTime(state.duration)}</span>
+                <span ref={currentTimeRef}>0:00</span>
+                <span ref={durationTimeRef}>0:00</span>
               </div>
               <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-base04">
                 <span>{isCrossfading ? 'Crossfading...' : isPlaying ? 'Playing' : isStarting ? 'Starting...' : 'Paused'}</span>
