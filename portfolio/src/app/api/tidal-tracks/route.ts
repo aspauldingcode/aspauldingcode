@@ -101,11 +101,23 @@ function rewriteInlineManifestSegments(content: string): string {
     .split('\n')
     .map((line) => {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) return line;
-      if (trimmed.startsWith('http')) {
-        return `/api/tidal-hls-proxy?url=${encodeURIComponent(trimmed)}`;
+      if (!trimmed) return line;
+
+      if (!trimmed.startsWith('#')) {
+        // Plain segment / sub-playlist URL line.
+        if (trimmed.startsWith('http')) {
+          return `/api/tidal-hls-proxy?url=${encodeURIComponent(trimmed)}`;
+        }
+        return line;
       }
-      return line;
+
+      // Rewrite URI="..." attributes inside HLS tags (e.g. #EXT-X-MAP, #EXT-X-KEY).
+      return line.replace(/URI="([^"]+)"/g, (_match, uri: string) => {
+        if (uri.startsWith('http')) {
+          return `URI="/api/tidal-hls-proxy?url=${encodeURIComponent(uri)}"`;
+        }
+        return `URI="${uri}"`;
+      });
     })
     .join('\n');
 }

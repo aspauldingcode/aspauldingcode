@@ -1,52 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ALLOWED_TIDAL_HOSTNAMES = [
-  'sp-pr-cf.audio.tidal.com',
-  'sp-ad-cf.audio.tidal.com',
-  'sp-pr-ad.audio.tidal.com',
-  'cdn.tidal.com',
-  'audio.tidal.com',
-];
-
+// Allow any subdomain of tidal.com — all URLs are signed with Expires+Signature
+// so there is no risk in being permissive at the domain level.
 function isAllowedTidalUrl(url: URL): boolean {
-  return ALLOWED_TIDAL_HOSTNAMES.some(
-    (h) => url.hostname === h || url.hostname.endsWith(`.${h}`)
-  );
+  return url.hostname === 'tidal.com' || url.hostname.endsWith('.tidal.com');
+}
+
+function proxyIfTidal(rawUrl: string, baseUrl: URL | null): string {
+  let segUrl = rawUrl;
+  if (baseUrl && !rawUrl.startsWith('http')) {
+    try {
+      segUrl = new URL(rawUrl, baseUrl).toString();
+    } catch {
+      return rawUrl;
+    }
+  }
+  try {
+    if (isAllowedTidalUrl(new URL(segUrl))) {
+      return `/api/tidal-hls-proxy?url=${encodeURIComponent(segUrl)}`;
+    }
+  } catch { /* ignore */ }
+  return rawUrl;
 }
 
 function rewriteManifestSegments(content: string, manifestUrl: string): string {
   let baseUrl: URL | null = null;
   try {
     baseUrl = new URL(manifestUrl);
-  } catch {
-    /* leave baseUrl null – only absolute segment URLs can be rewritten */
-  }
+  } catch { /* only absolute URLs can be rewritten */ }
 
   return content
     .split('\n')
     .map((line) => {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) return line;
+      if (!trimmed) return line;
 
-      // Resolve relative URLs against the manifest URL when possible.
-      let segUrl = trimmed;
-      if (baseUrl && !trimmed.startsWith('http')) {
-        try {
-          segUrl = new URL(trimmed, baseUrl).toString();
-        } catch {
-          return line;
-        }
+      if (!trimmed.startsWith('#')) {
+        // Plain segment / sub-playlist URL line.
+        return proxyIfTidal(trimmed, baseUrl);
       }
 
-      try {
-        const parsed = new URL(segUrl);
-        if (isAllowedTidalUrl(parsed)) {
-          return `/api/tidal-hls-proxy?url=${encodeURIComponent(segUrl)}`;
-        }
-      } catch {
-        /* not a valid URL, leave as-is */
-      }
-      return line;
+      // Rewrite URI="..." attributes inside HLS tags
+      // e.g. #EXT-X-MAP:URI="...", #EXT-X-KEY:URI="..."
+      return line.replace(/URI="([^"]+)"/g, (_match, uri: string) => {
+        return `URI="${proxyIfTidal(uri, baseUrl)}"`;
+      });
     })
     .join('\n');
 }
@@ -85,9 +83,9 @@ export async function GET(req: NextRequest) {
   const contentType = upstream.headers.get('content-type') ?? '';
   const looksLikeManifest =
     contentType.includes('mpegurl') ||
-    rawUrl.includes('.m3u8') ||
-    rawUrl.includes('/manifest') ||
-    contentType.includes('tidal.bts');
+    contentType.includes('tidal.bts') ||
+    (rawUrl.includes('.m3u8') && !rawUrl.includes('.mp4')) ||
+    (rawUrl.includes('/manifests/') && !rawUrl.endsWith('.mp4'));
 
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
