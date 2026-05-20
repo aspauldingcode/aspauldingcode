@@ -281,13 +281,10 @@ export default function TidalPlayer({
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
   const audioARef = useRef<HTMLAudioElement | null>(null);
   const audioBRef = useRef<HTMLAudioElement | null>(null);
   const hlsARef = useRef<Hls | null>(null);
   const hlsBRef = useRef<Hls | null>(null);
-  const gainARef = useRef<GainNode | null>(null);
-  const gainBRef = useRef<GainNode | null>(null);
   const activeDeckRef = useRef<'A' | 'B'>('A');
   const crossfadingRef = useRef(false);
   const isVisibleRef = useRef(false);
@@ -306,14 +303,6 @@ export default function TidalPlayer({
   );
   const standbyAudio = useCallback(
     () => (activeDeckRef.current === 'A' ? audioBRef.current : audioARef.current),
-    []
-  );
-  const activeGain = useCallback(
-    () => (activeDeckRef.current === 'A' ? gainARef.current : gainBRef.current),
-    []
-  );
-  const standbyGain = useCallback(
-    () => (activeDeckRef.current === 'A' ? gainBRef.current : gainARef.current),
     []
   );
   const activeHlsRef = useCallback(
@@ -433,45 +422,17 @@ export default function TidalPlayer({
   }, [trackTitles]);
 
   useEffect(() => {
-    const ctx = new AudioContext();
     const a = new Audio();
     const b = new Audio();
     a.preload = 'auto';
     b.preload = 'auto';
+    a.volume = 1;
+    b.volume = 0;
 
-    const gainA = ctx.createGain();
-    const gainB = ctx.createGain();
-    gainA.gain.value = 1;
-    gainB.gain.value = 0;
-
-    ctx.createMediaElementSource(a).connect(gainA).connect(ctx.destination);
-    ctx.createMediaElementSource(b).connect(gainB).connect(ctx.destination);
-
-    audioCtxRef.current = ctx;
     audioARef.current = a;
     audioBRef.current = b;
-    gainARef.current = gainA;
-    gainBRef.current = gainB;
-
-    // Unlock the AudioContext on the first user gesture anywhere on the page.
-    // Browsers suspend AudioContext until a user interaction; the modal-open click
-    // often doesn't reach the context in time, so we listen broadly.
-    const unlockCtx = () => {
-      if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => undefined);
-      }
-      document.removeEventListener('click', unlockCtx, true);
-      document.removeEventListener('touchstart', unlockCtx, true);
-      document.removeEventListener('keydown', unlockCtx, true);
-    };
-    document.addEventListener('click', unlockCtx, true);
-    document.addEventListener('touchstart', unlockCtx, true);
-    document.addEventListener('keydown', unlockCtx, true);
 
     return () => {
-      document.removeEventListener('click', unlockCtx, true);
-      document.removeEventListener('touchstart', unlockCtx, true);
-      document.removeEventListener('keydown', unlockCtx, true);
       isComponentAliveRef.current = false;
       transitionSeqRef.current += 1;
       const latestState = stateRef.current;
@@ -487,8 +448,6 @@ export default function TidalPlayer({
       b.removeAttribute('src');
       a.load();
       b.load();
-      void ctx.close();
-      // Revoke any Blob URLs we created for inline manifests.
       blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
       blobUrlsRef.current = [];
     };
@@ -547,12 +506,15 @@ export default function TidalPlayer({
     });
   }, []);
 
-  const rampGain = useCallback((node: GainNode, from: number, to: number, durationMs: number) => {
-    const ctx = node.context;
-    const now = ctx.currentTime;
-    node.gain.cancelScheduledValues(now);
-    node.gain.setValueAtTime(from, now);
-    node.gain.linearRampToValueAtTime(to, now + durationMs / 1000);
+  const rampVolume = useCallback((audio: HTMLAudioElement, from: number, to: number, durationMs: number) => {
+    const start = performance.now();
+    audio.volume = Math.max(0, Math.min(1, from));
+    const tick = () => {
+      const t = Math.min(1, (performance.now() - start) / durationMs);
+      audio.volume = Math.max(0, Math.min(1, from + (to - from) * t));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   }, []);
 
   const beginTransition = useCallback(() => {
@@ -599,10 +561,8 @@ export default function TidalPlayer({
     const track = state.tracks[index];
     const audio = activeAudio();
     const standby = standbyAudio();
-    const gain = activeGain();
     const hlsRef = activeHlsRef();
-    const ctx = audioCtxRef.current;
-    if (!track || !audio || !gain || !ctx) return false;
+    if (!track || !audio) return false;
     if (!track.streamUrl || track.loadState !== 'ready') {
       dispatch({ type: 'PLAY_FAILED', message: 'Track stream is still loading.' });
       return false;
@@ -613,9 +573,6 @@ export default function TidalPlayer({
     standby?.pause();
     if (standby) standby.currentTime = 0;
 
-    // Try to resume the AudioContext; may be a no-op if a user-gesture has not
-    // yet occurred, but the document-level click listener will unlock it shortly.
-    if (ctx.state !== 'running') await ctx.resume().catch(() => undefined);
     await attachStream(audio, hlsRef, track.streamUrl);
     if (isTransitionStale(transitionId)) {
       audio.pause();
@@ -625,16 +582,13 @@ export default function TidalPlayer({
       try {
         audio.currentTime = Math.max(0, startAtSeconds);
       } catch {
-        // Ignore seek failures, fallback to 0.
+        // ignore seek failures
       }
     }
-    gain.gain.value = 0;
-    let started = await audio
-      .play()
-      .then(() => true)
-      .catch(() => false);
+    audio.volume = 0;
+    let started = await audio.play().then(() => true).catch(() => false);
     if (!started) {
-      // HLS can be slow to become playable on first focus/autoplay.
+      // HLS can be slow to become playable — wait for canplay then retry.
       await new Promise<void>((resolve) => {
         const onReady = () => {
           audio.removeEventListener('canplay', onReady);
@@ -649,10 +603,7 @@ export default function TidalPlayer({
           resolve();
         }, 2500);
       });
-      started = await audio
-        .play()
-        .then(() => true)
-        .catch(() => false);
+      started = await audio.play().then(() => true).catch(() => false);
     }
     if (isTransitionStale(transitionId)) {
       audio.pause();
@@ -662,28 +613,24 @@ export default function TidalPlayer({
       dispatch({ type: 'PLAY_FAILED', message: 'Unable to start playback yet.' });
       return false;
     }
-    rampGain(gain, 0, 1, fadeInMs);
+    rampVolume(audio, 0, 1, fadeInMs);
     nearEndTriggeredRef.current = null;
     dispatch({ type: 'PLAY_STARTED', index });
     startProgressTicker(index);
     return true;
-  }, [state.tracks, activeAudio, standbyAudio, activeGain, activeHlsRef, attachStream, isTransitionStale, rampGain, startProgressTicker]);
+  }, [state.tracks, activeAudio, standbyAudio, activeHlsRef, attachStream, isTransitionStale, rampVolume, startProgressTicker]);
 
   const crossfadeTo: (index: number, transitionId: number) => Promise<void> = useCallback(async (index: number, transitionId: number) => {
     if (crossfadingRef.current) return;
     const nextTrack = state.tracks[index];
     const aAudio = activeAudio();
     const sAudio = standbyAudio();
-    const aGain = activeGain();
-    const sGain = standbyGain();
     const sHls = standbyHlsRef();
-    const ctx = audioCtxRef.current;
 
-    if (!nextTrack || !nextTrack.streamUrl || nextTrack.loadState !== 'ready' || !aAudio || !sAudio || !aGain || !sGain || !ctx) return;
+    if (!nextTrack || !nextTrack.streamUrl || nextTrack.loadState !== 'ready' || !aAudio || !sAudio) return;
     if (!isComponentAliveRef.current || !isVisibleRef.current) return;
     crossfadingRef.current = true;
     dispatch({ type: 'CROSSFADE_STARTED', nextIndex: index });
-    if (ctx.state !== 'running') await ctx.resume().catch(() => undefined);
 
     await attachStream(sAudio, sHls, nextTrack.streamUrl);
     if (isTransitionStale(transitionId)) {
@@ -691,7 +638,7 @@ export default function TidalPlayer({
       crossfadingRef.current = false;
       return;
     }
-    sGain.gain.value = 0;
+    sAudio.volume = 0;
     await sAudio.play().catch(() => undefined);
     if (isTransitionStale(transitionId)) {
       sAudio.pause();
@@ -699,8 +646,8 @@ export default function TidalPlayer({
       return;
     }
 
-    rampGain(aGain, aGain.gain.value, 0, CROSSFADE_MS);
-    rampGain(sGain, 0, 1, CROSSFADE_MS);
+    rampVolume(aAudio, aAudio.volume, 0, CROSSFADE_MS);
+    rampVolume(sAudio, 0, 1, CROSSFADE_MS);
 
     await new Promise((resolve) => setTimeout(resolve, CROSSFADE_MS));
     if (isTransitionStale(transitionId)) {
@@ -709,13 +656,14 @@ export default function TidalPlayer({
       return;
     }
     aAudio.pause();
+    aAudio.volume = 1;
     aAudio.currentTime = 0;
     activeDeckRef.current = activeDeckRef.current === 'A' ? 'B' : 'A';
     nearEndTriggeredRef.current = null;
     dispatch({ type: 'CROSSFADE_FINISHED', nextIndex: index });
     startProgressTicker(index);
     crossfadingRef.current = false;
-  }, [state.tracks, activeAudio, standbyAudio, activeGain, standbyGain, standbyHlsRef, attachStream, isTransitionStale, rampGain, startProgressTicker]);
+  }, [state.tracks, activeAudio, standbyAudio, standbyHlsRef, attachStream, isTransitionStale, rampVolume, startProgressTicker]);
 
   const playOrCrossfadeTo: (index: number) => Promise<void> = useCallback(async (index: number) => {
     if (!state.tracks[index]) return;
@@ -777,7 +725,6 @@ export default function TidalPlayer({
         }
       } else if (state.phase !== 'playing' && state.phase !== 'crossfading') {
         const audio = activeAudio();
-        const ctx = audioCtxRef.current;
         if (!isTrackPlayable(state.currentIndex)) {
           const firstPlayable = getFirstPlayableIndex(state.tracks);
           if (firstPlayable >= 0) {
@@ -798,7 +745,6 @@ export default function TidalPlayer({
           }
         } else {
           dispatch({ type: 'PLAY_REQUESTED', index: state.currentIndex });
-          if (ctx?.state === 'suspended') await ctx.resume();
           const resumed = await audio
             ?.play()
             .then(() => true)
