@@ -883,6 +883,29 @@ export default function TidalPlayer({
     };
   }, [containerRef, applyVisibilityState]);
 
+  // When tracks hydrate from 'pending' → 'ready' AFTER the player is already
+  // visible, the IntersectionObserver won't fire again. Retry autoplay here.
+  const prevPlayableCountRef = useRef(0);
+  useEffect(() => {
+    const playableCount = state.tracks.filter(
+      (t) => t.loadState === 'ready' && !!t.streamUrl
+    ).length;
+    const gained = playableCount > prevPlayableCountRef.current;
+    prevPlayableCountRef.current = playableCount;
+
+    if (
+      gained &&
+      playableCount > 0 &&
+      isVisibleRef.current &&
+      !hasAutoplayStartedRef.current &&
+      state.phase !== 'playing' &&
+      state.phase !== 'crossfading' &&
+      state.phase !== 'starting'
+    ) {
+      void applyVisibilityState(true);
+    }
+  }, [state.tracks, state.phase, applyVisibilityState]);
+
   useEffect(() => {
     if (!isVisibleRef.current) return;
     if (hasAutoplayStartedRef.current) return;
