@@ -194,6 +194,13 @@
   box-shadow: 6px 6px 0px var(--base08);
 }
 
+/* Force monochrome SVG icons in project modal stream links. */
+.stream-icon-mono :is(path, rect, circle, ellipse, polygon, polyline, line) {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+
 /* Persona Asymmetric Global Scrollbars */
 @layer base {
   button,

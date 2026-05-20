@@ -103,7 +103,7 @@ const rawProjects: Project[] = [
   },
   {
     id: 5,
-    title: "Modern Orange Band",
+    title: "ModernOrange Band",
     images: [
       '/modernorange_slider/modernorangeband_forester_tollefson_apartment_1.jpg',
       '/modernorange_slider/modernorangeband_forester_tollefson_apartment_2.jpg',
@@ -112,8 +112,8 @@ const rawProjects: Project[] = [
       '/modernorange_slider/owen_alex_modernorangeband.jpg',
       '/modernorange_slider/spacetion_pt_2_coverart_modernorangeband.jpg'
     ],
-    description: "Modern Orange Band is a creative musical project featuring original compositions and artistic collaborations. The project includes album artwork, live performances, and creative visual content that blends music with visual arts. This showcases artistic versatility and creative project management skills in the music and entertainment industry.",
-    shortDescription: "Creative musical project with original compositions, album artwork, and live performances blending music with visual arts.",
+    description: "ModernOrange Band wrote original songs and handled the full production stack: vocals, multitrack recording, synthesizers, virtual instruments, plugins, FX, mixing, and mastering to a professional standard. We designed custom album artwork for each release, performed live, and drove music marketing through social media to grow our audience. ModernOrange is no longer active today but lives on through streaming platforms. Give a listen below.",
+    shortDescription: "Original songs, music production, vocals, covers, custom album artwork, live performances, and social media music marketing.",
     threeWordDescriptor: "Music Band",
     startYear: 2019,
     endYear: 2023

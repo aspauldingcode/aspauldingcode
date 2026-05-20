@@ -14,6 +14,7 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useFullscreenCloseHint } from '@/hooks/useFullscreenCloseHint';
 import SwirlingBackdrop from './SwirlingBackdrop';
 import { clipBoth, projectSlantForId } from '@/lib/projectSlantVariants';
+import ModernOrangeMusic from './ModernOrangeMusic';
 
 interface ProjectSheetProps {
     project: Project | null;
@@ -705,10 +706,12 @@ export default function ProjectSheet({ project, onClose, githubData }: ProjectSh
                                     </div>
                                 </div>
 
-                                <div className="relative bg-base00 p-10 border-l-8 shadow-2xl mb-16" style={{ borderColor: eraColor }}>
+                                <div className="relative bg-base00 p-10 border-l-8 shadow-2xl mb-8" style={{ borderColor: eraColor }}>
                                     <p lang="en" className="project-modal-description text-xl sm:text-2xl text-base05/95 font-semibold">{proj.description}</p>
                                     <div className="absolute bottom-0 right-0 w-12 h-12 -skew-x-[45deg] translate-x-6 translate-y-6" style={{ backgroundColor: eraColor }} />
                                 </div>
+
+                                {proj.id === 5 && <ModernOrangeMusic layout="sheet" />}
                             </div>
                         </div>
                     </div>

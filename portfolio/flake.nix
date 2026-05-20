@@ -70,9 +70,17 @@
 
           dev = pkgs.writeShellApplication {
             name = "dev";
-            runtimeInputs = [ pkgs.nodejs_22 ];
+            runtimeInputs = [ pkgs.nodejs_22 pkgs.nodePackages_latest.vercel ];
             text = ''
               echo "Starting development server..."
+              ENV_FILE="../.env.vercel.development.local"
+              vercel env pull "$ENV_FILE" --environment development --yes --cwd ..
+              if [ -f "$ENV_FILE" ]; then
+                set -a
+                # shellcheck source=/dev/null
+                . "$ENV_FILE"
+                set +a
+              fi
               npm run dev
             '';
           };

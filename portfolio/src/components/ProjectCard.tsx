@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Project } from '@/app/projects/projectData';
 import { GitHubRepoData } from '@/lib/github';
 import { clipBoth, projectSlantForId } from '@/lib/projectSlantVariants';
+import { DISCOGRAPHY_LINKS } from './ModernOrangeMusic';
 
 interface ProjectCardProps {
     project: Project;
@@ -170,7 +171,8 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
                                         {/* "Twinkle" Shader — Always visible on featured grid, focused only if stacked */}
                                         <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden mix-blend-screen opacity-100 transition-opacity duration-500">
                                             {[...Array(14)].map((_, i) => {
-                                                const seed = (i + 1) * 123.45;
+                                                // Mix project.id into seed so each card has unique star positions
+                                                const seed = (i + 1) * 123.45 + project.id * 79.31;
                                                 const x = (Math.sin(seed) * 0.5 + 0.5) * 100;
                                                 const y = (Math.cos(seed * 0.7) * 0.5 + 0.5) * 100;
                                                 const delay = Math.abs(Math.sin(seed * 1.2)) * 3;
@@ -278,6 +280,31 @@ const ProjectCard = memo(function ProjectCard({ project, onViewProject, onIntent
                         >
                             {project.description}
                         </p>
+
+                        {/* Discography Links for Modern Orange */}
+                        {project.id === 5 && (
+                            <div 
+                                className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-base05/10 relative z-30" 
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => e.stopPropagation()}
+                            >
+                                {DISCOGRAPHY_LINKS.map((link) => (
+                                    <a
+                                        key={link.name}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-base04 hover:scale-110 transition-all p-1 bg-base00/50 hover:bg-base00/90 border border-base03/30 hover:border-base05/40 rounded-full inline-flex items-center justify-center cursor-pointer"
+                                        title={link.name}
+                                        style={{
+                                            color: link.color
+                                        }}
+                                    >
+                                        {link.icon("w-3.5 h-3.5")}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Hover Indicator */}
                         <div className={`flex items-center gap-2 transition-all duration-300 ${interactionMode === 'mouse' ? 'opacity-0 pointer-fine:group-hover:opacity-100' : isFocused ? 'opacity-100' : 'opacity-0'} ${compactOverlay ? 'mt-1' : 'mt-3'}`}>

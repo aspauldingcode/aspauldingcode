@@ -11,6 +11,7 @@ import { useFullscreenCloseHint } from '@/hooks/useFullscreenCloseHint';
 
 import { GitHubRepoData } from '../lib/github';
 import { clipBoth, projectSlantForId } from '@/lib/projectSlantVariants';
+import ModernOrangeMusic from './ModernOrangeMusic';
 
 interface ProjectModalProps {
   project: Project | null;
@@ -819,8 +820,19 @@ export default function ProjectModal({
 
             <div className="mb-4">
               <p lang="en" className="project-modal-description text-base04 text-sm">
-                {project.description}
+                {project.id === 5 ? (() => {
+                  const highlight = 'ModernOrange is no longer active today but lives on through streaming platforms. Give a listen below.';
+                  const idx = project.description.indexOf('ModernOrange is no longer');
+                  return idx !== -1 ? (
+                    <>
+                      {project.description.slice(0, idx)}
+                      <span className="text-base09 font-semibold">{highlight}</span>
+                    </>
+                  ) : project.description;
+                })() : project.description}
               </p>
+
+              {project.id === 5 && <ModernOrangeMusic layout="modal" />}
 
               <div className="flex flex-wrap gap-2 mt-4">
                 {project.githubRepo && (
