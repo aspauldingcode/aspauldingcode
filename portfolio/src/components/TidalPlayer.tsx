@@ -287,6 +287,7 @@ export default function TidalPlayer({
   const hlsBRef = useRef<Hls | null>(null);
   const activeDeckRef = useRef<'A' | 'B'>('A');
   const crossfadingRef = useRef(false);
+  const crossfadeToRef = useRef<(index: number, transitionId: number) => Promise<void>>(() => Promise.resolve());
   const isVisibleRef = useRef(false);
   const hasAutoplayStartedRef = useRef(false);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -506,15 +507,18 @@ export default function TidalPlayer({
     });
   }, []);
 
-  const rampVolume = useCallback((audio: HTMLAudioElement, from: number, to: number, durationMs: number) => {
+  const rampVolume = useCallback((audio: HTMLAudioElement, from: number, to: number, durationMs: number): (() => void) => {
     const start = performance.now();
     audio.volume = Math.max(0, Math.min(1, from));
+    let cancelled = false;
     const tick = () => {
+      if (cancelled) return;
       const t = Math.min(1, (performance.now() - start) / durationMs);
       audio.volume = Math.max(0, Math.min(1, from + (to - from) * t));
       if (t < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
+    return () => { cancelled = true; };
   }, []);
 
   const beginTransition = useCallback(() => {
@@ -545,7 +549,7 @@ export default function TidalPlayer({
         const next = getNextPlayableIndex(currentIndex);
         if (next >= 0) {
           const transitionId = beginTransition();
-          void crossfadeTo(next, transitionId);
+          void crossfadeToRef.current(next, transitionId);
         }
       }
     }, PROGRESS_INTERVAL_MS);
@@ -638,20 +642,36 @@ export default function TidalPlayer({
       crossfadingRef.current = false;
       return;
     }
+
+    // Set volume to 0, start playing muted to bypass autoplay policy (muted play is
+    // always allowed), then unmute so the ramp controls the audible volume.
     sAudio.volume = 0;
-    await sAudio.play().catch(() => undefined);
+    sAudio.muted = true;
+    const played = await sAudio.play().then(() => true).catch(() => false);
+    sAudio.muted = false;
+
+    if (!played) {
+      // Standby couldn't start — abort crossfade, stay on current track.
+      sAudio.pause();
+      crossfadingRef.current = false;
+      dispatch({ type: 'PLAY_STARTED', index: state.currentIndex });
+      return;
+    }
     if (isTransitionStale(transitionId)) {
       sAudio.pause();
       crossfadingRef.current = false;
       return;
     }
 
-    rampVolume(aAudio, aAudio.volume, 0, CROSSFADE_MS);
-    rampVolume(sAudio, 0, 1, CROSSFADE_MS);
+    const cancelActiveRamp = rampVolume(aAudio, aAudio.volume, 0, CROSSFADE_MS);
+    const cancelStandbyRamp = rampVolume(sAudio, 0, 1, CROSSFADE_MS);
 
     await new Promise((resolve) => setTimeout(resolve, CROSSFADE_MS));
     if (isTransitionStale(transitionId)) {
+      cancelActiveRamp();
+      cancelStandbyRamp();
       sAudio.pause();
+      aAudio.volume = 1;
       crossfadingRef.current = false;
       return;
     }
@@ -663,7 +683,8 @@ export default function TidalPlayer({
     dispatch({ type: 'CROSSFADE_FINISHED', nextIndex: index });
     startProgressTicker(index);
     crossfadingRef.current = false;
-  }, [state.tracks, activeAudio, standbyAudio, standbyHlsRef, attachStream, isTransitionStale, rampVolume, startProgressTicker]);
+  }, [state.tracks, state.currentIndex, activeAudio, standbyAudio, standbyHlsRef, attachStream, isTransitionStale, rampVolume, startProgressTicker]);
+  crossfadeToRef.current = crossfadeTo;
 
   const playOrCrossfadeTo: (index: number) => Promise<void> = useCallback(async (index: number) => {
     if (!state.tracks[index]) return;
