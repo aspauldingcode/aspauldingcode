@@ -14,6 +14,10 @@ import { PinnedVerticalRail } from './PinnedVerticalRail';
 
 const PROJECT_CARD_FOCUSABLE_SELECTOR = '[role="button"][aria-label^="View details"]';
 
+function toProjectSlug(title: string) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
 /** Pinned / featured cards: document top so the fixed header title stays sharp (it blurs with scrollY). */
 function scrollPinnedProjectsToPageTop() {
   window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -207,6 +211,16 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // Open modal from URL hash on first load (e.g. /projects#project-modernorange-band)
+  useEffect(() => {
+    const hash = window.location.hash.slice(1); // strip leading '#'
+    if (!hash.startsWith('project-')) return;
+    const slug = hash.slice('project-'.length);
+    const match = projects.find((p) => toProjectSlug(p.title) === slug);
+    if (match) handleViewProject(match);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally runs once on mount only
+
   useEffect(() => {
     if (selectedProject && !hasOpenedSheet) {
       setHasOpenedSheet(true);
@@ -262,6 +276,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
       performance.mark('project-sheet-open-intent');
     }
     setSelectedProject(project);
+    window.history.replaceState(null, '', `#project-${toProjectSlug(project.title)}`);
   }, []);
 
   const prewarmProjectSheet = useCallback(() => {
@@ -272,6 +287,7 @@ export default function ProjectsClient({ projects, initialGithubData = {} }: Pro
 
   const handleModalClose = useCallback(() => {
     setSelectedProject(null);
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
   }, []);
 
   // Keyboard Navigation for Sheet
