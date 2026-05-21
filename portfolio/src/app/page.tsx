@@ -360,12 +360,17 @@ export default function Home() {
               >
                 <motion.div
                   layoutId="profile-image"
+                  style={{
+                    width: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.w : responsiveStyles.squareSize,
+                    height: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.h : responsiveStyles.squareSize,
+                    skewX: -2,
+                  }}
                   animate={{
                     width: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.w : responsiveStyles.squareSize,
                     height: responsiveStyles.showPortrait ? responsiveStyles.portraitSize.h : responsiveStyles.squareSize,
                     skewX: -2,
                   }}
-                  initial={{ skewX: -2 }}
+                  initial={false}
                   transition={springTransition}
                   className="relative border-4 border-base09 bg-base01 shadow-[12px_12px_0px_var(--base08)] overflow-hidden will-change-transform"
                 >

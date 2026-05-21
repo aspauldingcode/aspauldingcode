@@ -585,34 +585,37 @@ export default function ProjectModal({
             aria-hidden
           />
 
-        {/* Close button - matches Contact / Resume modal style */}
-        <div className="absolute top-2 right-3 sm:top-3 sm:right-4 z-30 flex flex-col items-center group/close">
-          <button
-            ref={closeButtonRef}
-            onClick={onClose}
-            onMouseEnter={() => {
-              if (!bp.hasFinePointer) return;
-              showCloseHint();
-            }}
-            onMouseLeave={() => {
-              if (!bp.hasFinePointer) return;
-              setIsCloseHintVisible(false);
-            }}
-            onFocus={() => {
-              if (!bp.hasKeyboard) return;
-              showCloseHint();
-            }}
-            onBlur={() => setIsCloseHintVisible(false)}
-            className="p-2 bg-base00 bg-opacity-80 hover:bg-opacity-100 rounded-full text-base05 transition-all duration-200 shadow-sm touch-manipulation"
-            style={{
-              filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
-            }}
-            aria-label="Dismiss modal"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+        {/* Close button - Persona 5 style */}
+        <div className="absolute top-2 right-3 sm:top-3 sm:right-4 z-30">
+          <div className="relative group/close">
+            <div
+              className="absolute inset-0 -skew-x-12 translate-x-1.5 translate-y-1.5 opacity-70 transition-transform pointer-fine:group-hover/close:translate-x-2 pointer-fine:group-hover/close:translate-y-2"
+              style={{ backgroundColor: eraColor }}
+            />
+            <button
+              ref={closeButtonRef}
+              onClick={onClose}
+              onMouseEnter={() => {
+                if (!bp.hasFinePointer) return;
+                showCloseHint();
+              }}
+              onMouseLeave={() => {
+                if (!bp.hasFinePointer) return;
+                setIsCloseHintVisible(false);
+              }}
+              onFocus={() => {
+                if (!bp.hasKeyboard) return;
+                showCloseHint();
+              }}
+              onBlur={() => setIsCloseHintVisible(false)}
+              className="relative p6-button p-2 bg-base00 text-base05 border-2 border-base05 flex items-center justify-center touch-manipulation"
+              aria-label="Dismiss modal"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5 skew-x-12">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
         {bp.hasKeyboard && isCloseHintVisible && (
           <div
