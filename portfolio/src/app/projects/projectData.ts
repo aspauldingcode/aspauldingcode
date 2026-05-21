@@ -105,6 +105,7 @@ const rawProjects: Project[] = [
     id: 5,
     title: "ModernOrange Band",
     images: [
+      '/modernorange_slider/ModernOrangeBand.jpg',
       '/modernorange_slider/modernorangeband_forester_tollefson_apartment_1.jpg',
       '/modernorange_slider/modernorangeband_forester_tollefson_apartment_2.jpg',
       '/modernorange_slider/modernorangeband_spacetion_album_painting_1.jpg',
