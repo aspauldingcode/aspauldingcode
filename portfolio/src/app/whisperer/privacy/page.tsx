@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function WhispererPrivacyPolicy() {
   return (
-    <LegalPage title="Privacy Policy" lastUpdated="June 15, 2026">
+    <LegalPage title="Privacy Policy" lastUpdated="June 16, 2026">
       <p>
         This Privacy Policy explains how <strong>Whisperer</strong> (the &ldquo;App&rdquo;) — an app for
         Apple Watch with an optional iPhone companion — handles your information. Whisperer lets you chat
@@ -60,10 +60,10 @@ export default function WhispererPrivacyPolicy() {
 
       <h3>Your name (optional)</h3>
       <p>
-        If you choose to set your name in the iPhone companion — either by typing it or by using{' '}
-        <strong>Sign in with Apple</strong> — it is stored on your devices and included in the prompt
-        sent to the AI so it can address you personally. When you use Sign in with Apple, we only
-        receive the name you choose to share; we do not request or use your email address.
+        If you choose to set a profile name in Settings on your Apple Watch or in the iPhone
+        companion, it is stored on your devices (via the App Group and WatchConnectivity) and may be
+        included in the prompt sent to the AI so it can address you personally. We do not request your
+        email address or Apple Account name for this feature.
       </p>
 
       <h3>Bring Your Own Key (optional)</h3>
@@ -87,8 +87,8 @@ export default function WhispererPrivacyPolicy() {
           responses. See OpenAI&rsquo;s privacy policy for how they handle data sent to their API.
         </li>
         <li>
-          <strong>Apple</strong> — provides In-App Purchase, DeviceCheck, Sign in with Apple, and
-          WatchConnectivity / iCloud-backed App Groups used to sync settings between your devices.
+          <strong>Apple</strong> — provides In-App Purchase, DeviceCheck, and WatchConnectivity / App
+          Groups used to sync settings between your Apple Watch and iPhone companion.
         </li>
         <li>
           <strong>Vercel</strong> — hosts the backend that meters usage and relays requests. Standard
