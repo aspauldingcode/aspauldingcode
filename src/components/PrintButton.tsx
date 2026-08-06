@@ -1,9 +1,14 @@
-'use client';
-
-export default function PrintButton({ label = 'Print / save as PDF' }: { label?: string }) {
+/** Download the prebuilt Letter PDF (no browser print chrome). */
+export default function PrintButton({
+  label = 'Download PDF',
+  href = '/resume.pdf',
+}: {
+  label?: string;
+  href?: string;
+}) {
   return (
-    <button type="button" className="ctrl-link resume-print" onClick={() => window.print()}>
+    <a className="ctrl-link resume-print" href={href} download="Alex-Spaulding-Resume.pdf">
       {label}
-    </button>
+    </a>
   );
 }

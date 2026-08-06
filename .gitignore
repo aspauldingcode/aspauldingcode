@@ -39,9 +39,7 @@ next-env.d.ts
 result/
 .direnv/
 
-# JSON Resume generated outputs (optional since they get generated on CI, but we want to ignore them locally or we can commit them)
-# Actually we want them ignored if they are built locally during `npm run dev` or so
-/public/resume.pdf
+# JSON Resume generated HTML/MD (PDF is committed for static download)
 /public/resume.html
 /public/resume.md
 

@@ -162,8 +162,13 @@ export default function ResumeContent() {
         </Section>
       ) : null}
 
-      <p className="project-home">
-        <Link href="/">← Back to {homeLabel}</Link>
+      <p className="project-home no-print">
+        <Link href="/">
+          <span className="nf" aria-hidden>
+            󰁍
+          </span>{' '}
+          Back to {homeLabel}
+        </Link>
       </p>
     </div>
   );

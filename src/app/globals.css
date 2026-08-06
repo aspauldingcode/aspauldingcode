@@ -1722,7 +1722,8 @@ img[data-nimg='fill'] {
 
   .no-print,
   .crumb,
-  .split-main {
+  .split-main,
+  .project-home {
     display: none !important;
   }
 

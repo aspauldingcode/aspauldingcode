@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "vercel-build": "next build",
     "portfolio:collect": "node scripts/portfolio-agent/collect.mjs",
-    "portfolio:propose": "node scripts/portfolio-agent/propose.mjs"
+    "portfolio:propose": "node scripts/portfolio-agent/propose.mjs",
+    "resume:pdf": "node scripts/export-resume.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -26,10 +27,12 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^25.9.5",
+    "@types/pdfkit": "^0.17.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.3.0",
+    "pdfkit": "^0.19.1",
     "postcss": "^8.5.25",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
