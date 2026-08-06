@@ -4,8 +4,6 @@ import ContributionGraph from '@/components/ContributionGraph';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-type Mode = 'scroll' | 'fit';
-
 type EdgeState = {
   /** True when the graph is wider than the viewport in scroll layout. */
   overflows: boolean;
@@ -24,9 +22,12 @@ const IDLE: EdgeState = {
  * Toggle and edge fades only appear when the graph actually overflows.
  */
 export default function ContributionGraphPanel({ href }: { href: string }) {
-  const [mode, setMode] = useState<Mode>('scroll');
+  const [preferFit, setPreferFit] = useState(false);
   const [edges, setEdges] = useState<EdgeState>(IDLE);
   const scrollerRef = useRef<HTMLDivElement>(null);
+
+  const isFit = preferFit && edges.overflows;
+  const mode = isFit ? 'fit' : 'scroll';
 
   const measure = useCallback(() => {
     const scroller = scrollerRef.current;
@@ -37,11 +38,12 @@ export default function ContributionGraphPanel({ href }: { href: string }) {
       ? Number(svg.getAttribute('width')) || svg.getBoundingClientRect().width
       : 0;
     const view = scroller.clientWidth;
-    const overflows = natural > view + 1;
+    const naturalOverflow = natural > view + 1;
 
-    if (mode === 'fit') {
+    // While fitted, SVG is width:100% so scroll metrics won't show overflow.
+    if (preferFit) {
       setEdges({
-        overflows,
+        overflows: naturalOverflow,
         canScrollLeft: false,
         canScrollRight: false,
       });
@@ -49,54 +51,44 @@ export default function ContributionGraphPanel({ href }: { href: string }) {
     }
 
     const { scrollLeft, scrollWidth, clientWidth } = scroller;
-    const canScrollLeft = scrollLeft > 1;
-    const canScrollRight = scrollLeft + clientWidth < scrollWidth - 1;
     setEdges({
-      overflows: scrollWidth > clientWidth + 1 || overflows,
-      canScrollLeft,
-      canScrollRight,
+      overflows: scrollWidth > clientWidth + 1 || naturalOverflow,
+      canScrollLeft: scrollLeft > 1,
+      canScrollRight: scrollLeft + clientWidth < scrollWidth - 1,
     });
-  }, [mode]);
+  }, [preferFit]);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
 
-    measure();
-    const onScroll = () => measure();
-    scroller.addEventListener('scroll', onScroll, { passive: true });
+    const run = () => {
+      queueMicrotask(measure);
+    };
+    run();
+    scroller.addEventListener('scroll', run, { passive: true });
 
-    const ro = new ResizeObserver(() => measure());
+    const ro = new ResizeObserver(run);
     ro.observe(scroller);
     const svg = scroller.querySelector('svg.github-graph');
     if (svg) ro.observe(svg);
 
-    window.addEventListener('resize', measure);
+    window.addEventListener('resize', run);
     return () => {
-      scroller.removeEventListener('scroll', onScroll);
+      scroller.removeEventListener('scroll', run);
       ro.disconnect();
-      window.removeEventListener('resize', measure);
+      window.removeEventListener('resize', run);
     };
-  }, [measure, mode]);
-
-  // If overflow goes away while in fit, drop back to scroll (no toggle needed).
-  useEffect(() => {
-    if (mode === 'fit' && !edges.overflows) {
-      setMode('scroll');
-    }
-  }, [mode, edges.overflows]);
-
-  const isFit = mode === 'fit';
-  const showToggle = edges.overflows || isFit;
+  }, [measure, preferFit]);
 
   return (
     <div className="github-graph-panel">
-      {showToggle ? (
+      {edges.overflows ? (
         <p className="github-graph-toolbar no-print">
           <button
             type="button"
             className="ctrl-link github-graph-toggle"
-            onClick={() => setMode(isFit ? 'scroll' : 'fit')}
+            onClick={() => setPreferFit((v) => !v)}
             aria-pressed={isFit}
           >
             <span className="nf" aria-hidden>
