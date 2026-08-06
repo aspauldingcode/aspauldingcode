@@ -1188,23 +1188,16 @@ img[data-nimg='fill'] {
   min-width: 0;
 }
 
-/* Same idea as the contribution graph: keep type at page size, scroll sideways. */
-.gh-stats-scroller {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  padding-bottom: 0.15rem;
-}
-
 .gh-metrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(10.5rem, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
-  width: max(100%, 36rem);
+}
+
+@media (min-width: 560px) {
+  .gh-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .gh-metric {
@@ -1212,7 +1205,6 @@ img[data-nimg='fill'] {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--accent-soft) 55%, var(--bg));
-  min-width: 10.5rem;
 }
 
 .gh-metric-value {
@@ -1236,9 +1228,14 @@ img[data-nimg='fill'] {
 
 .gh-streak-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(10.5rem, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.75rem;
-  width: max(100%, 36rem);
+}
+
+@media (min-width: 560px) {
+  .gh-streak-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .gh-streak-metric .gh-metric-value {
@@ -1261,12 +1258,10 @@ img[data-nimg='fill'] {
   padding: 1rem 1.05rem 1.1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-sizing: border-box;
-  width: max(100%, 36rem);
 }
 
 .gh-langs-block {
-  width: max(100%, 36rem);
+  width: 100%;
 }
 
 .gh-block-title {
@@ -1280,17 +1275,24 @@ img[data-nimg='fill'] {
 
 .gh-pie-layout {
   display: grid;
-  grid-template-columns: auto minmax(12rem, 1fr);
   gap: 1.25rem;
   align-items: center;
-  justify-items: start;
+  justify-items: center;
+}
+
+@media (min-width: 560px) {
+  .gh-pie-layout {
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    gap: 1.75rem;
+  }
 }
 
 .gh-pie {
   display: block;
   width: 11rem;
   height: 11rem;
-  flex-shrink: 0;
+  max-width: 100%;
 }
 
 .gh-pie-legend {
@@ -1300,7 +1302,6 @@ img[data-nimg='fill'] {
   display: grid;
   gap: 0.45rem;
   width: 100%;
-  min-width: 12rem;
 }
 
 .gh-pie-legend li {
