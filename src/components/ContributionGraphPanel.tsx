@@ -102,9 +102,9 @@ export default function ContributionGraphPanel({ href }: { href: string }) {
             aria-pressed={isFit}
           >
             <span className="nf" aria-hidden>
-              {isFit ? '󰁔' : '󰍽'}
+              {isFit ? '󰍽' : '󰘖'}
             </span>{' '}
-            {isFit ? 'Scroll graph' : 'Show entire graph'}
+            {isFit ? 'Scroll left/right' : 'Show entire graph'}
           </button>
         </p>
       ) : null}

@@ -1160,7 +1160,16 @@ img[data-nimg='fill'] {
    data-mode="fit" scales the whole graph into the column (no sideways scroll). */
 .github-graph-panel {
   --github-graph-min: 37.5rem;
+  /* Fade to page background (same hue stop avoids muddy transparent-black in dark mode). */
+  --github-graph-fade: var(--bg);
+  --github-graph-fade-shadow: color-mix(in srgb, var(--fg) 16%, transparent);
   margin: 0 0 1.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .github-graph-panel {
+    --github-graph-fade-shadow: color-mix(in srgb, #000 50%, transparent);
+  }
 }
 
 .github-graph-toolbar {
@@ -1196,11 +1205,11 @@ img[data-nimg='fill'] {
   border-radius: var(--radius) 0 0 var(--radius);
   background: linear-gradient(
     to right,
-    var(--bg) 0%,
-    color-mix(in srgb, var(--bg) 72%, transparent) 45%,
-    transparent 100%
+    var(--github-graph-fade) 0%,
+    color-mix(in srgb, var(--github-graph-fade) 75%, transparent) 48%,
+    color-mix(in srgb, var(--github-graph-fade) 0%, transparent) 100%
   );
-  box-shadow: inset 14px 0 18px -10px color-mix(in srgb, var(--fg) 28%, transparent);
+  box-shadow: inset 16px 0 20px -12px var(--github-graph-fade-shadow);
 }
 
 .github-graph-scroll-wrap[data-mode='scroll'][data-fade-right='1']::after {
@@ -1208,11 +1217,11 @@ img[data-nimg='fill'] {
   border-radius: 0 var(--radius) var(--radius) 0;
   background: linear-gradient(
     to left,
-    var(--bg) 0%,
-    color-mix(in srgb, var(--bg) 72%, transparent) 45%,
-    transparent 100%
+    var(--github-graph-fade) 0%,
+    color-mix(in srgb, var(--github-graph-fade) 75%, transparent) 48%,
+    color-mix(in srgb, var(--github-graph-fade) 0%, transparent) 100%
   );
-  box-shadow: inset -14px 0 18px -10px color-mix(in srgb, var(--fg) 28%, transparent);
+  box-shadow: inset -16px 0 20px -12px var(--github-graph-fade-shadow);
 }
 
 .github-graph-scroller {
