@@ -16,11 +16,11 @@
   </style>
   <rect class="panel" x="0.5" y="0.5" width="719" height="249" rx="8"/>
   <g transform="translate(24,36)">
-  <text class="num">3,098</text>
+  <text class="num">3,100</text>
   <text class="lbl" y="28">Commits</text>
 </g>
 <g transform="translate(162,36)">
-  <text class="num">3,844</text>
+  <text class="num">3,846</text>
   <text class="lbl" y="28">Contributions</text>
 </g>
 <g transform="translate(300,36)">
@@ -45,31 +45,31 @@
   <text class="lang" x="0" y="0">Swift</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
   <rect x="100" y="-9" width="280" height="10" rx="2" fill="#F05138"/>
-  <text class="lang" x="390" y="0">30.8%</text>
+  <text class="lang" x="390" y="0">31.7%</text>
 </g>
 <g transform="translate(0,42)">
   <text class="lang" x="0" y="0">Objective-C</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
   <rect x="100" y="-9" width="165" height="10" rx="2" fill="#438eff"/>
-  <text class="lang" x="390" y="0">18.2%</text>
+  <text class="lang" x="390" y="0">18.7%</text>
 </g>
 <g transform="translate(0,60)">
   <text class="lang" x="0" y="0">Nix</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
   <rect x="100" y="-9" width="131" height="10" rx="2" fill="#7e7eff"/>
-  <text class="lang" x="390" y="0">14.4%</text>
+  <text class="lang" x="390" y="0">14.8%</text>
 </g>
 <g transform="translate(0,78)">
-  <text class="lang" x="0" y="0">TypeScript</text>
-  <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="66" height="10" rx="2" fill="#3178c6"/>
-  <text class="lang" x="390" y="0">7.3%</text>
-</g>
-<g transform="translate(0,96)">
   <text class="lang" x="0" y="0">Shell</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
   <rect x="100" y="-9" width="64" height="10" rx="2" fill="#89e051"/>
-  <text class="lang" x="390" y="0">7%</text>
+  <text class="lang" x="390" y="0">7.2%</text>
+</g>
+<g transform="translate(0,96)">
+  <text class="lang" x="0" y="0">Python</text>
+  <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
+  <rect x="100" y="-9" width="58" height="10" rx="2" fill="#3572A5"/>
+  <text class="lang" x="390" y="0">6.6%</text>
 </g>
   </g>
 </svg>
