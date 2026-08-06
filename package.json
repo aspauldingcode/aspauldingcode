@@ -32,11 +32,7 @@
     "eslint-config-next": "^16.3.0",
     "postcss": "^8.5.25",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "undici": "^6.21.1",
-    "tar": "^7.5.8",
-    "path-to-regexp": "^6.3.0"
+    "typescript": "^5.9.3",
+    "vercel": "^58.7.1"
   }
 }

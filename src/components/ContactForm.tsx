@@ -337,7 +337,7 @@ export default function ContactForm() {
         </span>
       </div>
       <button type="submit" className="ctrl-link" disabled={!canSubmit}>
-        {status === 'sending' ? 'Sending…' : 'Send message'}
+        {status === 'sending' ? 'Sending...' : 'Send message'}
       </button>
       {status === 'sent' && (
         <p className="ok" role="status">

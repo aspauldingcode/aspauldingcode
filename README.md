@@ -42,4 +42,6 @@ Bachelor of Science in Computer Science at Eastern Washington University. Transf
 
 ---
 
-![GitHub overview](./profile/github-overview.svg)
+<picture>
+  <img alt="GitHub overview" src="./profile/github-overview.svg" width="100%">
+</picture>

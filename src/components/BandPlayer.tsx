@@ -298,7 +298,9 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
 
       <div className="ctrl-row player-controls">
         <button type="button" className="ctrl" onClick={() => step(-1)} aria-label="Previous track">
-          ‹
+          <span className="nf" aria-hidden>
+            󰅁
+          </span>
         </button>
         <button
           type="button"
@@ -306,16 +308,39 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
           onClick={() => void toggle()}
           aria-label={playback.phase === 'playing' ? 'Pause' : 'Play'}
         >
-          {playback.phase === 'playing' ? 'Pause' : 'Play'}
+          {playback.phase === 'playing' ? (
+            <>
+              <span className="nf" aria-hidden>
+                󰏤
+              </span>
+              <span>Pause</span>
+            </>
+          ) : (
+            <>
+              <span className="nf" aria-hidden>
+                󰐊
+              </span>
+              <span>Play</span>
+            </>
+          )}
         </button>
         <button type="button" className="ctrl" onClick={() => step(1)} aria-label="Next track">
-          ›
+          <span className="nf" aria-hidden>
+            󰅂
+          </span>
         </button>
       </div>
 
       <p className="player-now">
-        {current?.title ?? 'Loading…'}
-        {current?.starred ? ' ★' : ''}
+        {current?.title ?? 'Loading...'}
+        {current?.starred ? (
+          <>
+            {' '}
+            <span className="nf" aria-hidden>
+              󰓎
+            </span>
+          </>
+        ) : null}
       </p>
 
       <input
@@ -344,8 +369,15 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
               onClick={() => void playAt(i)}
             >
               {track.title}
-              {track.starred ? ' ★' : ''}
-              {track.ready === null ? ' …' : ''}
+              {track.starred ? (
+                <>
+                  {' '}
+                  <span className="nf" aria-hidden>
+                    󰓎
+                  </span>
+                </>
+              ) : null}
+              {track.ready === null ? ' ...' : ''}
               {track.ready === false ? ' (n/a)' : ''}
             </button>
           </li>

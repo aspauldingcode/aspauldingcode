@@ -1,6 +1,6 @@
 /**
  * Uniform social profile card for hosts that block iframe embeds.
- * Same fields everywhere; missing values render as "—".
+ * Same fields everywhere; missing values render as "-".
  */
 
 import { preview } from 'linkpeek';
@@ -395,7 +395,7 @@ async function fromYouTube(href: string, signal: AbortSignal): Promise<ProfileCa
     }
   }
 
-  // oEmbed JSON fallback (no subscriber counts).
+  // oEmbed JSON fallback (no API key), then HTML scrape for counts.
   try {
     const oem = await fetchJson<{
       title?: string;
@@ -408,22 +408,80 @@ async function fromYouTube(href: string, signal: AbortSignal): Promise<ProfileCa
     );
     if (oem) {
       const basics = await scrapeBasics(href, signal);
+      const scraped = await scrapeYouTubeCounts(href, signal);
       return merge(card, {
         username: handle,
         displayName: oem.author_name || oem.title || basics.displayName || null,
         avatar: oem.thumbnail_url || basics.avatar || null,
         bio: basics.bio || oem.title || null,
         favicon: card.favicon,
+        stats: {
+          followers: scraped.subscribers,
+          following: null,
+          posts: scraped.videos,
+        },
       });
     }
   } catch {
     /* fall through */
   }
 
+  const scraped = await scrapeYouTubeCounts(href, signal);
   return merge(card, {
     username: handle,
     ...(await scrapeBasics(href, signal)),
+    stats: {
+      followers: scraped.subscribers,
+      following: null,
+      posts: scraped.videos,
+    },
   });
+}
+
+/** Parse "1.2K" / "3M" / "104" style counts from free text. */
+function parseCompactCount(raw: string): number | null {
+  const m = raw.trim().match(/^([\d,.]+)\s*([KMB])?$/i);
+  if (!m) return null;
+  const n = Number(m[1].replace(/,/g, ''));
+  if (!Number.isFinite(n)) return null;
+  const unit = (m[2] || '').toUpperCase();
+  const mult = unit === 'K' ? 1e3 : unit === 'M' ? 1e6 : unit === 'B' ? 1e9 : 1;
+  return Math.round(n * mult);
+}
+
+async function scrapeYouTubeCounts(
+  href: string,
+  signal: AbortSignal
+): Promise<{ subscribers: number | null; videos: number | null }> {
+  let subscribers: number | null = null;
+  let videos: number | null = null;
+  try {
+    const res = await fetch(href, {
+      signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        Accept: 'text/html',
+      },
+      redirect: 'follow',
+    });
+    if (!res.ok) return { subscribers, videos };
+    const html = await res.text();
+
+    const sub =
+      html.match(/"content"\s*:\s*"([\d,.]+[KMB]?)\s*subscribers?"/i) ||
+      html.match(/userInteractionCount"\s*:\s*"(\d+)"/i) ||
+      html.match(/([\d,.]+[KMB]?)\s*subscribers?/i);
+    if (sub) subscribers = parseCompactCount(sub[1]);
+
+    const vid =
+      html.match(/"content"\s*:\s*"([\d,.]+[KMB]?)\s*videos?"/i) ||
+      html.match(/"videoCountText"[^]*?"content"\s*:\s*"([\d,.]+[KMB]?)/i);
+    if (vid) videos = parseCompactCount(vid[1]);
+  } catch {
+    /* ignore */
+  }
+  return { subscribers, videos };
 }
 
 /* ─── LinkedIn (OG / JSON-LD only) ───────────────────────────────────── */
@@ -439,7 +497,7 @@ function parseLinkedInUsername(href: string): string | null {
 
 /**
  * LinkedIn og:description is an SEO frankenstein:
- * "About blurb… · Experience: X · Education: Y · Location: Z · 500+ connections on LinkedIn.
+ * "About blurb... · Experience: X · Education: Y · Location: Z · 500+ connections on LinkedIn.
  *  View Name's profile on LinkedIn, a professional community of 1 billion members."
  * Split that into bio + extras; never surface the marketing trailer.
  */
@@ -458,6 +516,18 @@ function parseLinkedInDescription(raw: string | null): {
   text = text.replace(/\s*View .+?['’]s profile on LinkedIn.*$/i, '').trim();
   text = text.replace(/\s*,?\s*a professional community of [\d.,]+\s*members\.?\s*$/i, '').trim();
 
+  // Prefer a whole-string connections match (parts often keep a trailing period).
+  const connGlobal = text.match(
+    /([\d,]+)\+?\s*connections?(?:\s+on\s+LinkedIn)?/i
+  );
+  if (connGlobal) {
+    const n = Number(connGlobal[1].replace(/,/g, ''));
+    connections = Number.isFinite(n) ? n : null;
+    connectionsLabel = connGlobal[0].includes('+')
+      ? `${connGlobal[1]}+`
+      : connGlobal[1];
+  }
+
   const parts = text
     .split(/\s*·\s*/)
     .map((p) => p.trim())
@@ -465,30 +535,35 @@ function parseLinkedInDescription(raw: string | null): {
 
   let about: string | null = null;
   for (const part of parts) {
-    const exp = part.match(/^Experience:\s*(.+)$/i);
+    const cleaned = part.replace(/[.\s]+$/u, '').trim();
+    const exp = cleaned.match(/^Experience:\s*(.+)$/i);
     if (exp) {
       extras.push({ label: 'Experience', value: exp[1].trim() });
       continue;
     }
-    const edu = part.match(/^Education:\s*(.+)$/i);
+    const edu = cleaned.match(/^Education:\s*(.+)$/i);
     if (edu) {
       extras.push({ label: 'Education', value: edu[1].trim() });
       continue;
     }
-    const loc = part.match(/^Location:\s*(.+)$/i);
+    const loc = cleaned.match(/^Location:\s*(.+)$/i);
     if (loc) {
       extras.push({ label: 'Location', value: loc[1].trim() });
       continue;
     }
-    const conn = part.match(/^([\d,]+)\+?\s*connections?(?:\s+on\s+LinkedIn)?$/i);
+    const conn = cleaned.match(
+      /^([\d,]+)\+?\s*connections?(?:\s+on\s+LinkedIn)?$/i
+    );
     if (conn) {
-      const n = Number(conn[1].replace(/,/g, ''));
-      connections = Number.isFinite(n) ? n : null;
-      connectionsLabel = part.includes('+') ? `${conn[1]}+` : conn[1];
+      if (connections == null) {
+        const n = Number(conn[1].replace(/,/g, ''));
+        connections = Number.isFinite(n) ? n : null;
+        connectionsLabel = cleaned.includes('+') ? `${conn[1]}+` : conn[1];
+      }
       continue;
     }
     if (!about) {
-      about = part.replace(/…\s*$/u, '').replace(/\.{2,}\s*$/, '').trim();
+      about = cleaned.replace(/\u2026\s*$/u, '').replace(/\.{2,}\s*$/, '').trim();
     }
   }
 
@@ -508,9 +583,10 @@ async function fromLinkedIn(href: string, signal: AbortSignal): Promise<ProfileC
   const basics = await scrapeBasics(href, signal);
   const own =
     username?.toLowerCase() === 'aspauldingcode' ||
-    username?.toLowerCase() === resume.basics.profiles?.find((p) =>
-      p.network?.toLowerCase() === 'linkedin'
-    )?.username?.toLowerCase();
+    username?.toLowerCase() ===
+      resume.basics.profiles
+        ?.find((p) => p.network?.toLowerCase() === 'linkedin')
+        ?.username?.toLowerCase();
 
   // og:title → "Name - Headline | LinkedIn"
   let displayName = basics.displayName || null;
@@ -527,25 +603,24 @@ async function fromLinkedIn(href: string, signal: AbortSignal): Promise<ProfileC
 
   const parsed = parseLinkedInDescription(basics.bio ?? null);
 
-  // Prefer: short about segment → title headline → own resume summary. Never the SEO dump.
   let bio =
     parsed.about ||
     headline ||
     (own ? resume.basics.summary?.trim() || null : null);
 
-  // If "about" is still absurdly long / still looks like a dump, fall back.
   if (bio && (/connections on LinkedIn/i.test(bio) || /1 billion members/i.test(bio))) {
     bio = headline || (own ? resume.basics.summary?.trim() || null : null);
   }
   if (bio && bio.length > 280) {
-    bio = `${bio.slice(0, 277).replace(/\s+\S*$/, '')}…`;
+    bio = `${bio.slice(0, 277).replace(/\s+\S*$/, '')}...`;
   }
 
   let avatar = basics.avatar;
   if (!avatar && own) avatar = '/profile_square.jpg';
 
-  // Status = job headline when bio is the longer about blurb.
   const status = headline && bio && headline !== bio ? headline : null;
+
+  const extras = [...parsed.extras];
 
   return {
     ...card,
@@ -560,11 +635,11 @@ async function fromLinkedIn(href: string, signal: AbortSignal): Promise<ProfileC
       following: null,
       posts: null,
     },
-    extras: parsed.extras,
+    extras,
   };
 }
 
-/* ─── X / Twitter (OG only) ──────────────────────────────────────────── */
+/* ─── X / Twitter (FxTwitter API + OG) ───────────────────────────────── */
 
 function parseXUsername(href: string): string | null {
   try {
@@ -579,6 +654,21 @@ function parseXUsername(href: string): string | null {
   }
 }
 
+type FxUser = {
+  code?: number;
+  user?: {
+    screen_name?: string;
+    name?: string;
+    description?: string;
+    avatar_url?: string;
+    followers?: number;
+    following?: number;
+    tweets?: number;
+    likes?: number;
+    media_count?: number;
+  };
+};
+
 async function fromX(href: string, signal: AbortSignal): Promise<ProfileCard> {
   const card = emptyCard('X', href);
   card.labels = {
@@ -592,7 +682,6 @@ async function fromX(href: string, signal: AbortSignal): Promise<ProfileCard> {
   const basics = await scrapeBasics(href, signal);
 
   let displayName = basics.displayName || null;
-  // "Name (@handle) / X"
   const m = displayName?.match(/^(.*?)\s*\(@([^)]+)\)/);
   if (m) {
     displayName = m[1].trim();
@@ -600,13 +689,36 @@ async function fromX(href: string, signal: AbortSignal): Promise<ProfileCard> {
     displayName = displayName.replace(/\s*\/\s*X\s*$/i, '').trim();
   }
 
+  let stats = card.stats;
+  let avatar = basics.avatar ?? null;
+  let bio = basics.bio ?? null;
+
+  if (username) {
+    const fx = await fetchJson<FxUser>(
+      `https://api.fxtwitter.com/${encodeURIComponent(username)}`,
+      signal
+    );
+    const user = fx?.user;
+    if (user) {
+      displayName = user.name || displayName;
+      bio = user.description || bio;
+      avatar = user.avatar_url?.replace('_normal', '_400x400') || avatar;
+      stats = {
+        followers: user.followers ?? null,
+        following: user.following ?? null,
+        posts: user.tweets ?? null,
+      };
+    }
+  }
+
   return {
     ...card,
     username: username || null,
     displayName,
-    avatar: basics.avatar ?? null,
-    bio: basics.bio ?? null,
+    avatar,
+    bio,
     favicon: basics.favicon || card.favicon,
+    stats,
   };
 }
 
@@ -629,13 +741,12 @@ export async function fetchProfileCard(
   if (host === 'x.com' || host === 'twitter.com' || host === 'mobile.twitter.com')
     return fromX(href, ac);
 
-  // Generic preview-only fallback still uses the uniform shape.
   const card = emptyCard(host, href);
   return merge(card, await scrapeBasics(href, ac));
 }
 
 export function formatStatCount(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return '—';
+  if (value == null || Number.isNaN(value)) return '-';
   return new Intl.NumberFormat('en', {
     notation: 'compact',
     maximumFractionDigits: 1,

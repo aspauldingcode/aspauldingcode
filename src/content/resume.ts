@@ -104,11 +104,6 @@ export function workSlugForResumeProject(name: string): string | undefined {
   return WORK_SLUGS[name];
 }
 
-/** Resume projects that have no site gallery page (shown as an "Also" line). */
-export function resumeOnlyProjects(): ResumeProject[] {
-  return (resume.projects ?? []).filter((p) => !workSlugForResumeProject(p.name));
-}
-
 /**
  * Selected work order follows resume.projects.
  * Gallery pages enrich when WORK_SLUGS maps; otherwise compact text entry.
@@ -123,6 +118,3 @@ export function resumeSelectedWork(): Array<
     return { kind: 'text' as const, resume: rp };
   });
 }
-
-/** Guard: contact surfaces must not render these (form + Links only). */
-export const RESUME_PRIVATE_FIELDS = ['email', 'phone'] as const;

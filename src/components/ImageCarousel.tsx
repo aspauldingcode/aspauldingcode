@@ -29,7 +29,7 @@ function stageAspect(sizes: ImgSize[]): ImgSize {
 
 /**
  * Scroll-snap carousel. One fixed landscape stage; images contain inside.
- * Buttons / keys jump instantly; finger swipe stays native.
+ * Prev / index / next row; buttons and keys jump; finger swipe stays native.
  */
 export default function ImageCarousel({
   images,
@@ -53,20 +53,27 @@ export default function ImageCarousel({
   const multi = count > 1;
   const aspect = useMemo(() => stageAspect(sizes), [sizes]);
 
-  const jump = useCallback((next: number) => {
-    const track = trackRef.current;
-    if (!track || !multi) return;
-    const w = track.clientWidth;
-    if (w <= 0) return;
-    const i = ((next % count) + count) % count;
-    lockRef.current = true;
-    indexRef.current = i;
-    setIndex(i);
-    track.scrollTo({ left: i * w, behavior: 'auto' });
-    requestAnimationFrame(() => {
-      lockRef.current = false;
-    });
-  }, [multi, count]);
+  const jump = useCallback(
+    (next: number) => {
+      const track = trackRef.current;
+      if (!track || !multi) return;
+      const w = track.clientWidth;
+      if (w <= 0) return;
+      const i = ((next % count) + count) % count;
+      lockRef.current = true;
+      indexRef.current = i;
+      setIndex(i);
+
+      const prevSnap = track.style.scrollSnapType;
+      track.style.scrollSnapType = 'none';
+      track.scrollLeft = i * w;
+      requestAnimationFrame(() => {
+        track.style.scrollSnapType = prevSnap;
+        lockRef.current = false;
+      });
+    },
+    [multi, count]
+  );
 
   useEffect(() => {
     if (!multi) return;
@@ -97,11 +104,11 @@ export default function ImageCarousel({
     }
 
     const snap = () => {
+      if (lockRef.current) return;
+      const w = track.clientWidth;
+      if (w <= 0) return;
       lockRef.current = true;
-      track.scrollTo({
-        left: indexRef.current * track.clientWidth,
-        behavior: 'auto',
-      });
+      track.scrollLeft = indexRef.current * w;
       requestAnimationFrame(() => {
         lockRef.current = false;
       });
@@ -185,10 +192,16 @@ export default function ImageCarousel({
           <button
             type="button"
             className="ctrl"
-            onClick={() => jump(indexRef.current - 1)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              jump(indexRef.current - 1);
+            }}
             aria-label="Previous image"
           >
-            ‹
+            <span className="nf" aria-hidden>
+              󰅁
+            </span>
           </button>
           <p className="ctrl-meta" aria-live="polite">
             {index + 1} / {count}
@@ -196,10 +209,16 @@ export default function ImageCarousel({
           <button
             type="button"
             className="ctrl"
-            onClick={() => jump(indexRef.current + 1)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              jump(indexRef.current + 1);
+            }}
             aria-label="Next image"
           >
-            ›
+            <span className="nf" aria-hidden>
+              󰅂
+            </span>
           </button>
         </nav>
       ) : null}

@@ -25,15 +25,16 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
   );
 
   useEffect(() => {
-    if (target.embeddable) {
-      setPreview({ status: 'idle' });
-      return;
-    }
+    if (target.embeddable) return;
 
     const href = target.openHref;
-    setPreview({ status: 'loading' });
-
+    let cancelled = false;
     const ac = new AbortController();
+
+    queueMicrotask(() => {
+      if (!cancelled) setPreview({ status: 'loading' });
+    });
+
     void (async () => {
       try {
         const res = await fetch(
@@ -41,17 +42,20 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
           { signal: ac.signal }
         );
         if (!res.ok) {
-          if (!ac.signal.aborted) setPreview({ status: 'empty' });
+          if (!cancelled) setPreview({ status: 'empty' });
           return;
         }
         const data = (await res.json()) as ProfileCard;
-        if (!ac.signal.aborted) setPreview({ status: 'ready', data });
+        if (!cancelled) setPreview({ status: 'ready', data });
       } catch {
-        if (!ac.signal.aborted) setPreview({ status: 'empty' });
+        if (!cancelled) setPreview({ status: 'empty' });
       }
     })();
 
-    return () => ac.abort();
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
   }, [target.embeddable, target.openHref]);
 
   const previewData = preview.status === 'ready' ? preview.data : null;
@@ -72,7 +76,10 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
 
         <p className="detail-actions no-print">
           <a href={target.openHref} target="_blank" rel="noopener noreferrer">
-            Open in new tab ↗
+            Open in new tab{' '}
+            <span className="nf" aria-hidden>
+              󰏌
+            </span>
           </a>
         </p>
 
@@ -203,19 +210,19 @@ function ProfileCardView({
       <ul className="profile-card-stats" aria-label="Profile stats">
         <li>
           <span className="profile-card-stat-value">
-            {loading && stats.followers == null ? '…' : formatStatCount(stats.followers)}
+            {loading && stats.followers == null ? '...' : formatStatCount(stats.followers)}
           </span>
           <span className="profile-card-stat-label">{labels.followers}</span>
         </li>
         <li>
           <span className="profile-card-stat-value">
-            {loading && stats.following == null ? '…' : formatStatCount(stats.following)}
+            {loading && stats.following == null ? '...' : formatStatCount(stats.following)}
           </span>
           <span className="profile-card-stat-label">{labels.following}</span>
         </li>
         <li>
           <span className="profile-card-stat-value">
-            {loading && stats.posts == null ? '…' : formatStatCount(stats.posts)}
+            {loading && stats.posts == null ? '...' : formatStatCount(stats.posts)}
           </span>
           <span className="profile-card-stat-label">{labels.posts}</span>
         </li>
@@ -234,7 +241,7 @@ function ProfileCardView({
 
       <p className="profile-card-note">
         {loading
-          ? 'Loading profile…'
+          ? 'Loading profile...'
           : card
             ? 'Open in a new tab to visit this profile.'
             : 'Preview unavailable. Open in a new tab to continue.'}

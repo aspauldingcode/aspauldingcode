@@ -2,17 +2,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="804" height="664" viewBox="0 0 804 664" role="img" aria-label="GitHub contribution graphs for aspauldingcode by year from 2023 through 2026: 3846 total contributions">
   <title>GitHub contributions by year 2023-2026 / aspauldingcode</title>
   <style>
-    .year { font: 600 14px ui-sans-serif, system-ui, sans-serif; fill: #141816; }
-    .year-count { font: 11px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .month { font: 10px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .label { font: 10px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .caption { font: 11px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .band { fill: #f3f6f4; }
-    .l0 { fill: #dfe8e3; }
-    .l1 { fill: #a8d5c4; }
-    .l2 { fill: #6fbfa4; }
-    .l3 { fill: #3d9a7c; }
-    .l4 { fill: #1f6f5b; }
+    .year { font: 600 14px ui-sans-serif, system-ui, sans-serif; fill: #e6ebe8; }
+    .year-count { font: 11px ui-sans-serif, system-ui, sans-serif; fill: #8f9a94; }
+    .month { font: 10px ui-sans-serif, system-ui, sans-serif; fill: #8f9a94; }
+    .label { font: 10px ui-sans-serif, system-ui, sans-serif; fill: #8f9a94; }
+    .caption { font: 11px ui-sans-serif, system-ui, sans-serif; fill: #8f9a94; }
+    .band { fill: #121815; }
+    .l0 { fill: #1a2420; }
+    .l1 { fill: #1f4a3c; }
+    .l2 { fill: #2f7a62; }
+    .l3 { fill: #4ea888; }
+    .l4 { fill: #6fbfa4; }
   </style>
   <text class="year" x="52" y="22">2026</text>
   <text class="year-count" x="794" y="22" text-anchor="end">1740 contributions (and counting)</text>

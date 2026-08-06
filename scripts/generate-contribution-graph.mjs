@@ -13,7 +13,31 @@ import path from 'node:path';
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || 'aspauldingcode';
 const FROM_YEAR = Number(process.env.CONTRIB_FROM_YEAR || 2023);
 const outDir = path.resolve(process.cwd(), 'public', 'github');
-const outPath = path.join(outDir, 'contributions.svg');
+const outPathLight = path.join(outDir, 'contributions.svg');
+const outPathDark = path.join(outDir, 'contributions-dark.svg');
+
+const THEMES = {
+  light: {
+    year: '#141816',
+    muted: '#5a635e',
+    band: '#f3f6f4',
+    l0: '#dfe8e3',
+    l1: '#a8d5c4',
+    l2: '#6fbfa4',
+    l3: '#3d9a7c',
+    l4: '#1f6f5b',
+  },
+  dark: {
+    year: '#e6ebe8',
+    muted: '#8f9a94',
+    band: '#121815',
+    l0: '#1a2420',
+    l1: '#1f4a3c',
+    l2: '#2f7a62',
+    l3: '#4ea888',
+    l4: '#6fbfa4',
+  },
+};
 
 const QUERY = `
 query($login: String!, $from: DateTime!, $to: DateTime!) {
@@ -105,7 +129,7 @@ const LEVEL = {
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-function renderSvg(yearCalendars) {
+function renderSvg(yearCalendars, theme) {
   const cell = 11;
   const gap = 3;
   const step = cell + gap;
@@ -207,27 +231,17 @@ function renderSvg(yearCalendars) {
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="GitHub contribution graphs for ${LOGIN} by year from ${oldestYear} through ${newestYear}: ${total} total contributions">
   <title>GitHub contributions by year ${oldestYear}-${newestYear} / ${LOGIN}</title>
   <style>
-    .year { font: 600 14px ui-sans-serif, system-ui, sans-serif; fill: #141816; }
-    .year-count { font: 11px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .month { font: 10px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .label { font: 10px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .caption { font: 11px ui-sans-serif, system-ui, sans-serif; fill: #5a635e; }
-    .band { fill: #f3f6f4; }
-    .l0 { fill: #dfe8e3; }
-    .l1 { fill: #a8d5c4; }
-    .l2 { fill: #6fbfa4; }
-    .l3 { fill: #3d9a7c; }
-    .l4 { fill: #1f6f5b; }
-    @media (prefers-color-scheme: dark) {
-      .year { fill: #e6ebe8; }
-      .year-count, .month, .label, .caption { fill: #8f9a94; }
-      .band { fill: #121815; }
-      .l0 { fill: #1a2420; }
-      .l1 { fill: #1f4a3c; }
-      .l2 { fill: #2f7a62; }
-      .l3 { fill: #4ea888; }
-      .l4 { fill: #6fbfa4; }
-    }
+    .year { font: 600 14px ui-sans-serif, system-ui, sans-serif; fill: ${theme.year}; }
+    .year-count { font: 11px ui-sans-serif, system-ui, sans-serif; fill: ${theme.muted}; }
+    .month { font: 10px ui-sans-serif, system-ui, sans-serif; fill: ${theme.muted}; }
+    .label { font: 10px ui-sans-serif, system-ui, sans-serif; fill: ${theme.muted}; }
+    .caption { font: 11px ui-sans-serif, system-ui, sans-serif; fill: ${theme.muted}; }
+    .band { fill: ${theme.band}; }
+    .l0 { fill: ${theme.l0}; }
+    .l1 { fill: ${theme.l1}; }
+    .l2 { fill: ${theme.l2}; }
+    .l3 { fill: ${theme.l3}; }
+    .l4 { fill: ${theme.l4}; }
   </style>
   ${bands.join('\n  ')}
   <text class="caption" x="${padL}" y="${height - 10}">${total} contributions total / ${oldestYear}-present / @${LOGIN}</text>
@@ -240,5 +254,8 @@ const total = yearCalendars.reduce((sum, y) => sum + y.calendar.totalContributio
 const yearsLabel = yearCalendars.map((y) => y.year).join(', ');
 
 fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(outPath, renderSvg(yearCalendars));
-console.log(`Wrote ${outPath} (${total} contributions; years ${yearsLabel})`);
+fs.writeFileSync(outPathLight, renderSvg(yearCalendars, THEMES.light));
+fs.writeFileSync(outPathDark, renderSvg(yearCalendars, THEMES.dark));
+console.log(
+  `Wrote ${outPathLight} + ${outPathDark} (${total} contributions; years ${yearsLabel})`
+);

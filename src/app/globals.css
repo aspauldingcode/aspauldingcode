@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Symbols Nerd Font";
+  src: url("/fonts/SymbolsNerdFont-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #f4f2ec;
   --fg: #1a1a18;
@@ -211,18 +219,31 @@ a {
   text-underline-offset: 0.15em;
 }
 
-a:hover {
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 /*
   Shared control language
-  - .ctrl / .ctrl-wide: bordered transport (‹ › Play)
+  - .ctrl / .ctrl-wide: bordered transport (nf chevrons, Play)
   - .ctrl-link: accent text action (print, submit)
   - .ctrl-row / .ctrl-meta: groups + counters
+  - .nf: Symbols Nerd Font icons
 */
+.nf {
+  font-family: "Symbols Nerd Font", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  speak: never;
+}
+
 .ctrl-row {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.65rem;
 }
@@ -235,8 +256,8 @@ a:hover {
 .ctrl {
   flex: 0 0 auto;
   box-sizing: border-box;
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   margin: 0;
   padding: 0;
   border: 1px solid var(--line);
@@ -244,12 +265,17 @@ a:hover {
   background: var(--bg);
   color: var(--accent);
   font: inherit;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: manipulation;
 }
 
 .ctrl-wide {
@@ -259,6 +285,7 @@ a:hover {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--fg);
+  gap: 0.4rem;
 }
 
 .ctrl:hover {
@@ -298,8 +325,10 @@ a:hover {
   text-decoration-thickness: 1.5px;
 }
 
-.ctrl-link:hover {
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  .ctrl-link:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 .ctrl-link:disabled {
@@ -368,13 +397,6 @@ img[data-nimg='fill'] {
   margin: 0 0 1.15rem;
 }
 
-.lede {
-  font-size: 1.12rem;
-  line-height: 1.45;
-  margin: 0 0 0.7rem;
-  max-width: 38ch;
-}
-
 .about {
   color: var(--muted);
   margin: 0;
@@ -405,9 +427,11 @@ img[data-nimg='fill'] {
   text-decoration: none;
 }
 
-.resume-entry h3 a:hover {
-  color: var(--accent);
-  text-decoration: underline;
+@media (hover: hover) {
+  .resume-entry h3 a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
 }
 
 .resume-entry .when {
@@ -570,9 +594,11 @@ img[data-nimg='fill'] {
   text-decoration: none;
 }
 
-.project-row h3 a:hover {
-  color: var(--accent);
-  text-decoration: underline;
+@media (hover: hover) {
+  .project-row h3 a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
 }
 
 .project-row.is-active h3 a {
@@ -727,8 +753,10 @@ img[data-nimg='fill'] {
   text-decoration-thickness: 1.5px;
 }
 
-.detail-actions a:hover {
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  .detail-actions a:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 /* In-portfolio framed site (right pane). */
@@ -1001,22 +1029,6 @@ img[data-nimg='fill'] {
 
 .profile-card.is-loading .profile-card-name {
   color: var(--muted);
-}
-
-/* Legacy preview skeleton hooks (unused by profile cards, keep harmless). */
-.detail-preview-skeleton {
-  width: 100%;
-  aspect-ratio: 1.91 / 1;
-  max-height: 10rem;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--line) 70%, var(--bg));
-}
-
-.detail-preview-skeleton-text {
-  min-height: 2.8em;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--line) 55%, var(--bg));
-  color: transparent;
 }
 
 .years {
@@ -1397,6 +1409,16 @@ img[data-nimg='fill'] {
 }
 
 /* Gallery transport uses shared .ctrl / .ctrl-row / .ctrl-meta */
+.carousel-block > .ctrl-row {
+  margin-top: 0.15rem;
+  position: relative;
+  z-index: 2;
+}
+
+.carousel-block .ctrl-meta {
+  min-width: 4rem;
+  flex: 0 0 auto;
+}
 
 .player {
   margin-top: 1rem;

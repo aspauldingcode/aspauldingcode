@@ -197,14 +197,19 @@ export default function HomeContent() {
 
         <div className="github-graph-scroller">
           <Link className="github-graph-link" href={viewHref(githubProfile)}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="github-graph"
-              src="/github/contributions.svg?v=2023-present"
-              alt="GitHub contribution graphs by year, newest at top, from present back to 2023"
-              width={804}
-              height={664}
-            />
+            <picture>
+              <source
+                media="(prefers-color-scheme: dark)"
+                srcSet="/github/contributions-dark.svg?v=2023-present"
+              />
+              <img
+                className="github-graph"
+                src="/github/contributions.svg?v=2023-present"
+                alt="GitHub contribution graphs by year, newest at top, from present back to 2023"
+                width={804}
+                height={664}
+              />
+            </picture>
           </Link>
         </div>
 

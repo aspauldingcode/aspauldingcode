@@ -33,7 +33,7 @@ export default function ResumeContent() {
           ) : null}
           {place ? (
             <>
-              {basics.url ? ' · ' : null}
+              {basics.url ? ' / ' : null}
               {place}
             </>
           ) : null}
@@ -41,14 +41,14 @@ export default function ResumeContent() {
             .filter((p) => p.url)
             .map((p) => (
               <span key={p.network}>
-                {' · '}
+                {' / '}
                 <Link href={viewHref(p.url!)}>{p.network}</Link>
               </span>
             ))}
         </p>
         <p className="resume-actions no-print">
           <PrintButton />
-          {' · '}
+          {' / '}
           <Link href="/#contact">Contact form</Link>
         </p>
       </header>

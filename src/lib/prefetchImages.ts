@@ -31,7 +31,6 @@ type PrefetchOpts = {
 /** Tiny LQIP frame: enough to recognize layout on slow links. */
 export const LQIP_WIDTHS = [48] as const;
 export const HERO_WIDTHS = [640, 1080] as const;
-export const NEIGHBOR_WIDTHS = [1080] as const;
 
 export function prefetchImages(srcs: string[], opts: PrefetchOpts = {}): void {
   if (typeof window === 'undefined') return;
