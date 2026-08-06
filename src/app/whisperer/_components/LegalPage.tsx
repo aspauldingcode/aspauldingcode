@@ -1,9 +1,10 @@
+import SectionTitle from '@/components/SectionTitle';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 const PROSE_CSS = `
 .legal-prose h2 {
-  font-family: var(--font-kanit), sans-serif;
+  font-family: var(--font-body), sans-serif;
   font-weight: 700;
   font-size: 1.25rem;
   margin: 2rem 0 0.5rem;
@@ -73,17 +74,18 @@ export function LegalPage({
           ← aspauldingcode.com
         </Link>
 
-        <h1
+        <SectionTitle
+          as="h1"
           style={{
-            fontFamily: 'var(--font-kanit), sans-serif',
-            fontWeight: 900,
+            fontFamily: 'var(--font-body), sans-serif',
+            fontWeight: 700,
             fontSize: '2rem',
             lineHeight: 1.1,
             margin: '0 0 0.35rem',
           }}
         >
           {title}
-        </h1>
+        </SectionTitle>
         <p
           style={{
             fontSize: '0.8rem',

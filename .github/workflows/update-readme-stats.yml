@@ -1,0 +1,50 @@
+name: Update README stats cards
+
+on:
+  schedule:
+    # Daily; avoids depending on public Vercel/Heroku image hosts.
+    - cron: "17 8 * * *"
+  push:
+    paths:
+      - ".github/workflows/update-readme-stats.yml"
+      - "scripts/generate-contribution-graph.mjs"
+      - "scripts/generate-github-stats.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate contribution graph for the site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: node scripts/generate-contribution-graph.mjs
+
+      - name: Generate custom GitHub stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: node scripts/generate-github-stats.mjs
+
+      - name: Commit cards if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p profile public/github
+          git add \
+            public/github/contributions.svg \
+            public/github/stats.json \
+            public/github/github-overview.svg \
+            profile/github-overview.svg
+          if git diff --cached --quiet; then
+            echo "No card changes."
+            exit 0
+          fi
+          git commit -m "Update GitHub stats and contribution graph"
+          git push

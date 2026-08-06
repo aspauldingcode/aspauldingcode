@@ -1,0 +1,77 @@
+{
+  "login": "aspauldingcode",
+  "generatedAt": "2026-08-06T03:49:40.218Z",
+  "fromYear": 2023,
+  "metrics": {
+    "commits": 3096,
+    "contributions": 3842,
+    "pullRequests": 45,
+    "issues": 568,
+    "reviews": 17,
+    "repositories": 75,
+    "stars": 450,
+    "forks": 12,
+    "followers": 71
+  },
+  "streak": {
+    "current": 1,
+    "longest": 14,
+    "totalActiveDays": 579
+  },
+  "languages": [
+    {
+      "name": "Swift",
+      "size": 2901162,
+      "percent": 27.9,
+      "color": "#F05138"
+    },
+    {
+      "name": "Objective-C",
+      "size": 1899746,
+      "percent": 18.3,
+      "color": "#438eff"
+    },
+    {
+      "name": "Nix",
+      "size": 1454852,
+      "percent": 14,
+      "color": "#7e7eff"
+    },
+    {
+      "name": "Java",
+      "size": 725022,
+      "percent": 7,
+      "color": "#b07219"
+    },
+    {
+      "name": "Shell",
+      "size": 667476,
+      "percent": 6.4,
+      "color": "#89e051"
+    },
+    {
+      "name": "TypeScript",
+      "size": 644658,
+      "percent": 6.2,
+      "color": "#3178c6"
+    },
+    {
+      "name": "Python",
+      "size": 601571,
+      "percent": 5.8,
+      "color": "#3572A5"
+    },
+    {
+      "name": "JavaScript",
+      "size": 466672,
+      "percent": 4.5,
+      "color": "#f1e05a"
+    },
+    {
+      "name": "Other",
+      "size": 1044358,
+      "percent": 10,
+      "color": "#8b949e"
+    }
+  ]
+}

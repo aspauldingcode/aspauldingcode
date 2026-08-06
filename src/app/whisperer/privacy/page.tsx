@@ -1,7 +1,8 @@
+import SectionTitle from '@/components/SectionTitle';
 import { LegalPage } from '../_components/LegalPage';
 
 export const metadata = {
-  title: 'Whisperer — Privacy Policy',
+  title: 'Whisperer : Privacy Policy',
   description: 'Privacy Policy for the Whisperer app for Apple Watch and iPhone.',
 };
 
@@ -9,13 +10,13 @@ export default function WhispererPrivacyPolicy() {
   return (
     <LegalPage title="Privacy Policy" lastUpdated="June 16, 2026">
       <p>
-        This Privacy Policy explains how <strong>Whisperer</strong> (the &ldquo;App&rdquo;) — an app for
-        Apple Watch with an optional iPhone companion — handles your information. Whisperer lets you chat
+        This Privacy Policy explains how <strong>Whisperer</strong> (the &ldquo;App&rdquo;) : an app for
+        Apple Watch with an optional iPhone companion : handles your information. Whisperer lets you chat
         with AI, generate images, scan text from images (OCR), and use voice transcription and
         text-to-speech. By using the App you agree to this policy.
       </p>
 
-      <h2>Who we are</h2>
+      <SectionTitle>Who we are</SectionTitle>
       <p>
         Whisperer is developed by Alex Spaulding (&ldquo;we&rdquo;, &ldquo;us&rdquo;). You can reach us
         through the contact form at{' '}
@@ -25,13 +26,13 @@ export default function WhispererPrivacyPolicy() {
         .
       </p>
 
-      <h2>No account required</h2>
+      <SectionTitle>No account required</SectionTitle>
       <p>
         Whisperer does not require you to create an account or provide your email address to use it. We
         do not build advertising profiles, and we do not sell your personal information.
       </p>
 
-      <h2>Information we process</h2>
+      <SectionTitle>Information we process</SectionTitle>
       <h3>Content you submit</h3>
       <p>
         Your chat messages, any images you submit for OCR or vision, and any audio you record for
@@ -80,51 +81,51 @@ export default function WhispererPrivacyPolicy() {
         so we can grant the entitlement or credits you bought and honor refunds.
       </p>
 
-      <h2>Third-party services</h2>
+      <SectionTitle>Third-party services</SectionTitle>
       <ul>
         <li>
-          <strong>OpenAI</strong> — processes the messages, images, and audio you submit to generate
+          <strong>OpenAI</strong>: processes the messages, images, and audio you submit to generate
           responses. See OpenAI&rsquo;s privacy policy for how they handle data sent to their API.
         </li>
         <li>
-          <strong>Apple</strong> — provides In-App Purchase, DeviceCheck, and WatchConnectivity / App
+          <strong>Apple</strong>: provides In-App Purchase, DeviceCheck, and WatchConnectivity / App
           Groups used to sync settings between your Apple Watch and iPhone companion.
         </li>
         <li>
-          <strong>Vercel</strong> — hosts the backend that meters usage and relays requests. Standard
+          <strong>Vercel</strong>: hosts the backend that meters usage and relays requests. Standard
           server logs (such as IP address and request time) may be processed transiently for security
           and reliability.
         </li>
       </ul>
 
-      <h2>Data retention</h2>
+      <SectionTitle>Data retention</SectionTitle>
       <p>
         Usage metadata is retained as long as needed to operate quotas, the spend cap, credits, and
         billing, and to prevent abuse. Conversation content is retained on your device until you delete
         it there.
       </p>
 
-      <h2>Security</h2>
+      <SectionTitle>Security</SectionTitle>
       <p>
         Network requests are sent over HTTPS and signed to prevent tampering. Sensitive values such as
         your API key are stored in the device Keychain. No method of transmission or storage is 100%
         secure, but we take reasonable measures to protect your information.
       </p>
 
-      <h2>Children</h2>
+      <SectionTitle>Children</SectionTitle>
       <p>
         Whisperer is not directed to children under 13, and we do not knowingly collect personal
         information from children.
       </p>
 
-      <h2>Your choices</h2>
+      <SectionTitle>Your choices</SectionTitle>
       <p>
         You can remove your saved name and your API key at any time in the App. You can delete your
         conversation history on your device. To request deletion of usage records associated with your
         device identifier, contact us using the link above.
       </p>
 
-      <h2>Changes to this policy</h2>
+      <SectionTitle>Changes to this policy</SectionTitle>
       <p>
         We may update this Privacy Policy from time to time. Material changes will be reflected by
         updating the &ldquo;Last updated&rdquo; date at the top of this page.

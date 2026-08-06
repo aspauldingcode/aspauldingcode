@@ -25,17 +25,32 @@ type ManifestCacheEntry = {
 const MANIFEST_CACHE_FALLBACK_MS = 10 * 60 * 1000;
 const manifestCache = new Map<string, ManifestCacheEntry>();
 const albumCoverCache = new Map<string, { coverUrl: string | null }>();
+/** Dedupe concurrent identical catalog requests (React Strict Mode double-mount). */
+const catalogInflight = new Map<string, Promise<TrackManifestResult[]>>();
+
+let cachedToken: { value: string; expiresAt: number } | null = null;
+
 type ReleaseType = TrackManifestResult['releaseType'];
 
-function classifyReleaseTypeFromAttributes(attrs: any): ReleaseType {
+type JsonRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): JsonRecord | null {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as JsonRecord)
+    : null;
+}
+
+function classifyReleaseTypeFromAttributes(attrs: unknown): ReleaseType {
+  const record = asRecord(attrs);
+  const mediaMeta = asRecord(record?.mediaMetadata);
   const candidates = [
-    attrs?.type,
-    attrs?.releaseType,
-    attrs?.albumType,
-    attrs?.mediaMetadata?.releaseType,
+    record?.type,
+    record?.releaseType,
+    record?.albumType,
+    mediaMeta?.releaseType,
   ]
-    .filter((value) => typeof value === 'string')
-    .map((value: string) => value.toUpperCase());
+    .filter((value): value is string => typeof value === 'string')
+    .map((value) => value.toUpperCase());
 
   for (const value of candidates) {
     if (value.includes('EP')) return 'EP';
@@ -43,7 +58,7 @@ function classifyReleaseTypeFromAttributes(attrs: any): ReleaseType {
     if (value.includes('ALBUM') || value.includes('LP')) return 'ALBUM';
   }
 
-  const numberOfTracks = Number(attrs?.numberOfTracks ?? attrs?.trackCount ?? NaN);
+  const numberOfTracks = Number(record?.numberOfTracks ?? record?.trackCount ?? NaN);
   if (Number.isFinite(numberOfTracks) && numberOfTracks > 0) {
     if (numberOfTracks <= 3) return 'SINGLE';
     if (numberOfTracks <= 7) return 'EP';
@@ -61,6 +76,9 @@ function getCredentials() {
 }
 
 async function getAccessToken() {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.value;
+  }
   const creds = getCredentials();
   if (!creds) return null;
   const basic = Buffer.from(`${creds.clientId}:${creds.clientSecret}`).toString('base64');
@@ -75,7 +93,14 @@ async function getAccessToken() {
   });
   if (!res.ok) return null;
   const data = await res.json();
-  return typeof data.access_token === 'string' ? data.access_token : null;
+  const token = typeof data.access_token === 'string' ? data.access_token : null;
+  if (!token) return null;
+  const expiresIn = Number(data.expires_in);
+  const ttlMs = Number.isFinite(expiresIn)
+    ? Math.max(30_000, (expiresIn - 60) * 1000)
+    : 50 * 60 * 1000;
+  cachedToken = { value: token, expiresAt: Date.now() + ttlMs };
+  return token;
 }
 
 function cacheExpiryFromManifestUri(uri: string) {
@@ -138,8 +163,8 @@ async function fetchTrackManifest(id: string, token: string, countryCode: string
   url.searchParams.set('adaptive', 'true');
   url.searchParams.set('formats', 'AACLC,HEAACV1');
 
-  let body: any = null;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  let body: unknown = null;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
     const res = await fetch(url.toString(), {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -148,17 +173,15 @@ async function fetchTrackManifest(id: string, token: string, countryCode: string
       cache: 'no-store',
     });
 
-    if (res.status === 429) {
+    if (res.status === 429 || res.status >= 500) {
       if (cached) return cached.payload;
-      if (attempt === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 250));
-        continue;
-      }
+      await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+      continue;
     }
 
     if (!res.ok) {
-      if (attempt === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 150));
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 200 * (attempt + 1)));
         continue;
       }
       return {
@@ -186,14 +209,14 @@ async function fetchTrackManifest(id: string, token: string, countryCode: string
     };
   }
 
-  const attrs = body?.data?.attributes ?? {};
+  const root = asRecord(body);
+  const data = asRecord(root?.data);
+  const attrs = asRecord(data?.attributes) ?? {};
 
-  // Log what TIDAL actually returns so we can validate the field names.
-  const attrKeys = Object.keys(attrs);
-  console.log(`[tidal-tracks] track ${id} attr keys:`, attrKeys, '| uri:', attrs.uri, '| manifest length:', typeof attrs.manifest === 'string' ? attrs.manifest.length : 'none');
-
-  const rawPresentation = typeof attrs.trackPresentation === 'string' ? attrs.trackPresentation : 'UNKNOWN';
-  const previewReason = typeof attrs.previewReason === 'string' ? attrs.previewReason : undefined;
+  const rawPresentation =
+    typeof attrs.trackPresentation === 'string' ? attrs.trackPresentation : 'UNKNOWN';
+  const previewReason =
+    typeof attrs.previewReason === 'string' ? attrs.previewReason : undefined;
   const presentation: TrackManifestResult['trackPresentation'] =
     rawPresentation === 'FULL' || rawPresentation === 'PREVIEW' ? rawPresentation : 'UNKNOWN';
 
@@ -262,21 +285,25 @@ async function fetchTrackCoverArt(id: string, token: string, countryCode: string
     return { coverUrl: null as string | null, releaseTitle: null as string | null, releaseType: 'UNKNOWN' as const };
   }
 
-  const trackBody = await trackRes.json();
+  const trackBody = asRecord(await trackRes.json());
   const included = Array.isArray(trackBody?.included) ? trackBody.included : [];
-  const firstAlbum = included.find((item: any) => item?.type === 'albums');
+  const firstAlbum = included.find((item) => asRecord(item)?.type === 'albums');
+  const firstAlbumRec = asRecord(firstAlbum);
+  const albumAttrs = asRecord(firstAlbumRec?.attributes);
+  const relationships = asRecord(asRecord(trackBody?.data)?.relationships);
+  const albumsRel = asRecord(relationships?.albums);
+  const albumsData = Array.isArray(albumsRel?.data) ? albumsRel.data : [];
+  const firstAlbumRel = asRecord(albumsData[0]);
   const albumId =
-    typeof firstAlbum?.id === 'string'
-      ? firstAlbum.id
-      : typeof trackBody?.data?.relationships?.albums?.data?.[0]?.id === 'string'
-        ? trackBody.data.relationships.albums.data[0].id
+    typeof firstAlbumRec?.id === 'string'
+      ? firstAlbumRec.id
+      : typeof firstAlbumRel?.id === 'string'
+        ? firstAlbumRel.id
         : null;
 
   const releaseTitle =
-    typeof firstAlbum?.attributes?.title === 'string'
-      ? firstAlbum.attributes.title
-      : null;
-  const releaseType = classifyReleaseTypeFromAttributes(firstAlbum?.attributes);
+    typeof albumAttrs?.title === 'string' ? albumAttrs.title : null;
+  const releaseType = classifyReleaseTypeFromAttributes(albumAttrs);
 
   if (!albumId) {
     return { coverUrl: null as string | null, releaseTitle, releaseType };
@@ -296,8 +323,10 @@ async function fetchTrackCoverArt(id: string, token: string, countryCode: string
     cache: 'no-store',
   });
   if (!coverRelRes.ok) return { coverUrl: null as string | null, releaseTitle, releaseType };
-  const coverRelBody = await coverRelRes.json();
-  const artId = typeof coverRelBody?.data?.[0]?.id === 'string' ? coverRelBody.data[0].id : null;
+  const coverRelBody = asRecord(await coverRelRes.json());
+  const coverRelData = Array.isArray(coverRelBody?.data) ? coverRelBody.data : [];
+  const firstCover = asRecord(coverRelData[0]);
+  const artId = typeof firstCover?.id === 'string' ? firstCover.id : null;
   if (!artId) return { coverUrl: null as string | null, releaseTitle, releaseType };
 
   const artUrl = new URL(`https://openapi.tidal.com/v2/artworks/${artId}`);
@@ -310,11 +339,18 @@ async function fetchTrackCoverArt(id: string, token: string, countryCode: string
     cache: 'no-store',
   });
   if (!artRes.ok) return { coverUrl: null as string | null, releaseTitle, releaseType };
-  const artBody = await artRes.json();
-  const files = Array.isArray(artBody?.data?.attributes?.files) ? artBody.data.attributes.files : [];
+  const artBody = asRecord(await artRes.json());
+  const artAttrs = asRecord(asRecord(artBody?.data)?.attributes);
+  const files = Array.isArray(artAttrs?.files) ? artAttrs.files : [];
+  type ArtFile = { href?: unknown; meta?: { width?: unknown } };
   const sortedFiles = files
-    .filter((file: any) => typeof file?.href === 'string')
-    .sort((a: any, b: any) => (b?.meta?.width ?? 0) - (a?.meta?.width ?? 0));
+    .map((file) => asRecord(file) as ArtFile | null)
+    .filter((file): file is ArtFile & { href: string } => typeof file?.href === 'string')
+    .sort((a, b) => {
+      const aw = asRecord(a.meta)?.width;
+      const bw = asRecord(b.meta)?.width;
+      return (typeof bw === 'number' ? bw : 0) - (typeof aw === 'number' ? aw : 0);
+    });
   const coverUrl = sortedFiles[0]?.href ?? null;
   const payload = { coverUrl };
   albumCoverCache.set(albumId, payload);
@@ -333,16 +369,38 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'No valid track ids provided' }, { status: 400 });
   }
 
-  const token = await getAccessToken();
-  if (!token) {
+  const flightKey = `${countryCode}:${ids.join(',')}`;
+  let pending = catalogInflight.get(flightKey);
+  if (!pending) {
+    pending = (async () => {
+      const token = await getAccessToken();
+      if (!token) throw new Error('token');
+
+      const tracks: TrackManifestResult[] = [];
+      for (const id of ids) {
+        // Sequential on purpose to reduce burst rate limiting from TIDAL.
+        tracks.push(await fetchTrackManifest(id, token, countryCode));
+      }
+
+      // One retry pass for any track that came back without a stream.
+      for (let i = 0; i < tracks.length; i++) {
+        const t = tracks[i]!;
+        if (t.uri || t.manifest) continue;
+        await new Promise((r) => setTimeout(r, 400));
+        tracks[i] = await fetchTrackManifest(t.id, token, countryCode);
+      }
+
+      return tracks;
+    })().finally(() => {
+      catalogInflight.delete(flightKey);
+    });
+    catalogInflight.set(flightKey, pending);
+  }
+
+  try {
+    const tracks = await pending;
+    return NextResponse.json({ tracks });
+  } catch {
     return NextResponse.json({ error: 'Failed to obtain TIDAL access token' }, { status: 500 });
   }
-
-  const tracks: TrackManifestResult[] = [];
-  for (const id of ids) {
-    // Sequential on purpose to reduce burst rate limiting from TIDAL.
-    tracks.push(await fetchTrackManifest(id, token, countryCode));
-  }
-
-  return NextResponse.json({ tracks });
 }

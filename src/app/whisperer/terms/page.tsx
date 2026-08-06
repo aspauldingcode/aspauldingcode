@@ -1,7 +1,8 @@
+import SectionTitle from '@/components/SectionTitle';
 import { LegalPage } from '../_components/LegalPage';
 
 export const metadata = {
-  title: 'Whisperer — Terms of Use',
+  title: 'Whisperer : Terms of Use',
   description: 'Terms of Use (EULA) for the Whisperer app for Apple Watch and iPhone.',
 };
 
@@ -14,7 +15,7 @@ export default function WhispererTermsOfUse() {
         using the App you agree to these Terms. If you do not agree, do not use the App.
       </p>
 
-      <h2>The service</h2>
+      <SectionTitle>The service</SectionTitle>
       <p>
         Whisperer lets you chat with AI, generate images, scan text from images, and use voice
         transcription and text-to-speech. The App relies on third-party AI services (OpenAI) to produce
@@ -22,7 +23,7 @@ export default function WhispererTermsOfUse() {
         evaluating output before relying on it. Whisperer is not a substitute for professional advice.
       </p>
 
-      <h2>Free demo, subscriptions, and credits</h2>
+      <SectionTitle>Free demo, subscriptions, and credits</SectionTitle>
       <ul>
         <li>
           <strong>Free demo.</strong> Each device may receive a one-time, limited free demo. The demo is
@@ -45,7 +46,7 @@ export default function WhispererTermsOfUse() {
         </li>
       </ul>
 
-      <h2>Billing and cancellation</h2>
+      <SectionTitle>Billing and cancellation</SectionTitle>
       <p>
         Subscriptions are sold through Apple In-App Purchase. Payment is charged to your Apple Account
         at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off
@@ -63,7 +64,7 @@ export default function WhispererTermsOfUse() {
         .
       </p>
 
-      <h2>Acceptable use</h2>
+      <SectionTitle>Acceptable use</SectionTitle>
       <p>You agree not to use the App to:</p>
       <ul>
         <li>violate any law or the rights of others;</li>
@@ -76,13 +77,13 @@ export default function WhispererTermsOfUse() {
         text you provide.
       </p>
 
-      <h2>Privacy</h2>
+      <SectionTitle>Privacy</SectionTitle>
       <p>
         Your use of the App is also governed by our{' '}
         <a href="/whisperer/privacy">Privacy Policy</a>.
       </p>
 
-      <h2>Disclaimers</h2>
+      <SectionTitle>Disclaimers</SectionTitle>
       <p>
         THE APP IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; WITHOUT WARRANTIES OF ANY
         KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
@@ -90,7 +91,7 @@ export default function WhispererTermsOfUse() {
         AI output will be accurate.
       </p>
 
-      <h2>Limitation of liability</h2>
+      <SectionTitle>Limitation of liability</SectionTitle>
       <p>
         To the maximum extent permitted by law, we will not be liable for any indirect, incidental,
         special, consequential, or punitive damages, or any loss of data, arising from your use of the
@@ -98,14 +99,14 @@ export default function WhispererTermsOfUse() {
         for the App in the twelve months before the claim.
       </p>
 
-      <h2>Changes and termination</h2>
+      <SectionTitle>Changes and termination</SectionTitle>
       <p>
         We may modify or discontinue the App or these Terms at any time. Material changes to these Terms
         will be reflected by updating the &ldquo;Last updated&rdquo; date above. We may suspend access
         for violations of these Terms.
       </p>
 
-      <h2>Contact</h2>
+      <SectionTitle>Contact</SectionTitle>
       <p>
         Questions about these Terms? Reach us through the contact form at{' '}
         <a href="https://aspauldingcode.com" target="_blank" rel="noopener noreferrer">

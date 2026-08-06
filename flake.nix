@@ -15,23 +15,11 @@
             pname = "portfolio";
             version = "0.1.0";
             src = ./.;
-            npmDepsHash = "sha256-Kboxk/7RUcMy3rIE4bcrArT1XlI5FeyyDMQ8gLkwjCc=";
+            npmDepsHash = "sha256-bKBnbah25grZ7w9FTBgg2sxbxrl4e1rFU8A5Sje86Gg=";
             
             npmFlags = [ "--legacy-peer-deps" ];
 
-            # Next.js build needs this
             NEXT_TELEMETRY_DISABLED = 1;
-            
-            # Puppeteer needs Chrome/Chromium but Nix build is offline, and chromium is unsupported on macOS in nixpkgs.
-            # We skip downloading it and disable the prebuild script during Nix build.
-            PUPPETEER_SKIP_DOWNLOAD = "1";
-            
-            preBuild = ''
-              # Remove prebuild script so it doesn't fail trying to run puppeteer without chrome
-              npm pkg delete scripts.prebuild
-            '';
-
-            # Use specific Node.js version
             nodejs = pkgs.nodejs_22;
           };
 

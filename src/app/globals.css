@@ -1,667 +1,1661 @@
 @import "tailwindcss";
 
-/* Touch taps: skip hover-only visuals (tooltips, clip morphs, etc.); needs mouse/trackpad. */
-@custom-variant hover {
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      @slot;
-    }
+:root {
+  --bg: #f4f2ec;
+  --fg: #1a1a18;
+  --muted: #5c5a54;
+  --line: #d4d0c4;
+  --accent: #1f6f5b;
+  --accent-soft: #e6efe9;
+  --danger: #9b2c2c;
+  --ok: #1f6f5b;
+  --radius: 6px;
+  --font: var(--font-body), "IBM Plex Sans", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+
+  /* Whisperer legal pages still reference base16 tokens */
+  --base00: var(--bg);
+  --base03: var(--muted);
+  --base05: var(--fg);
+  --base08: var(--accent);
+  --base0D: var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121411;
+    --fg: #e8e6df;
+    --muted: #9a978c;
+    --line: #2c2f2a;
+    --accent: #6fbfa4;
+    --accent-soft: #1c2822;
+    --danger: #e09090;
+    --ok: #6fbfa4;
   }
 }
 
-@theme {
-  /* All-caps Persona UI: positive tracking so Kanit stays readable at display sizes */
-  --tracking-tighter: 0.042em;
-  --tracking-tight: 0.058em;
-  --tracking-wide: 0.034em;
-  --tracking-wider: 0.068em;
-  --tracking-widest: 0.125em;
-
-  /* Colors */
-  --color-base00: var(--base00);
-  --color-base01: var(--base01);
-  --color-base02: var(--base02);
-  --color-base03: var(--base03);
-  --color-base04: var(--base04);
-  --color-base05: var(--base05);
-  --color-base06: var(--base06);
-  --color-base07: var(--base07);
-  --color-base08: var(--base08);
-  --color-base09: var(--base09);
-  --color-base0A: var(--base0A);
-  --color-base0B: var(--base0B);
-  --color-base0C: var(--base0C);
-  --color-base0D: var(--base0D);
-  --color-base0E: var(--base0E);
-  --color-base0F: var(--base0F);
-
-  /* Breakpoints */
-  --breakpoint-wide: 1200px;
-
-  /* Animations */
-  --animate-shimmer: shimmer 2s infinite linear;
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-
-    100% {
-      background-position: 200% 0;
-    }
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-/* Custom Variants for complex media queries */
-@variant h-600 (@media (max-height: 600px));
-@variant h-550 (@media (max-height: 550px));
-@variant h-500 (@media (max-height: 500px));
-@variant h-452 (@media (max-height: 452px));
-@variant h-400 (@media (max-height: 400px));
-@variant h-350 (@media (max-height: 350px));
-@variant h-320 (@media (max-height: 320px));
-@variant h-280 (@media (max-height: 280px));
-@variant portrait (@media (orientation: portrait));
-@variant landscape (@media (orientation: landscape));
-@variant tall (@media (min-height: 700px));
-@variant tall-650 (@media (min-height: 650px));
-@variant tall-600 (@media (min-height: 600px));
-@variant w-768 (@media (max-width: 768px));
-@variant ample-space (@media (min-width: 1200px) and (min-height: 700px));
-@variant portrait-tall (@media (orientation: portrait) and (min-height: 650px));
-@variant wide-short (@media (min-width: 1200px) and (max-height: 600px));
-
-@utility pt-safe {
-  padding-top: env(safe-area-inset-top);
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, var(--accent-soft));
+  color: var(--fg);
 }
 
-@utility pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
+/* While resizing the contact message box, suppress accidental text selection. */
+html.contact-resizing,
+html.contact-resizing * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
-@utility pl-safe {
-  padding-left: env(safe-area-inset-left);
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
-@utility pr-safe {
-  padding-right: env(safe-area-inset-right);
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-@utility top-safe {
-  top: env(safe-area-inset-top);
+/* Scrollbars: accent thumb on a quiet track (Firefox + WebKit). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--line);
 }
 
-@utility bottom-safe {
-  bottom: env(safe-area-inset-bottom);
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-@utility left-safe {
-  left: env(safe-area-inset-left);
+*::-webkit-scrollbar-track {
+  background: var(--line);
 }
 
-@utility right-safe {
-  right: env(safe-area-inset-right);
+*::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 999px;
 }
 
-/* Same face as project modal body (Barlow Semi Condensed) — reuse outside sheets */
-@utility font-p5-body {
-  font-family: var(--font-p5-body), ui-sans-serif, system-ui, sans-serif;
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent) 82%, var(--fg));
 }
 
 /*
-  Justified modal copy: no auto-hyphens (avoids constant mid-word breaks);
-  word-spacing left to the engine; light tracking for Barlow Semi Condensed.
+  Selection (esp. Safari/WebKit):
+  - Shells stay none so gaps/padding aren’t painted.
+  - Copy opts into text.
+  - Short labels shrink-wrap; WebKit paints the element’s border box, so a
+    full-width block h1/h3/li highlights the whole column.
 */
-@utility project-modal-description {
-  font-family: var(--font-p5-body), ui-sans-serif, system-ui, sans-serif;
+:where(
+  .wrap,
+  .section,
+  .section-head,
+  .hero,
+  .hero-text,
+  .resume-list,
+  .resume-entry,
+  .resume-skills,
+  .projects,
+  .project-row,
+  .gh-stats,
+  .gh-metrics,
+  .gh-metric,
+  .gh-block,
+  .gh-pie-layout,
+  .footer,
+  .footer-rule,
+  .contact,
+  .contact-field,
+  .contact-message,
+  label,
+  ul,
+  ol,
+  hr
+) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:where(p, h1, h2, h3, h4, a, strong, em, input, textarea) {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+:where(.resume-bullets li, .site-links li, .gh-pie-legend li) {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+:where(img, svg, button, .avatar, .carousel, .contact-resize, .gh-pie) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:where(label input, label textarea) {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/*
+  Safari/WebKit: selection paints the element’s border box.
+  fit-content shrink-wraps short labels; max-width + wrap keep the column.
+*/
+:where(p, h1, h2, h3, h4, .resume-bullets li, .site-links li, .gh-pie-legend li) {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* Full measure so justify can flush the right edge (home + project + legal). */
+.about,
+.blurb,
+.resume-skills p,
+.project-body :is(p, h1, h2, h3, h4),
+.legal-prose :is(p, h1, h2, h3, h4) {
+  width: 100%;
+  max-width: none;
+}
+
+/* Justified body copy — last line stays start-aligned. */
+.about,
+.blurb,
+.resume-skills p,
+.project-body p {
   text-align: justify;
-  text-align-last: start;
   text-justify: inter-word;
+  text-align-last: start;
+  overflow-wrap: break-word;
+}
+
+/* Project / skills prose may hyphenate; hero bio avoids soft hyphens. */
+.blurb,
+.resume-skills p,
+.project-body p {
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+}
+
+/*
+  Bullets / legend: shrink-wrap for selection, but never wider than the column.
+*/
+.resume-bullets li,
+.site-links li,
+.gh-pie-legend li {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  text-align: start;
+  text-align-last: start;
+  hyphens: none;
+  overflow-wrap: break-word;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/*
+  Shared control language
+  - .ctrl / .ctrl-wide: bordered transport (‹ › Play)
+  - .ctrl-link: accent text action (print, submit)
+  - .ctrl-row / .ctrl-meta: groups + counters
+*/
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ctrl-row.center {
+  justify-content: center;
+  width: 100%;
+}
+
+.ctrl {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--accent);
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ctrl-wide {
+  width: auto;
+  min-width: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.ctrl:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ctrl:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ctrl:disabled:hover {
+  border-color: var(--line);
+  background: var(--bg);
+}
+
+.ctrl-meta {
+  margin: 0;
+  min-width: 3.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ctrl-link {
+  font: inherit;
+  color: var(--accent);
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1.5px;
+}
+
+.ctrl-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.ctrl-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Next/Image `fill` is position:absolute; global height:auto collapses it to 0. */
+img[data-nimg='fill'] {
+  max-width: none;
+  width: 100%;
+  height: 100%;
+}
+
+.wrap {
+  width: min(40rem, 100%);
+  max-width: 100%;
+  margin: 0 auto;
+  /* Horizontal inset matches home; padding (not width-shrink) so detail panes
+     keep gutters when the column is 100vw on mobile. */
+  padding: 3.25rem 1rem 4rem;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
+
+.hero {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+@media (min-width: 560px) {
+  .hero {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 1.5rem;
+  }
+}
+
+.avatar {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radius);
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--accent-soft);
+}
+
+.hero h1 {
+  font-size: clamp(2.1rem, 5.5vw, 2.85rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0 0 0.45rem;
+}
+
+.role {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0 0 1.15rem;
+}
+
+.lede {
+  font-size: 1.12rem;
+  line-height: 1.45;
+  margin: 0 0 0.7rem;
+  max-width: 38ch;
+}
+
+.about {
+  color: var(--muted);
+  margin: 0;
+  max-width: min(54ch, 100%);
   hyphens: none;
   -webkit-hyphens: none;
-  word-break: normal;
   overflow-wrap: break-word;
-  letter-spacing: 0.013em;
-  word-spacing: normal;
-  font-kerning: normal;
-  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
-  text-wrap: pretty;
-  line-height: 1.62;
+  word-break: normal;
 }
 
-/* Nerd Font Icons Support */
-@font-face {
-  font-family: 'NerdFont';
-  src: url('/fonts/JetBrainsMonoNLNerdFont-Regular.ttf') format('truetype'),
-  url('/fonts/JetBrainsMonoNerdFont-Regular.ttf') format('truetype'),
-  local('JetBrainsMono Nerd Font'),
-  local('JetBrains Mono NL Nerd Font Complete'),
-  local('Hack Nerd Font'),
-  local('FiraCode Nerd Font'),
-  local('Inconsolata Nerd Font'),
-  local('monospace');
-  font-weight: normal;
-  font-style: normal;
-  unicode-range: U+E000-U+F8FF,
-  U+F0000-U+FFFFD,
-  U+100000-U+10FFFD,
-  U+23FB-U+23FE,
-  U+2665,
-  U+26A1,
-  U+2B58,
-  U+E000-U+E00A,
-  U+E0A0-U+E0A2,
-  U+E0B0-U+E0B3,
-  U+E0B4-U+E0C8,
-  U+E0CA,
-  U+E0CC-U+E0D2,
-  U+E0D4,
-  U+E200-U+E2A9,
-  U+E300-U+E3EB,
-  U+E5FA-U+E62B,
-  U+E700-U+E7C5,
-  U+F000-U+F2E0,
-  U+F300-U+F313,
-  U+F400-U+F4A8,
-  U+F500-U+F8FF;
+.resume-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.15rem;
 }
 
-.font-nerd {
-  font-family: 'NerdFont',
-  monospace !important;
+.resume-entry h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.font-kanit {
-  font-family: 'Kanit', sans-serif !important;
+.resume-entry h3 a {
+  color: inherit;
+  text-decoration: none;
 }
 
-/* Persona 6 Stylization Utilities */
-@utility halftone-bg {
-  background-image: radial-gradient(var(--base03) 1px, transparent 0);
-  background-size: 10px 10px;
+.resume-entry h3 a:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
-@utility persona-skew {
-  transform: skewX(-12deg);
+.resume-entry .when {
+  margin: 0.2rem 0 0;
+  color: var(--fg);
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
-@utility persona-skew-rev {
-  transform: skewX(12deg);
+.resume-meta {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
 }
 
-@utility persona-border {
-  border: 3px solid var(--base05);
-  box-shadow: 6px 6px 0px var(--base08);
+.resume-bullets {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
 }
 
-/* Force monochrome SVG icons in project modal stream links. */
-.stream-icon-mono :is(path, rect, circle, ellipse, polygon, polyline, line) {
-  fill: currentColor !important;
-  stroke: currentColor !important;
+.resume-bullets li {
+  position: relative;
+  padding-left: 0.9rem;
+  font-size: 0.95rem;
 }
 
+.resume-bullets li::before {
+  content: "-";
+  position: absolute;
+  left: 0;
+  color: var(--muted);
+}
 
-/* Persona Asymmetric Global Scrollbars */
-@layer base {
-  button,
-  a,
-  [role='button'],
-  input[type='button'],
-  input[type='submit'],
-  input[type='reset'] {
-    touch-action: manipulation;
-  }
+.resume-skills p {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
 
-  /* `uppercase` alone inherits body tracking — too tight for Kanit; explicit tracking-* still wins (higher specificity). */
-  .uppercase {
-    letter-spacing: 0.052em;
-  }
+.also-projects {
+  margin: 1.1rem 0 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
 
-  /* Projects page: class toggled in ProjectsClient — block sideways scroll from focus/skew ink without clipping card art in nested containers */
-  html.projects-scroll,
-  html.projects-scroll body {
-    overflow-x: clip;
-    overscroll-behavior-x: none;
-  }
+.section,
+.resume-list,
+.resume-entry,
+.projects,
+.project-row,
+.gh-stats {
+  min-width: 0;
+  max-width: 100%;
+}
 
-  /* Standards path (Firefox and modern fallback): disable native palette, enforce Persona colors */
-  @supports (scrollbar-color: auto) {
-    * {
-      scrollbar-color: var(--base09) var(--base00);
-      scrollbar-width: auto;
-      scrollbar-gutter: stable both-edges;
-    }
-  }
+.section {
+  margin: 2.75rem 0 0;
+}
 
-  /* Full custom path (Chromium/Safari): asymmetric Persona scrollbars */
-  @supports selector(::-webkit-scrollbar) {
-    *::-webkit-scrollbar {
-      width: 16px;
-      height: 16px;
-      background: transparent;
-    }
+/* One full-width rule under the title (no <hr> — avoids double borders with preflight). */
+.section-head {
+  display: block;
+  width: 100%;
+  margin: 0 0 1.2rem;
+  padding: 0 0 0.5rem;
+  border-bottom: 1px solid var(--line);
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
 
-    *::-webkit-scrollbar-track {
-      background: linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--base00) 94%, var(--base02) 6%) 0%,
-        color-mix(in srgb, var(--base00) 82%, var(--base03) 18%) 100%
-      );
-      border-left: 3px solid var(--base0E);
-      border-right: 1px solid var(--base02);
-      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--base00) 75%, transparent);
-    }
+.section-head a {
+  pointer-events: auto;
+}
 
-    *::-webkit-scrollbar-track-piece {
-      background-image: radial-gradient(color-mix(in srgb, var(--base05) 18%, transparent) 1px, transparent 1px);
-      background-size: 6px 6px;
-    }
+/* Inline so native selection hugs the label, not a block line-box. */
+.section-head > h2,
+.section > h2 {
+  display: inline;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+  user-select: text;
+  -webkit-user-select: text;
+}
 
-    *::-webkit-scrollbar-thumb {
-      background: linear-gradient(
-        160deg,
-        var(--base09) 0%,
-        color-mix(in srgb, var(--base08) 70%, var(--base09) 30%) 65%,
-        var(--base08) 100%
-      );
-      border: 2px solid var(--base00);
-      box-shadow:
-        inset 0 0 0 1px color-mix(in srgb, var(--base07) 28%, transparent),
-        0 0 0 1px color-mix(in srgb, var(--base08) 35%, transparent),
-        0 0 18px color-mix(in srgb, var(--base08) 35%, transparent);
-      clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 24%);
-      min-height: 46px;
-      min-width: 46px;
-      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    }
+:is(h1, h2, h3):has(> .section-anchor) {
+  scroll-margin-top: 1.25rem;
+}
 
-    *::-webkit-scrollbar-thumb:hover {
-      transform: translateX(-1px);
-      background: linear-gradient(160deg, var(--base0A) 0%, var(--base09) 45%, var(--base08) 100%);
-      box-shadow:
-        inset 0 0 0 1px color-mix(in srgb, var(--base07) 45%, transparent),
-        0 0 0 2px color-mix(in srgb, var(--base09) 45%, transparent),
-        0 0 22px color-mix(in srgb, var(--base09) 42%, transparent);
-    }
+.section-anchor {
+  color: inherit;
+  text-decoration: none;
+}
 
-    *::-webkit-scrollbar-thumb:active {
-      transform: translateX(0);
-      background: linear-gradient(160deg, var(--base08) 0%, var(--base09) 100%);
-    }
+.section-anchor:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
 
-    *::-webkit-scrollbar-button {
-      height: 14px;
-      width: 14px;
-      background-color: var(--base00);
-      border-left: 3px solid var(--base09);
-      border-right: 1px solid var(--base02);
-      background-image: linear-gradient(45deg, transparent 35%, color-mix(in srgb, var(--base09) 70%, transparent) 35%, color-mix(in srgb, var(--base09) 70%, transparent) 65%, transparent 65%);
-    }
+.section-anchor:hover::after {
+  content: "#";
+  margin-left: 0.35em;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.55;
+}
 
-    *::-webkit-scrollbar-corner {
-      background: var(--base00);
-      border-top: 2px solid var(--base09);
-      border-left: 2px solid var(--base08);
-    }
+.projects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.project-row {
+  display: grid;
+  gap: 0.85rem;
+  align-items: start;
+}
+
+@media (min-width: 560px) {
+  .project-row {
+    grid-template-columns: 7.25rem minmax(0, 1fr);
+    gap: 1rem;
   }
 }
 
-/* Unified Persona 6 UI Components */
-@layer components {
-  .p6-button {
-    @apply relative -skew-x-12 border-2 border-base00 transition-all duration-500 active:scale-95 touch-manipulation overflow-hidden;
-    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
-  }
+.project-thumb-link {
+  display: block;
+  line-height: 0;
+}
 
-  @media (hover: hover) and (pointer: fine) {
-    .p6-button:hover {
-      clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%);
-    }
-  }
+.project-thumb {
+  width: 100%;
+  max-width: 7.25rem;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--accent-soft);
+}
 
-  .p6-button-shadow {
-    @apply absolute inset-0 bg-base00 -skew-x-12 translate-x-1.5 translate-y-1.5 border-2 border-base0D opacity-50 transition-all duration-300 pointer-fine:group-hover:translate-x-2 pointer-fine:group-hover:translate-y-2 pointer-fine:group-hover:opacity-100 pointer-events-none;
-  }
+.project-row h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 0.2rem;
+  letter-spacing: -0.015em;
+}
 
-  .p6-tooltip {
-    @apply absolute px-3 py-1 bg-base00 text-base05 text-[10px] font-black uppercase italic tracking-widest border-2 border-base09 -skew-x-12 pointer-events-none whitespace-nowrap shadow-[4px_4px_0px_var(--base08)] z-[300];
-  }
+.project-row h3 a {
+  color: inherit;
+  text-decoration: none;
+}
 
-  .p6-tooltip-text {
-    @apply skew-x-12 block;
-  }
+.project-row h3 a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
 
-  /* Resume dossier: base00 for entire PDF port (react-pdf / canvas default to white before hooks + portal CSS run). */
-  .resume-pdf-viewer {
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    background: var(--base00);
-  }
-
-  .resume-pdf-viewer .react-pdf__Document {
-    background: var(--base00) !important;
-    min-height: min(50vh, 28rem);
-  }
-
-  .resume-pdf-viewer .react-pdf__message {
-    background: var(--base00) !important;
-    min-height: min(50vh, 28rem);
-  }
-
-  /* Page sets inline backgroundColor white by default; !important keeps load/redraw matched to base16 */
-  .resume-pdf-viewer .react-pdf__Page {
-    background: var(--base00) !important;
-    background-color: var(--base00) !important;
-  }
-
-  /* Hide pdf.js canvas while raster runs (default white clear) so base00 shows; reveal after onRenderSuccess. */
-  .resume-pdf-viewer.resume-pdf-canvas-pending .react-pdf__Page__canvas {
-    opacity: 0 !important;
-    transition: none !important;
-  }
-
-  .resume-pdf-viewer.resume-pdf-canvas-pending .react-pdf__Page .annotationLayer {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: none !important;
-  }
-
-  .resume-pdf-viewer .react-pdf__Page__canvas {
-    display: block;
-    max-width: none;
-    background: var(--base00) !important;
-    transition: opacity 0.12s ease-out;
-  }
-
-  :root.dark .resume-pdf-viewer .react-pdf__Page__canvas {
-    filter: brightness(0.84) invert(1) hue-rotate(180deg) saturate(0.84) contrast(1.02);
-  }
-
-  :root:not(.dark) .resume-pdf-viewer .react-pdf__Page__canvas {
-    filter: brightness(0.93) sepia(0.08) saturate(0.84) contrast(0.98);
-  }
-
-  .resume-pdf-viewer .react-pdf__Page__annotations {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-  }
-
-  .resume-pdf-viewer .react-pdf__Page__annotations a {
-    color: var(--base0D) !important;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  /* Default pdf.js hover is bright yellow; match Persona / base16 (accent + shadow). */
-  .resume-pdf-viewer
-    .annotationLayer
-    :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton)
-    > a:hover {
-    opacity: 1 !important;
-    color: var(--base0A) !important;
-    background: color-mix(in srgb, var(--base09) 32%, transparent) !important;
-    box-shadow: 0 2px 14px color-mix(in srgb, var(--base08) 40%, transparent) !important;
-  }
-
-  .resume-pdf-viewer
-    .annotationLayer
-    :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton)
-    > a:focus-visible {
-    outline: 2px solid var(--base09) !important;
-    outline-offset: 2px;
-  }
-
-  .resume-pdf-viewer canvas {
-    background-color: var(--base00) !important;
-  }
+.project-row.is-active h3 a {
+  color: var(--accent);
 }
 
 /*
-  WebKit clip-path rotation fix.
-  After a device rotation, iOS Safari can leave polygon clip-path masks stale
-  (shows square/unclipped edges) because the GPU compositor doesn't invalidate
-  the mask layer. Toggling a 1ms opacity animation on every clipped element is
-  the minimal force-recomposite needed for WebKit to re-evaluate the polygon
-  with the new element dimensions.
-
-  ClientLayout adds `.clip-path-refresh` to :root on orientationchange;
-  this rule fires and immediately removes itself after 1ms.
+  Split: home stays mounted; detail is a second grid track.
+  Always 2 tracks on wide so 0fr↔1fr can tween (Safari-safe, no absolute).
 */
-#resume-pdf-scroll {
-  background-color: var(--base00);
+.split-shell {
+  width: 100%;
 }
 
-@keyframes clip-path-refresh {
-  from { opacity: 0.9999; }
-  to   { opacity: 1;      }
+.split-main,
+.split-detail {
+  min-width: 0;
 }
 
-:root.clip-path-refresh [style*="clip-path"],
-:root.clip-path-refresh [style*="clipPath"] {
-  animation: clip-path-refresh 1ms both !important;
+/* Narrow: one pane at a time (no width tween). */
+.split-detail {
+  display: none;
 }
 
-@keyframes shimmer-fast {
-  0% { transform: translate(-5%, -5%) rotate(0deg); opacity: 0.2; }
-  25% { opacity: 0.6; }
-  50% { transform: translate(5%, 5%) rotate(2deg); opacity: 0.2; }
-  75% { opacity: 0.6; }
-  100% { transform: translate(-5%, -5%) rotate(0deg); opacity: 0.2; }
+.split-shell[data-open] .split-main {
+  display: none;
 }
 
-@keyframes twinkle {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
-  25% { opacity: 0.8; }
-  50% { transform: translate(5%, 5%) rotate(5deg); opacity: 0.3; }
-  75% { opacity: 0.8; }
-  100% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
+.split-shell[data-open] .split-detail {
+  display: block;
 }
 
-/* Animation Keyframes */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+@media (min-width: 64rem) {
+  body:has(.split-shell) {
+    overflow: hidden;
   }
 
-  to {
+  .split-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0fr);
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    transition: grid-template-columns 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .split-shell[data-open] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .split-main {
+    display: block !important;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .split-shell[data-open] .split-main {
+    display: block !important;
+  }
+
+  .split-detail {
+    display: block !important;
+    height: 100%;
+    overflow: hidden;
+    border-left: 1px solid transparent;
+    background: var(--bg);
+    opacity: 0;
+    transition:
+      opacity 0.28s ease,
+      border-color 0.28s ease;
+  }
+
+  .split-shell[data-open] .split-detail {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-left-color: var(--line);
     opacity: 1;
   }
-}
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  /* Framed /view only: lock pane height so the iframe fills the rest. */
+  .split-shell[data-open][data-active='view'] .split-detail:has(.embed-viewer.is-frame) {
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+    max-height: 100%;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .split-shell[data-open][data-active='view'] .embed-viewer.is-frame {
+    flex: 1 1 0;
+    width: 100%;
+    min-height: 0;
+    height: auto;
   }
-}
 
-/* Base16 Theme Variables */
-:root {
-  /* Safe Area Variables */
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-  --safe-left: env(safe-area-inset-left);
-  --safe-right: env(safe-area-inset-right);
+  .split-shell .wrap {
+    width: min(40rem, 100%);
+    padding-top: 1.75rem;
+    padding-bottom: 2.5rem;
+    padding-inline: 1.25rem;
+  }
 
-  /* Fixed Persona footer (slant + ticker + padding) + home-indicator safe inset */
-  --layout-fixed-footer-reserve: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-
-  /* Base16 Default Dark Theme */
-  --base00: #181818;
-  /* Default Background */
-  --base01: #282828;
-  /* Lighter Background */
-  --base02: #383838;
-  /* Selection Background */
-  --base03: #585858;
-  /* Comments, Invisibles */
-  --base04: #b8b8b8;
-  /* Dark Foreground */
-  --base05: #d8d8d8;
-  /* Default Foreground */
-  --base06: #e8e8e8;
-  /* Light Foreground */
-  --base07: #f8f8f8;
-  /* Light Background */
-  --base08: #ab4642;
-  /* Variables, XML Tags */
-  --base09: #dc9656;
-  /* Integers, Boolean */
-  --base0A: #f7ca88;
-  /* Classes, Markup Bold */
-  --base0B: #a1b56c;
-  /* Strings, Inherited Class */
-  --base0C: #86c1b9;
-  /* Support, Regular Expressions */
-  --base0D: #7cafc2;
-  /* Functions, Methods */
-  --base0E: #ba8baf;
-  /* Keywords, Storage */
-  --base0F: #a16946;
-  /* Deprecated */
-  color-scheme: dark;
-}
-
-/* Shorter fixed footer reserve when the viewport is shallow (matches `useBreakpoints` isH550). */
-@media (max-height: 550px) {
-  :root {
-    --layout-fixed-footer-reserve: calc(2.7rem + env(safe-area-inset-bottom, 0px));
+  .split-shell .project-home {
+    display: none;
   }
 }
 
-/* Base16 Light Theme */
-:root:not(.dark) {
-  --base00: #fefbec;
-  /* Default Background */
-  --base01: #f5f2e3;
-  /* Lighter Background */
-  --base02: #d5d2c3;
-  /* Selection Background */
-  --base03: #b5b2a3;
-  /* Comments, Invisibles */
-  --base04: #878580;
-  /* Dark Foreground */
-  --base05: #585853;
-  /* Default Foreground */
-  --base06: #282825;
-  /* Light Foreground */
-  --base07: #181815;
-  /* Light Background */
-  --base08: #d73737;
-  /* Variables, XML Tags */
-  --base09: #b65611;
-  /* Integers, Boolean */
-  --base0A: #ae9513;
-  /* Classes, Markup Bold */
-  --base0B: #60ac39;
-  /* Strings, Inherited Class */
-  --base0C: #1fad83;
-  /* Support, Regular Expressions */
-  --base0D: #6684e1;
-  /* Functions, Methods */
-  --base0E: #b854d4;
-  /* Keywords, Storage */
-  --base0F: #d43552;
-  /* Deprecated */
-  color-scheme: light;
+@media (min-width: 64rem) and (prefers-reduced-motion: reduce) {
+  .split-shell,
+  .split-detail {
+    transition: none;
+  }
 }
 
-/* Base16 Reversed for Project Cards in Light Mode */
-:root:not(.dark) .theme-reversed {
-  color-scheme: dark;
-  /* Base16 Variables - Set to the dark theme values */
-  --base00: #181818;
-  --base01: #282828;
-  --base02: #383838;
-  --base03: #585858;
-  --base04: #b8b8b8;
-  --base05: #d8d8d8;
-  --base06: #e8e8e8;
-  --base07: #f8f8f8;
-
-  /* Redefine Tailwind's color variables with the hex values directly */
-  /* This ensures opacity modifiers like /40 work correctly */
-  --color-base00: #181818;
-  --color-base01: #282828;
-  --color-base02: #383838;
-  --color-base03: #585858;
-  --color-base04: #b8b8b8;
-  --color-base05: #d8d8d8;
-  --color-base06: #e8e8e8;
-  --color-base07: #f8f8f8;
+/* Keyed remount wrapper; pass through so flex/height rules still hit children. */
+.split-detail-slot {
+  display: contents;
 }
 
-/* Prevent pull-to-refresh */
-html,
-body {
-  overscroll-behavior-y: none;
+/* Detail column: project / resume / link preview / embed chrome share one shell. */
+.detail-pane {
+  width: 100%;
+  background: var(--bg);
 }
 
-body {
-  color: var(--base05);
-  background: var(--base00);
-  min-height: 100vh;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
-  letter-spacing: 0.021em;
+.detail-actions {
+  margin: -0.55rem 0 1.15rem;
+  font-size: 0.9rem;
+}
+
+.detail-actions a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1.5px;
+}
+
+.detail-actions a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* In-portfolio framed site (right pane). */
+.embed-viewer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.embed-viewer.is-frame > .wrap {
+  flex: 0 0 auto;
+  padding-bottom: 0.85rem;
+}
+
+.embed-stage {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 12rem;
+  background: color-mix(in srgb, var(--bg) 88%, var(--line));
+  border-top: 1px solid var(--line);
+}
+
+.embed-frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--bg);
+}
+
+.embed-home {
+  margin: 0.75rem 1rem 1rem;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 64rem) {
+  .embed-viewer {
+    min-height: 0;
+  }
+
+  .embed-home {
+    display: none;
+  }
+}
+
+/* Link preview body (non-embeddable) — same column as project copy. */
+.detail-preview {
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+  margin: 0 0 0.25rem;
+}
+
+.detail-preview-media {
+  margin: 0;
+  min-height: 3rem;
+}
+
+.detail-preview-media img {
+  display: block;
+  background: color-mix(in srgb, var(--bg) 70%, var(--line));
+}
+
+.detail-preview-media:not([class*='is-']) img {
+  max-width: 100%;
+  max-height: 12rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+.detail-preview-media.is-square img {
+  width: 5.75rem;
+  height: 5.75rem;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.detail-preview-media.is-wide img {
+  width: 100%;
+  aspect-ratio: 1.91 / 1;
+  max-height: 14rem;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.detail-preview-media.is-tall img {
+  max-width: min(100%, 14rem);
+  max-height: 16rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+.detail-preview-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.detail-preview-site {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.detail-preview-site span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-preview-favicon {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 2px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.detail-preview-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+
+.detail-preview-desc {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.detail-preview-note {
+  margin: 0.15rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 36rem;
+}
+
+.years {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.35rem;
+}
+
+.blurb {
+  margin: 0 0 0.45rem;
+  font-size: 0.98rem;
+}
+
+.more {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.45rem;
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.crumb a {
+  color: var(--accent);
+}
+
+.crumb-home {
+  font-weight: 600;
+}
+
+.crumb-sep {
+  color: var(--line);
+  user-select: none;
+}
+
+.crumb [aria-current='page'] {
+  color: var(--fg);
+}
+
+.project-home {
+  margin: 2.5rem 0 0;
+  font-size: 0.95rem;
+}
+
+.project-home a {
+  font-weight: 600;
+}
+
+.project-detail {
+  width: 100%;
+}
+
+.project-detail h1 {
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.35rem;
+  width: auto;
+  max-width: 100%;
+}
+
+.project-detail .years {
+  width: auto;
+  max-width: 100%;
+}
+
+.project-body {
+  margin: 1.25rem 0;
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: none;
+  color: color-mix(in srgb, var(--fg) 92%, var(--muted));
   font-kerning: normal;
-  font-feature-settings: "kern" 1, "liga" 1;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
 }
 
-/* Ensure proper scrolling behavior */
-/* Ensure proper scrolling behavior */
-html,
-body {
-  max-width: 100vw;
-  scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
+.project-body p {
+  margin: 0;
 }
 
-/* reCAPTCHA badge styling */
-.grecaptcha-badge {
-  position: fixed !important;
-  bottom: 50px !important;
-  right: 50px !important;
-  z-index: auto !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-  visibility: hidden !important;
-  z-index: -1 !important;
-  transform: scale(0.7) translate(-25%, 25%) !important;
+.project-body a {
+  color: var(--accent);
 }
 
-/* Sheet Open State - Disable Scroll */
-html.sheet-open,
-body.sheet-open {
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
+.project-body ul,
+.project-body ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  text-align: start;
+  text-align-last: start;
+  hyphens: none;
 }
 
-html.modal-open,
-body.modal-open {
-  overscroll-behavior-x: none !important;
+.project-body li {
+  text-align: start;
+  text-align-last: start;
 }
 
-/* Hide Theme Toggle when Project Sheet is Open */
-body.sheet-open #theme-toggle-ui {
-  opacity: 0;
+.project-body code {
+  font-size: 0.92em;
+  hyphens: none;
+}
+
+.links,
+.site-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.92rem;
+}
+
+/* Contribution graph: fill the column when there’s room (same as before).
+   On narrower viewports keep a rem-based floor so cells/labels stay near page
+   text size, and scroll horizontally like GitHub’s mobile app. */
+.github-graph-scroller {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.25rem;
+  border-radius: var(--radius);
+  scrollbar-width: thin;
+}
+
+.github-graph-link {
+  display: block;
+  border-radius: var(--radius);
+}
+
+.github-graph {
+  display: block;
+  height: auto;
+  /* Grow with the column; floor ≈ .wrap content at 40rem (− 1.25rem×2 pad). */
+  width: max(100%, 37.5rem);
+}
+
+.gh-stats {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 48rem;
+}
+
+.gh-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 560px) {
+  .gh-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.gh-metric {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--bg));
+}
+
+.gh-metric-value {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.gh-metric-label {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gh-streak-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 560px) {
+  .gh-streak-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.gh-streak-metric .gh-metric-value {
+  font-size: 1.2rem;
+}
+
+.gh-streak-metric .gh-unit {
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.gh-unit {
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.gh-block {
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.gh-langs-block {
+  width: 100%;
+}
+
+.gh-block-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gh-pie-layout {
+  display: grid;
+  gap: 1.25rem;
+  align-items: center;
+  justify-items: center;
+}
+
+@media (min-width: 560px) {
+  .gh-pie-layout {
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    gap: 1.75rem;
+  }
+}
+
+.gh-pie {
+  display: block;
+  width: 11rem;
+  height: 11rem;
+  max-width: 100%;
+}
+
+.gh-pie-legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.gh-pie-legend li {
+  display: grid;
+  grid-template-columns: 0.7rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+}
+
+.gh-pie-swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+}
+
+.gh-lang-name {
+  color: var(--fg);
+}
+
+.gh-lang-pct {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.gh-footnote {
+  margin: 0.85rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.carousel-block {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1rem 0 0;
+  width: 100%;
+}
+
+.carousel {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+.carousel-frame {
+  --carousel-h: min(70vh, 34rem);
+  --aw: 4;
+  --ah: 3;
+  position: relative;
+  box-sizing: border-box;
+  /* Cap by height and width while keeping stage landscape. */
+  width: min(100%, calc(var(--carousel-h) * var(--aw) / var(--ah)));
+  max-width: 100%;
+  aspect-ratio: var(--aw) / var(--ah);
+  max-height: var(--carousel-h);
+  margin-inline: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 82%, var(--line));
+  overflow: hidden;
+}
+
+.carousel-track {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  outline: none;
+  touch-action: pan-x pan-y;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-slide {
+  position: relative;
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* Letterbox in the fixed stage. Never cover / Next fill. */
+.carousel-img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  -webkit-user-drag: none;
+  user-select: none;
   pointer-events: none;
-  transform: scale(0.9);
-  filter: blur(12px);
 }
 
-/* Homepage Lock - No Scrolling */
-html.homepage-lock,
-body.homepage-lock {
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
-  touch-action: none !important;
+/* Gallery transport uses shared .ctrl / .ctrl-row / .ctrl-meta */
+
+.player {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.player-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.player-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.player-cover {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+
+/* Player transport uses shared .ctrl / .ctrl-row */
+
+.player-now {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.player-seek {
+  width: 100%;
+}
+
+.player-tracks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  max-height: 11rem;
+  overflow: auto;
+}
+
+.player-tracks button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.3rem 0.15rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+  text-underline-offset: 0.15em;
+}
+
+.player-tracks button:hover:not(:disabled) {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.player-tracks button.active {
+  color: var(--fg);
+  font-weight: 500;
+  background: var(--accent-soft);
+  text-decoration: none;
+}
+
+.player-tracks button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.player .err {
+  color: var(--danger);
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.contact {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.contact-field {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.contact input,
+.contact textarea {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.75rem;
+}
+
+.contact textarea {
+  width: 100%;
+  min-height: 0;
+  max-height: none;
+  resize: none;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.contact-message {
+  position: relative;
+  display: grid;
+}
+
+.contact-resize {
+  position: absolute;
+  right: 0.2rem;
+  bottom: 0.15rem;
+  z-index: 1;
+  width: 0.95rem;
+  height: 0.95rem;
+  padding: 0;
+  border: none;
+  border-radius: 0 0 var(--radius) 0;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 0 45%,
+      color-mix(in srgb, var(--muted) 55%, transparent) 45% 52%,
+      transparent 52% 62%,
+      color-mix(in srgb, var(--muted) 55%, transparent) 62% 69%,
+      transparent 69% 79%,
+      color-mix(in srgb, var(--muted) 55%, transparent) 79% 86%,
+      transparent 86% 100%
+    );
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  touch-action: none;
+  user-select: none;
+  cursor: nwse-resize;
+}
+
+.contact-resize:hover,
+.contact-resize:focus-visible {
+  background:
+    linear-gradient(
+      135deg,
+      transparent 0 45%,
+      var(--muted) 45% 52%,
+      transparent 52% 62%,
+      var(--muted) 62% 69%,
+      transparent 69% 79%,
+      var(--muted) 79% 86%,
+      transparent 86% 100%
+    );
+  outline: none;
+}
+
+.contact-resize:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.contact-message[data-resize='min'] .contact-resize {
+  cursor: se-resize;
+}
+
+.contact-message[data-resize='max'] .contact-resize {
+  cursor: nw-resize;
+}
+
+.contact-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+  justify-self: end;
+}
+
+.contact-meta.is-near {
+  color: var(--fg);
+}
+
+.contact-meta.is-under {
+  color: var(--fg);
+}
+
+.contact-meta.is-over {
+  color: var(--danger);
+}
+
+.contact input:focus,
+.contact textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.contact button[type='submit'] {
+  justify-self: start;
+  margin-top: 0.15rem;
+  font-weight: 500;
+}
+
+.contact button[type='submit']:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.contact .ok {
+  color: var(--ok);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.contact .err {
+  color: var(--danger);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.footer {
+  margin-top: 3rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Rule is not on the selectable <p> (avoids Safari painting the separator). */
+.footer-rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 0 0 1.25rem;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.footer p {
+  margin: 0;
+}
+
+/* /resume — same chrome as home; print strips nav chrome. */
+.resume-head h1 {
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.35rem;
+}
+
+.resume-contact {
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.resume-actions {
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+}
+
+/* .resume-print uses shared .ctrl-link */
+
+.resume-summary {
+  max-width: none;
+  margin-bottom: 0.5rem;
+}
+
+@page {
+  size: letter;
+  margin: 0.45in;
+}
+
+@media print {
+  body,
+  body:has(.split-shell) {
+    background: white;
+    color: black;
+    overflow: visible;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .no-print,
+  .crumb,
+  .split-main {
+    display: none !important;
+  }
+
+  .split-shell,
+  .split-detail {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+  }
+
+  .split-shell .wrap {
+    width: 100%;
+  }
+
+  .section-anchor:hover::after {
+    content: none;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* /resume: dense one-page Letter layout (Save as PDF). */
+  .resume-page {
+    font-size: 9.5pt;
+    line-height: 1.28;
+    color: black;
+  }
+
+  .resume-page .resume-head h1 {
+    font-size: 16pt;
+    margin: 0 0 0.1rem;
+  }
+
+  .resume-page .role {
+    font-size: 9.5pt;
+    margin: 0 0 0.2rem;
+  }
+
+  .resume-page .resume-contact {
+    font-size: 9pt;
+    margin: 0 0 0.45rem;
+    color: black;
+  }
+
+  .resume-page .resume-summary,
+  .resume-page .about {
+    font-size: 9.5pt;
+    max-width: none;
+    margin: 0 0 0.35rem;
+    color: black;
+  }
+
+  .resume-page .section {
+    margin: 0.65rem 0 0;
+  }
+
+  .resume-page .section-head {
+    margin: 0 0 0.35rem;
+    padding: 0 0 0.2rem;
+  }
+
+  .resume-page .section-head > h2,
+  .resume-page .section > h2 {
+    font-size: 8pt;
+    letter-spacing: 0.1em;
+  }
+
+  .resume-page .resume-list {
+    gap: 0.45rem;
+  }
+
+  .resume-page .resume-entry h3 {
+    font-size: 10pt;
+  }
+
+  .resume-page .resume-entry .when,
+  .resume-page .resume-meta {
+    font-size: 9pt;
+    margin: 0.05rem 0 0;
+    color: black;
+  }
+
+  .resume-page .resume-bullets {
+    margin: 0.15rem 0 0;
+    gap: 0.1rem;
+  }
+
+  .resume-page .resume-bullets li {
+    font-size: 9.25pt;
+    padding-left: 0.75rem;
+  }
+
+  .resume-page .resume-skills {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .resume-page .resume-skills p {
+    font-size: 9.25pt;
+    margin: 0;
+  }
 }
