@@ -2,25 +2,28 @@ import ContactForm from '@/components/ContactForm';
 import GitHubStats from '@/components/GitHubStats';
 import PrefetchViewLink from '@/components/PrefetchViewLink';
 import Section from '@/components/Section';
-import { projects } from '@/content/projects';
+import { getProject } from '@/content/projects';
 import {
   awardsByYear,
   formatYearRange,
   resume,
-  resumeOnlyProjects,
+  resumeSelectedWork,
   yearOf,
 } from '@/content/resume';
+import { projectImageAlt } from '@/lib/seo';
+import { viewHref } from '@/lib/viewHref';
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
-import { viewHref } from '@/lib/viewHref';
-import { projectImageAlt } from '@/lib/seo';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
 
 const year = new Date().getFullYear();
 const { basics } = resume;
-const alsoProjects = resumeOnlyProjects();
+// Never render basics.email / basics.phone on this page (contact form only).
+const selectedWork = resumeSelectedWork();
+const galleryWork = selectedWork.filter((w) => w.kind === 'gallery');
+const alsoProjects = selectedWork.filter((w) => w.kind === 'text');
 const githubProfile =
   (basics.profiles ?? []).find((p) => p.network?.toLowerCase() === 'github')?.url ||
   'https://github.com/aspauldingcode';
@@ -32,7 +35,7 @@ export default function HomeContent() {
         <Image
           className="avatar"
           src="/profile_square.jpg"
-          alt={`${basics.name} — square portrait photograph`}
+          alt={`${basics.name}, square portrait photograph`}
           width={112}
           height={112}
           priority
@@ -77,41 +80,49 @@ export default function HomeContent() {
 
       <Section title="Selected work">
         <ul className="projects">
-          {projects.map((project) => (
-            <li key={project.slug} className="project-row" data-slug={project.slug}>
-              <Link href={`/work/${project.slug}`} className="project-thumb-link">
-                <Image
-                  src={project.images[0]}
-                  alt={projectImageAlt(project, 0)}
-                  width={116}
-                  height={87}
-                  sizes="116px"
-                  className="project-thumb"
-                />
-              </Link>
-              <div>
-                <h3>
-                  <Link href={`/work/${project.slug}`}>{project.title}</Link>
-                </h3>
-                <p className="years">{project.years}</p>
-                <p className="blurb">{project.blurb}</p>
-                <p className="more">
-                  <Link href={`/work/${project.slug}`}>View project</Link>
-                </p>
-              </div>
-            </li>
-          ))}
+          {galleryWork.map((entry) => {
+            const project = getProject(entry.slug);
+            if (!project) return null;
+            const years =
+              project.years ||
+              formatYearRange(entry.resume.startDate, entry.resume.endDate || undefined);
+            const blurb = project.blurb || entry.resume.description || '';
+            return (
+              <li key={project.slug} className="project-row" data-slug={project.slug}>
+                <Link href={`/work/${project.slug}`} className="project-thumb-link">
+                  <Image
+                    src={project.images[0]}
+                    alt={projectImageAlt(project, 0)}
+                    width={116}
+                    height={87}
+                    sizes="116px"
+                    className="project-thumb"
+                  />
+                </Link>
+                <div>
+                  <h3>
+                    <Link href={`/work/${project.slug}`}>{project.title}</Link>
+                  </h3>
+                  {years ? <p className="years">{years}</p> : null}
+                  {blurb ? <p className="blurb">{blurb}</p> : null}
+                  <p className="more">
+                    <Link href={`/work/${project.slug}`}>View project</Link>
+                  </p>
+                </div>
+              </li>
+            );
+          })}
         </ul>
         {alsoProjects.length > 0 ? (
           <p className="also-projects">
             Also:{' '}
-            {alsoProjects.map((p, i) => (
-              <span key={p.name}>
+            {alsoProjects.map((entry, i) => (
+              <span key={entry.resume.name}>
                 {i > 0 ? ' / ' : null}
-                {p.url ? (
-                  <Link href={viewHref(p.url)}>{p.name}</Link>
+                {entry.resume.url ? (
+                  <Link href={viewHref(entry.resume.url)}>{entry.resume.name}</Link>
                 ) : (
-                  p.name
+                  entry.resume.name
                 )}
               </span>
             ))}

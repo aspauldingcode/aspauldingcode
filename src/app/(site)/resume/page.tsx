@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'profile',
     url: absoluteUrl('/resume'),
-    title: `Resume · ${SITE_NAME}`,
+    title: `Resume / ${SITE_NAME}`,
     description: resume.basics.summary ?? resume.basics.label ?? siteDescription(),
     images: [
       {
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: `Resume · ${SITE_NAME}`,
+    title: `Resume / ${SITE_NAME}`,
     description: resume.basics.summary ?? resume.basics.label ?? siteDescription(),
     images: [
       {

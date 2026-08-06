@@ -55,7 +55,7 @@ export function rootMetadata(): Metadata {
     metadataBase: new URL(SITE_URL),
     title: {
       default: title,
-      template: `%s · ${SITE_NAME}`,
+      template: `%s / ${SITE_NAME}`,
     },
     description,
     keywords: defaultKeywords(),
@@ -142,13 +142,13 @@ export function projectMetadata(project: ProjectMeta): Metadata {
     openGraph: {
       type: 'article',
       url: absoluteUrl(path),
-      title: `${project.title} · ${SITE_NAME}`,
+      title: `${project.title} / ${SITE_NAME}`,
       description,
       images: [{ url: image, alt: imageAlt }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${project.title} · ${SITE_NAME}`,
+      title: `${project.title} / ${SITE_NAME}`,
       description,
       images: [{ url: image, alt: imageAlt }],
     },
@@ -226,7 +226,7 @@ export function profilePageJsonLd() {
     '@type': 'ProfilePage',
     '@id': `${SITE_URL}/#profilepage`,
     url: SITE_URL,
-    name: `${SITE_NAME} — Portfolio`,
+    name: `${SITE_NAME} portfolio`,
     description: siteDescription(),
     mainEntity: { '@id': `${SITE_URL}/#person` },
     isPartOf: { '@id': `${SITE_URL}/#website` },

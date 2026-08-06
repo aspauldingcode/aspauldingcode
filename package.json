@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "vercel-build": "next build"
+    "vercel-build": "next build",
+    "portfolio:collect": "node scripts/portfolio-agent/collect.mjs",
+    "portfolio:propose": "node scripts/portfolio-agent/propose.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

@@ -1,0 +1,120 @@
+name: Portfolio agent
+
+on:
+  schedule:
+    # Mondays 15:00 UTC
+    - cron: "0 15 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: portfolio-agent
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Collect GitHub activity
+        id: collect
+        env:
+          GITHUB_TOKEN: ${{ secrets.PORTFOLIO_GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          PORTFOLIO_LOOKBACK_DAYS: "14"
+        run: |
+          mkdir -p artifacts drafts
+          set +e
+          node scripts/portfolio-agent/collect.mjs --out artifacts/activity.json
+          code=$?
+          set -e
+          if [ "$code" -eq 2 ]; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+            echo "No commits in lookback window."
+          elif [ "$code" -ne 0 ]; then
+            exit "$code"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip when idle
+        if: steps.collect.outputs.empty == 'true'
+        run: echo "No activity; skipping proposal PR."
+
+      - name: Propose resume / SEO draft
+        if: steps.collect.outputs.empty != 'true'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'groq' }}
+        run: |
+          if [ -n "$GROQ_API_KEY" ] || [ -n "$GEMINI_API_KEY" ]; then
+            node scripts/portfolio-agent/propose.mjs --activity artifacts/activity.json --apply
+          else
+            node scripts/portfolio-agent/propose.mjs --activity artifacts/activity.json --no-llm
+          fi
+
+      - name: Open review PR
+        if: steps.collect.outputs.empty != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +%F)
+          BRANCH="portfolio-bot/${DATE}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$BRANCH"
+
+          git add resume.json content/work drafts artifacts/activity.json || true
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+
+          SUMMARY="Weekly portfolio draft ${DATE}"
+          if [ -f artifacts/proposal/result.json ]; then
+            SUMMARY=$(node -e "const r=require('./artifacts/proposal/result.json'); process.stdout.write(r.summary||'Weekly portfolio draft')")
+          fi
+
+          git commit -m "$(cat <<EOF
+          chore(portfolio-bot): weekly resume/SEO draft ${DATE}
+
+          ${SUMMARY}
+          EOF
+          )"
+
+          git push -u origin "$BRANCH" --force-with-lease
+
+          if gh pr list --head "$BRANCH" --json number --jq 'length' | grep -q '^0$'; then
+            gh label create portfolio-bot --color 0E8A16 --description "Portfolio agent review PRs" 2>/dev/null || true
+            gh pr create \
+              --title "portfolio-bot: resume/SEO draft ${DATE}" \
+              --label portfolio-bot \
+              --body "$(cat <<EOF
+          ## Summary
+          Automated weekly draft from GitHub activity.
+
+          - Review \`resume.json\` carefully
+          - Check any \`content/work\` blurb / \`imageAlts\` edits for accuracy
+          - Optional files under \`drafts/\` are paste-ready (LinkedIn / README exploring)
+
+          ## Source
+          - Activity: \`artifacts/activity.json\`
+          - LLM: Groq/Gemini if secret present, otherwise activity notes only
+
+          Human merge required. Do not auto-merge.
+          EOF
+          )"
+          else
+            echo "PR already exists for $BRANCH"
+          fi

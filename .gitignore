@@ -44,3 +44,7 @@ result/
 /public/resume.pdf
 /public/resume.html
 /public/resume.md
+
+# Portfolio agent local output (CI commits activity into bot PRs only)
+/artifacts/
+.cursor/

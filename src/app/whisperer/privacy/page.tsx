@@ -11,13 +11,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'article',
     url: absoluteUrl('/whisperer/privacy'),
-    title: `Whisperer Privacy Policy · ${SITE_NAME}`,
+    title: `Whisperer Privacy Policy / ${SITE_NAME}`,
     description:
       'Privacy Policy for Whisperer, the voice ChatGPT client for Apple Watch and iPhone.',
   },
   twitter: {
     card: 'summary',
-    title: `Whisperer Privacy Policy · ${SITE_NAME}`,
+    title: `Whisperer Privacy Policy / ${SITE_NAME}`,
     description:
       'Privacy Policy for Whisperer, the voice ChatGPT client for Apple Watch and iPhone.',
   },

@@ -85,8 +85,8 @@ export function yearOf(iso?: string): string {
 export function formatYearRange(start?: string, end?: string): string {
   const a = yearOf(start);
   if (!a) return '';
-  if (!end) return `${a} - present`;
-  return `${a} - ${yearOf(end)}`;
+  if (!end) return `${a}-present`;
+  return `${a}-${yearOf(end)}`;
 }
 
 /** Map resume project names to portfolio `/work/[slug]` pages when they exist. */
@@ -94,6 +94,10 @@ const WORK_SLUGS: Record<string, string> = {
   Wawona: 'wawona',
   'apple-sharpener': 'apple-sharpener',
   Whisperer: 'whisperer',
+  'ModernOrange Band': 'modernorange-band',
+  ModernOrange: 'modernorange-band',
+  'Sentinel High School Computer Building Club': 'sentinel-pc-building-club',
+  'Sentinel PC Building Club': 'sentinel-pc-building-club',
 };
 
 export function workSlugForResumeProject(name: string): string | undefined {
@@ -104,3 +108,21 @@ export function workSlugForResumeProject(name: string): string | undefined {
 export function resumeOnlyProjects(): ResumeProject[] {
   return (resume.projects ?? []).filter((p) => !workSlugForResumeProject(p.name));
 }
+
+/**
+ * Selected work order follows resume.projects.
+ * Gallery pages enrich when WORK_SLUGS maps; otherwise compact text entry.
+ */
+export function resumeSelectedWork(): Array<
+  | { kind: 'gallery'; slug: string; resume: ResumeProject }
+  | { kind: 'text'; resume: ResumeProject }
+> {
+  return (resume.projects ?? []).map((rp) => {
+    const slug = workSlugForResumeProject(rp.name);
+    if (slug) return { kind: 'gallery' as const, slug, resume: rp };
+    return { kind: 'text' as const, resume: rp };
+  });
+}
+
+/** Guard: contact surfaces must not render these (form + Links only). */
+export const RESUME_PRIVATE_FIELDS = ['email', 'phone'] as const;
