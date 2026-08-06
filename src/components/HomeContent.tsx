@@ -1,3 +1,4 @@
+import ContributionGraph from '@/components/ContributionGraph';
 import ContactForm from '@/components/ContactForm';
 import GitHubStats from '@/components/GitHubStats';
 import PrefetchViewLink from '@/components/PrefetchViewLink';
@@ -210,19 +211,7 @@ export default function HomeContent() {
 
         <div className="github-graph-scroller">
           <Link className="github-graph-link" href={viewHref(githubProfile)}>
-            <picture>
-              <source
-                media="(prefers-color-scheme: dark)"
-                srcSet="/github/contributions-dark.svg?v=2023-present"
-              />
-              <img
-                className="github-graph"
-                src="/github/contributions.svg?v=2023-present"
-                alt="GitHub contribution graphs by year, newest at top, from present back to 2023"
-                width={804}
-                height={664}
-              />
-            </picture>
+            <ContributionGraph />
           </Link>
         </div>
 

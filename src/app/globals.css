@@ -1181,6 +1181,72 @@ img[data-nimg='fill'] {
   width: max(100%, 37.5rem);
 }
 
+.contrib-graph {
+  --contrib-fg: #141816;
+  --contrib-muted: #5a635e;
+  --contrib-band: #f3f6f4;
+  --contrib-l0: #dfe8e3;
+  --contrib-l1: #a8d5c4;
+  --contrib-l2: #6fbfa4;
+  --contrib-l3: #3d9a7c;
+  --contrib-l4: #1f6f5b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .contrib-graph {
+    --contrib-fg: #e6ebe8;
+    --contrib-muted: #8f9a94;
+    --contrib-band: #121815;
+    --contrib-l0: #1a2420;
+    --contrib-l1: #1f4a3c;
+    --contrib-l2: #2f7a62;
+    --contrib-l3: #4ea888;
+    --contrib-l4: #6fbfa4;
+  }
+}
+
+.contrib-year-label {
+  font: 600 14px var(--font);
+  fill: var(--contrib-fg);
+}
+
+.contrib-year-count,
+.contrib-month,
+.contrib-weekday,
+.contrib-caption {
+  font: 11px var(--font);
+  fill: var(--contrib-muted);
+}
+
+.contrib-month,
+.contrib-weekday {
+  font-size: 10px;
+}
+
+.contrib-band {
+  fill: var(--contrib-band);
+}
+
+.contrib-day.l0 {
+  fill: var(--contrib-l0);
+}
+
+.contrib-day.l1 {
+  fill: var(--contrib-l1);
+}
+
+.contrib-day.l2 {
+  fill: var(--contrib-l2);
+}
+
+.contrib-day.l3 {
+  fill: var(--contrib-l3);
+}
+
+.contrib-day.l4 {
+  fill: var(--contrib-l4);
+}
+
 .gh-stats {
   display: grid;
   gap: 1.25rem;
