@@ -15,7 +15,7 @@
             pname = "portfolio";
             version = "0.1.0";
             src = ./.;
-            npmDepsHash = "sha256-dOE2srlnzJgqSp0SjAGX4Tgo77Odgv4A+UtnMj2HgIw=";
+            npmDepsHash = "sha256-Kboxk/7RUcMy3rIE4bcrArT1XlI5FeyyDMQ8gLkwjCc=";
             
             npmFlags = [ "--legacy-peer-deps" ];
 
