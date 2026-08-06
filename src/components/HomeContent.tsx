@@ -209,10 +209,12 @@ export default function HomeContent() {
           </PrefetchViewLink>
         </p>
 
-        <div className="github-graph-scroller">
-          <Link className="github-graph-link" href={viewHref(githubProfile)}>
-            <ContributionGraph />
-          </Link>
+        <div className="github-graph-scroll-wrap">
+          <div className="github-graph-scroller">
+            <Link className="github-graph-link" href={viewHref(githubProfile)}>
+              <ContributionGraph />
+            </Link>
+          </div>
         </div>
 
         <GitHubStats />

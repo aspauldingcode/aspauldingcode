@@ -1157,13 +1157,54 @@ img[data-nimg='fill'] {
 /* Contribution graph: fill the column when there’s room (same as before).
    On narrower viewports keep a rem-based floor so cells/labels stay near page
    text size, and scroll horizontally like GitHub’s mobile app. */
+.github-graph-scroll-wrap {
+  position: relative;
+  margin: 0 0 1.25rem;
+  border-radius: var(--radius);
+}
+
+/* Edge fades + soft inset shadow: content is cut off, scroll for the rest. */
+.github-graph-scroll-wrap::before,
+.github-graph-scroll-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2.25rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.github-graph-scroll-wrap::before {
+  left: 0;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: linear-gradient(
+    to right,
+    var(--bg) 0%,
+    color-mix(in srgb, var(--bg) 72%, transparent) 45%,
+    transparent 100%
+  );
+  box-shadow: inset 14px 0 18px -10px color-mix(in srgb, var(--fg) 28%, transparent);
+}
+
+.github-graph-scroll-wrap::after {
+  right: 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: linear-gradient(
+    to left,
+    var(--bg) 0%,
+    color-mix(in srgb, var(--bg) 72%, transparent) 45%,
+    transparent 100%
+  );
+  box-shadow: inset -14px 0 18px -10px color-mix(in srgb, var(--fg) 28%, transparent);
+}
+
 .github-graph-scroller {
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
-  margin: 0 0 1.25rem;
   padding-bottom: 0.25rem;
   border-radius: var(--radius);
   scrollbar-width: thin;
