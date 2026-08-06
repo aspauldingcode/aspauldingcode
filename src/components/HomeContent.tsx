@@ -5,6 +5,7 @@ import Section from '@/components/Section';
 import { getProject } from '@/content/projects';
 import {
   awardsByYear,
+  alsoSeeSlugs,
   formatYearRange,
   resume,
   resumeSelectedWork,
@@ -24,6 +25,9 @@ const { basics } = resume;
 const selectedWork = resumeSelectedWork();
 const galleryWork = selectedWork.filter((w) => w.kind === 'gallery');
 const alsoProjects = selectedWork.filter((w) => w.kind === 'text');
+const alsoSee = alsoSeeSlugs()
+  .map((slug) => getProject(slug))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
 const githubProfile =
   (basics.profiles ?? []).find((p) => p.network?.toLowerCase() === 'github')?.url ||
   'https://github.com/aspauldingcode';
@@ -113,17 +117,26 @@ export default function HomeContent() {
             );
           })}
         </ul>
-        {alsoProjects.length > 0 ? (
+        {alsoSee.length > 0 || alsoProjects.length > 0 ? (
           <p className="also-projects">
-            Also:{' '}
-            {alsoProjects.map((entry, i) => (
-              <span key={entry.resume.name}>
-                {i > 0 ? ' / ' : null}
-                {entry.resume.url ? (
+            Also see:{' '}
+            {[
+              ...alsoSee.map((project) => ({
+                key: project.slug,
+                node: <Link href={`/work/${project.slug}`}>{project.title}</Link>,
+              })),
+              ...alsoProjects.map((entry) => ({
+                key: entry.resume.name,
+                node: entry.resume.url ? (
                   <Link href={viewHref(entry.resume.url)}>{entry.resume.name}</Link>
                 ) : (
-                  entry.resume.name
-                )}
+                  <>{entry.resume.name}</>
+                ),
+              })),
+            ].map((item, i) => (
+              <span key={item.key}>
+                {i > 0 ? ' / ' : null}
+                {item.node}
               </span>
             ))}
           </p>

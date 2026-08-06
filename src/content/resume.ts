@@ -118,3 +118,21 @@ export function resumeSelectedWork(): Array<
     return { kind: 'text' as const, resume: rp };
   });
 }
+
+/**
+ * Portfolio gallery pages kept off the resume primary list.
+ * Shown under Selected work as "Also see".
+ */
+export const ALSO_SEE_SLUGS = [
+  'modernorange-band',
+  'sentinel-pc-building-club',
+] as const;
+
+export function alsoSeeSlugs(): string[] {
+  const primary = new Set(
+    resumeSelectedWork()
+      .filter((e): e is { kind: 'gallery'; slug: string; resume: ResumeProject } => e.kind === 'gallery')
+      .map((e) => e.slug)
+  );
+  return ALSO_SEE_SLUGS.filter((slug) => !primary.has(slug));
+}
