@@ -127,46 +127,54 @@ export default function GitHubStats() {
 
   return (
     <div className="gh-stats">
-      <div className="gh-metrics" role="list">
-        {cards.map((card) => (
-          <div key={card.label} className="gh-metric" role="listitem">
-            <p className="gh-metric-value">{fmt(card.value)}</p>
-            <p className="gh-metric-label">{card.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="gh-streak-row" role="list" aria-label="Contribution streaks">
-        {streakCards.map((card) => (
-          <div key={card.label} className="gh-metric gh-streak-metric" role="listitem">
-            <p className="gh-metric-value">
-              {fmt(card.value)}
-              <span className="gh-unit"> {card.unit}</span>
-            </p>
-            <p className="gh-metric-label">{card.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="gh-block gh-langs-block">
-        <h3 className="gh-block-title">Languages</h3>
-        <div className="gh-pie-layout">
-          <LanguagePie slices={slices} />
-          <ul className="gh-pie-legend">
-            {slices.map((lang) => (
-              <li key={lang.name}>
-                <span
-                  className="gh-pie-swatch"
-                  style={{ background: lang.color }}
-                  aria-hidden="true"
-                />
-                <span className="gh-lang-name">{lang.name}</span>
-                <span className="gh-lang-pct">{fmtPct(lang.percent)}</span>
-              </li>
-            ))}
-          </ul>
+      <div className="gh-stats-scroller">
+        <div className="gh-metrics" role="list">
+          {cards.map((card) => (
+            <div key={card.label} className="gh-metric" role="listitem">
+              <p className="gh-metric-value">{fmt(card.value)}</p>
+              <p className="gh-metric-label">{card.label}</p>
+            </div>
+          ))}
         </div>
-        <p className="gh-footnote">Language share by bytes across @{login} public repositories.</p>
+      </div>
+
+      <div className="gh-stats-scroller">
+        <div className="gh-streak-row" role="list" aria-label="Contribution streaks">
+          {streakCards.map((card) => (
+            <div key={card.label} className="gh-metric gh-streak-metric" role="listitem">
+              <p className="gh-metric-value">
+                {fmt(card.value)}
+                <span className="gh-unit"> {card.unit}</span>
+              </p>
+              <p className="gh-metric-label">{card.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="gh-stats-scroller">
+        <div className="gh-block gh-langs-block">
+          <h3 className="gh-block-title">Languages</h3>
+          <div className="gh-pie-layout">
+            <LanguagePie slices={slices} />
+            <ul className="gh-pie-legend">
+              {slices.map((lang) => (
+                <li key={lang.name}>
+                  <span
+                    className="gh-pie-swatch"
+                    style={{ background: lang.color }}
+                    aria-hidden="true"
+                  />
+                  <span className="gh-lang-name">{lang.name}</span>
+                  <span className="gh-lang-pct">{fmtPct(lang.percent)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="gh-footnote">
+            Language share by bytes across @{login} public repositories.
+          </p>
+        </div>
       </div>
     </div>
   );

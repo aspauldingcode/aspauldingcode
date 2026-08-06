@@ -1185,18 +1185,26 @@ img[data-nimg='fill'] {
   display: grid;
   gap: 1.25rem;
   max-width: 48rem;
+  min-width: 0;
+}
+
+/* Same idea as the contribution graph: keep type at page size, scroll sideways. */
+.gh-stats-scroller {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding-bottom: 0.15rem;
 }
 
 .gh-metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(10.5rem, 1fr));
   gap: 0.75rem;
-}
-
-@media (min-width: 560px) {
-  .gh-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  width: max(100%, 36rem);
 }
 
 .gh-metric {
@@ -1204,51 +1212,48 @@ img[data-nimg='fill'] {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--accent-soft) 55%, var(--bg));
+  min-width: 10.5rem;
 }
 
 .gh-metric-value {
   margin: 0;
-  font-size: 1.45rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.15;
+  line-height: 1.2;
   color: var(--fg);
   font-variant-numeric: tabular-nums;
 }
 
 .gh-metric-label {
   margin: 0.35rem 0 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--muted);
 }
 
 .gh-streak-row {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(10.5rem, 1fr));
   gap: 0.75rem;
-}
-
-@media (min-width: 560px) {
-  .gh-streak-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  width: max(100%, 36rem);
 }
 
 .gh-streak-metric .gh-metric-value {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
 
 .gh-streak-metric .gh-unit {
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-weight: 500;
-  letter-spacing: 0;
+  letter-spacing: normal;
 }
 
 .gh-unit {
   font-weight: 400;
-  font-size: 0.82rem;
+  font-size: 1rem;
   color: var(--muted);
 }
 
@@ -1256,41 +1261,36 @@ img[data-nimg='fill'] {
   padding: 1rem 1.05rem 1.1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-sizing: border-box;
+  width: max(100%, 36rem);
 }
 
 .gh-langs-block {
-  width: 100%;
+  width: max(100%, 36rem);
 }
 
 .gh-block-title {
   margin: 0 0 0.75rem;
-  font-size: 0.72rem;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--muted);
 }
 
 .gh-pie-layout {
   display: grid;
+  grid-template-columns: auto minmax(12rem, 1fr);
   gap: 1.25rem;
   align-items: center;
-  justify-items: center;
-}
-
-@media (min-width: 560px) {
-  .gh-pie-layout {
-    grid-template-columns: auto 1fr;
-    justify-items: start;
-    gap: 1.75rem;
-  }
+  justify-items: start;
 }
 
 .gh-pie {
   display: block;
   width: 11rem;
   height: 11rem;
-  max-width: 100%;
+  flex-shrink: 0;
 }
 
 .gh-pie-legend {
@@ -1300,6 +1300,7 @@ img[data-nimg='fill'] {
   display: grid;
   gap: 0.45rem;
   width: 100%;
+  min-width: 12rem;
 }
 
 .gh-pie-legend li {
@@ -1307,7 +1308,7 @@ img[data-nimg='fill'] {
   grid-template-columns: 0.7rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.55rem;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .gh-pie-swatch {
@@ -1327,7 +1328,7 @@ img[data-nimg='fill'] {
 
 .gh-footnote {
   margin: 0.85rem 0 0;
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--muted);
 }
 
