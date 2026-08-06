@@ -1178,9 +1178,9 @@ img[data-nimg='fill'] {
   border-radius: var(--radius);
 }
 
-/* Edge fades + soft inset shadow: content is cut off, scroll for the rest. */
-.github-graph-scroll-wrap[data-mode='scroll']::before,
-.github-graph-scroll-wrap[data-mode='scroll']::after {
+/* Edge fades only when that side is actually cut off (scrollable that way). */
+.github-graph-scroll-wrap[data-mode='scroll'][data-fade-left='1']::before,
+.github-graph-scroll-wrap[data-mode='scroll'][data-fade-right='1']::after {
   content: '';
   position: absolute;
   top: 0;
@@ -1190,7 +1190,7 @@ img[data-nimg='fill'] {
   z-index: 2;
 }
 
-.github-graph-scroll-wrap[data-mode='scroll']::before {
+.github-graph-scroll-wrap[data-mode='scroll'][data-fade-left='1']::before {
   left: 0;
   border-radius: var(--radius) 0 0 var(--radius);
   background: linear-gradient(
@@ -1202,7 +1202,7 @@ img[data-nimg='fill'] {
   box-shadow: inset 14px 0 18px -10px color-mix(in srgb, var(--fg) 28%, transparent);
 }
 
-.github-graph-scroll-wrap[data-mode='scroll']::after {
+.github-graph-scroll-wrap[data-mode='scroll'][data-fade-right='1']::after {
   right: 0;
   border-radius: 0 var(--radius) var(--radius) 0;
   background: linear-gradient(
