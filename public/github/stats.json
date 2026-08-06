@@ -1,10 +1,10 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-08-06T07:57:03.358Z",
+  "generatedAt": "2026-08-06T08:17:05.459Z",
   "fromYear": 2023,
   "metrics": {
-    "commits": 3100,
-    "contributions": 3846,
+    "commits": 3106,
+    "contributions": 3852,
     "pullRequests": 45,
     "issues": 568,
     "reviews": 17,
@@ -33,14 +33,14 @@
     },
     {
       "name": "Nix",
-      "size": 1268715,
+      "size": 1266972,
       "percent": 14.8,
       "color": "#7e7eff"
     },
     {
       "name": "Shell",
       "size": 612654,
-      "percent": 7.2,
+      "percent": 7.1,
       "color": "#89e051"
     },
     {
@@ -51,14 +51,14 @@
     },
     {
       "name": "JavaScript",
-      "size": 499443,
+      "size": 501457,
       "percent": 5.8,
       "color": "#f1e05a"
     },
     {
       "name": "TypeScript",
-      "size": 350088,
-      "percent": 4.1,
+      "size": 360375,
+      "percent": 4.2,
       "color": "#3178c6"
     },
     {
@@ -69,7 +69,7 @@
     },
     {
       "name": "Other",
-      "size": 676626,
+      "size": 678067,
       "percent": 7.9,
       "color": "#8b949e"
     }

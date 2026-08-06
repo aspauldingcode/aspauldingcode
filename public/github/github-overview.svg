@@ -16,11 +16,11 @@
   </style>
   <rect class="panel" x="0.5" y="0.5" width="719" height="249" rx="8"/>
   <g transform="translate(24,36)">
-  <text class="num">3,100</text>
+  <text class="num">3,106</text>
   <text class="lbl" y="28">Commits</text>
 </g>
 <g transform="translate(162,36)">
-  <text class="num">3,846</text>
+  <text class="num">3,852</text>
   <text class="lbl" y="28">Contributions</text>
 </g>
 <g transform="translate(300,36)">
@@ -62,8 +62,8 @@
 <g transform="translate(0,78)">
   <text class="lang" x="0" y="0">Shell</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="64" height="10" rx="2" fill="#89e051"/>
-  <text class="lang" x="390" y="0">7.2%</text>
+  <rect x="100" y="-9" width="63" height="10" rx="2" fill="#89e051"/>
+  <text class="lang" x="390" y="0">7.1%</text>
 </g>
 <g transform="translate(0,96)">
   <text class="lang" x="0" y="0">Python</text>
