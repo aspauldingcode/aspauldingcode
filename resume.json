@@ -1,0 +1,238 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json",
+  "basics": {
+    "name": "Alex Spaulding",
+    "label": "Software Engineering Student",
+    "image": "",
+    "email": "aspauldingcode@gmail.com",
+    "phone": "+14062409534",
+    "url": "https://aspauldingcode.com",
+    "summary": "Computer Science student building systems software, high-performance applications, and AI-integrated tools. Strong foundation in C, Rust, and TypeScript with a focus on systems design, low-level optimization, and AI integration. Seeking Software Engineering internship opportunities.",
+    "location": {
+      "address": "",
+      "postalCode": "",
+      "city": "Spokane",
+      "countryCode": "US",
+      "region": "WA"
+    },
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "username": "aspauldingcode",
+        "url": "https://linkedin.com/in/aspauldingcode"
+      },
+      {
+        "network": "GitHub",
+        "username": "aspauldingcode",
+        "url": "https://github.com/aspauldingcode"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "University of Montana IT Help Desk",
+      "position": "IT Consultant",
+      "url": "",
+      "startDate": "2020-09-01",
+      "endDate": "2025-01-31",
+      "summary": "",
+      "location": "Missoula, MT",
+      "highlights": [
+        "Resolved 1,200+ service tickets and supported 20+ walk-ins weekly; utilized Jamf/DevOps tools, authored 50+ technical guides, and managed Windows activations/purchase requests.",
+        "Maintained campus hardware including 50+ projector and thin client troubleshooting cases, hard drive wipes, and e-waste disposal."
+      ]
+    },
+    {
+      "name": "Sunburst Sensors",
+      "position": "Assembly Technician",
+      "url": "",
+      "startDate": "2022-01-01",
+      "endDate": "2025-03-31",
+      "summary": "",
+      "location": "Missoula, MT",
+      "highlights": [
+        "Assembled pCO2/pH instruments via PCB soldering, precision fiber optic cleaving, epoxy potting, and machining; fabricated brass and optical filters and spot welded 300+ battery packs.",
+        "Executed bulk firmware updates for 1,000+ microcontrollers; utilized proprietary software for sensor calibration and executed hydrostatic pressure testing to verify integrity."
+      ]
+    },
+    {
+      "name": "Wheelbound Productions",
+      "position": "Web Developer",
+      "url": "https://dumonds.com",
+      "startDate": "2018-04-01",
+      "endDate": "2018-09-30",
+      "summary": "",
+      "location": "Missoula, MT",
+      "highlights": [
+        "Launched 700+ responsive web pages for dumonds.com implementing mobile-optimized design patterns; enhanced performance for high-traffic production sites."
+      ]
+    }
+  ],
+  "volunteer": [],
+  "education": [
+    {
+      "institution": "Eastern Washington University",
+      "url": "",
+      "area": "Computer Science",
+      "studyType": "Bachelor of Science (BS)",
+      "startDate": "2025-02-01",
+      "endDate": "2027-05-01",
+      "score": "",
+      "courses": [
+        "Algorithms",
+        "Computer Architecture",
+        "C & UNIX Programming",
+        "Cybersecurity",
+        "Relational Databases",
+        "Computer Networks"
+      ]
+    },
+    {
+      "institution": "The University of Montana",
+      "url": "",
+      "area": "Computer Science",
+      "studyType": "Some College",
+      "startDate": "2021-09-01",
+      "endDate": "2024-12-31",
+      "score": "",
+      "courses": [
+        "Data Structures",
+        "Software Principles I & II",
+        "Operating Systems & Command Line Interface"
+      ]
+    }
+  ],
+  "awards": [
+    {
+      "title": "VP – Association for Computing Machinery (ACM)",
+      "date": "2025-01-01",
+      "awarder": "Eastern Washington University",
+      "summary": "Led technical events, Hackathons, and Capture The Flag (CTF) competitions for the student community"
+    },
+    {
+      "title": "1st Place – Gonzaga University Hackathon",
+      "date": "2025-01-01",
+      "awarder": "Gonzaga University",
+      "summary": "DevOps Lead; architected CI/CD pipelines for real-time game engine"
+    },
+    {
+      "title": "1st Place – UM Cyber Competition",
+      "date": "2024-01-01",
+      "awarder": "The University of Montana",
+      "summary": "CTF winner; performed network reconnaissance and exploitation"
+    },
+    {
+      "title": "Front End Certificate",
+      "date": "2021-07-01",
+      "awarder": "The University of Montana",
+      "summary": "18-week program; 18 projects including a Final Project"
+    }
+  ],
+  "certificates": [],
+  "publications": [],
+  "skills": [
+    {
+      "name": "Languages",
+      "level": "",
+      "keywords": [
+        "C",
+        "C++",
+        "Rust",
+        "Swift",
+        "Python",
+        "Java",
+        "JavaScript/TypeScript",
+        "SQL",
+        "Bash",
+        "Nix"
+      ]
+    },
+    {
+      "name": "Systems & Security",
+      "level": "",
+      "keywords": [
+        "Unix",
+        "Inter-Process Communication (IPC)",
+        "macOS/iOS internals",
+        "Reverse Engineering",
+        "Mach-O",
+        "Kernel/Runtime Mods",
+        "Git",
+        "Continuous Integration/Deployment (CI/CD)"
+      ]
+    },
+    {
+      "name": "AI Integration",
+      "level": "",
+      "keywords": [
+        "OpenAI APIs",
+        "Large Language Model (LLM) integration",
+        "Whisper",
+        "GPT",
+        "Text-to-Speech synthesis"
+      ]
+    },
+    {
+      "name": "Frontend & Backend",
+      "level": "",
+      "keywords": [
+        "React",
+        "Next.js",
+        "Node.js",
+        "REST APIs",
+        "Docker",
+        "Amazon Web Services (AWS)",
+        "Google Cloud Platform (GCP)",
+        "HTML/CSS"
+      ]
+    }
+  ],
+  "languages": [],
+  "interests": [],
+  "references": [],
+  "projects": [
+    {
+      "name": "apple-sharpener",
+      "description": "macOS System Customization (Objective-C, C)",
+      "highlights": [
+        "Built a macOS customization tool (269 stars); resolved 21+ critical bugs via low-level profiling, Objective-C runtime hooks, and Mach-O patching."
+      ],
+      "keywords": [],
+      "startDate": "2023-01-01",
+      "endDate": "",
+      "url": "https://github.com/aspauldingcode/apple-sharpener",
+      "roles": [],
+      "entity": "",
+      "type": ""
+    },
+    {
+      "name": "Wawona",
+      "description": "World's First iOS Wayland Compositor (Rust, C, Swift)",
+      "highlights": [
+        "Founded Wawona and developed the world's first iOS Wayland compositor, achieving full Apple/Android platform parity; managed 176+ stars and 22+ active issues/PRs.",
+        "Engineered Wawona.io using Zola/GSAP and automated testing via TestFlight/Fastlane for deployments."
+      ],
+      "keywords": [],
+      "startDate": "2025-01-01",
+      "endDate": "",
+      "url": "https://wawona.io",
+      "roles": [],
+      "entity": "",
+      "type": ""
+    },
+    {
+      "name": "Whisperer",
+      "description": "AI Voice Assistant for watchOS (Swift, Node.js)",
+      "highlights": [
+        "Developed an AI watchOS client with OpenAI Whisper and markdown rendering; utilized my Base16/24 library TintedThemingSwift."
+      ],
+      "keywords": [],
+      "startDate": "2023-01-01",
+      "endDate": "",
+      "url": "https://github.com/aspauldingcode/Whisperer",
+      "roles": [],
+      "entity": "",
+      "type": ""
+    }
+  ]
+}

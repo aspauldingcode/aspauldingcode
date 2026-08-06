@@ -52,7 +52,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             try {
                 setResumeLoading(true);
                 // Force a fresh fetch by appending a timestamp
-                const response = await fetch(`/resume_alex_spaulding.pdf?v=${Date.now()}`);
+                const response = await fetch(`/resume.pdf?v=${Date.now()}`);
                 const blob = await response.blob();
 
                 const reader = new FileReader();

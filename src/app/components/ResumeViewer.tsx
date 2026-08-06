@@ -103,7 +103,7 @@ export default function ResumeViewer({ isOpen, onCheckClose, cachedResume }: Res
     const { toggleTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
-    const pdfUrl = '/resume_alex_spaulding.pdf';
+    const pdfUrl = '/resume.pdf';
     const [numPages, setNumPages] = useState<number>(0);
     /** Count of <Page> onRenderSuccess for current raster batch; hides canvases until all paint (avoids white pdf.js clear flash). */
     const [resumePagesPainted, setResumePagesPainted] = useState(0);
@@ -174,6 +174,14 @@ export default function ResumeViewer({ isOpen, onCheckClose, cachedResume }: Res
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleViewWeb = () => {
+        window.open('/resume.html', '_blank');
+    };
+
+    const handleViewMd = () => {
+        window.open('/resume.md', '_blank');
     };
 
     const handleDragEnd = (_: unknown, info: PanInfo) => {
@@ -936,6 +944,34 @@ export default function ResumeViewer({ isOpen, onCheckClose, cachedResume }: Res
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
+                    handleViewWeb();
+                  }}
+                  className="p6-button px-3 sm:px-6 py-1.5 sm:py-2 bg-base00 text-base0D border-2 border-base0D flex items-center gap-1.5 sm:gap-2 group/btn"
+                >
+                  <span className="text-[10px] sm:text-xs font-black uppercase italic skew-x-12">HTML</span>
+                </button>
+              </div>
+
+              <div className="relative group z-[220]">
+                <div className="p6-button-shadow" />
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewMd();
+                  }}
+                  className="p6-button px-3 sm:px-6 py-1.5 sm:py-2 bg-base00 text-base0D border-2 border-base0D flex items-center gap-1.5 sm:gap-2 group/btn"
+                >
+                  <span className="text-[10px] sm:text-xs font-black uppercase italic skew-x-12">MD</span>
+                </button>
+              </div>
+
+              <div className="relative group z-[220]">
+                <div className="p6-button-shadow" />
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
                     handleDownload();
                   }}
                   className="p6-button px-3 sm:px-6 py-1.5 sm:py-2 bg-base00 text-base0D border-2 border-base0D flex items-center gap-1.5 sm:gap-2 group/btn"
@@ -943,7 +979,7 @@ export default function ResumeViewer({ isOpen, onCheckClose, cachedResume }: Res
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 skew-x-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                   </svg>
-                  <span className="text-[10px] sm:text-xs font-black uppercase italic skew-x-12">Download</span>
+                  <span className="text-[10px] sm:text-xs font-black uppercase italic skew-x-12">PDF</span>
                 </button>
               </div>
 

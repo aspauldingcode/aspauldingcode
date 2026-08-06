@@ -1,5 +1,5 @@
 {
-  description = "Portfolio development environment and tools";
+  description = "Portfolio and Resume development environment";
 
   outputs = { self, nixpkgs }:
     let
@@ -11,6 +11,19 @@
           pkgs = import nixpkgs { inherit system; };
         in
         {
+          portfolio = pkgs.buildNpmPackage {
+            pname = "portfolio";
+            version = "0.1.0";
+            src = ./.;
+            npmDepsHash = ""; # To be updated
+            
+            # Next.js build needs this
+            NEXT_TELEMETRY_DISABLED = 1;
+            
+            # Use specific Node.js version
+            nodejs = pkgs.nodejs_22;
+          };
+
           favicon-converter = pkgs.writeShellApplication {
             name = "favicon-converter";
             runtimeInputs = [ pkgs.imagemagick ];
@@ -73,8 +86,8 @@
             runtimeInputs = [ pkgs.nodejs_22 pkgs.nodePackages_latest.vercel ];
             text = ''
               echo "Starting development server..."
-              ENV_FILE="../.env.vercel.development.local"
-              vercel env pull "$ENV_FILE" --environment development --yes --cwd ..
+              ENV_FILE=".env.vercel.development.local"
+              vercel env pull "$ENV_FILE" --environment development --yes
               if [ -f "$ENV_FILE" ]; then
                 set -a
                 # shellcheck source=/dev/null
@@ -129,7 +142,7 @@
             ];
             
             shellHook = ''
-              echo "Portfolio development shell"
+              echo "Portfolio & Resume development shell"
               echo "Available commands:"
               echo "  - npm: Node.js package manager"
               echo "  - vercel: Vercel CLI"
