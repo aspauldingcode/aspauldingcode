@@ -1,9 +1,26 @@
 import SectionTitle from '@/components/SectionTitle';
+import { absoluteUrl, SITE_NAME } from '@/lib/seo';
+import type { Metadata } from 'next';
 import { LegalPage } from '../_components/LegalPage';
 
-export const metadata = {
-  title: 'Whisperer : Terms of Use',
-  description: 'Terms of Use (EULA) for the Whisperer app for Apple Watch and iPhone.',
+export const metadata: Metadata = {
+  title: 'Whisperer Terms of Use',
+  description:
+    'Terms of Use (EULA) for Whisperer, the voice ChatGPT client for Apple Watch and iPhone by Alex Spaulding.',
+  alternates: { canonical: '/whisperer/terms' },
+  openGraph: {
+    type: 'article',
+    url: absoluteUrl('/whisperer/terms'),
+    title: `Whisperer Terms of Use · ${SITE_NAME}`,
+    description:
+      'Terms of Use (EULA) for Whisperer, the voice ChatGPT client for Apple Watch and iPhone.',
+  },
+  twitter: {
+    card: 'summary',
+    title: `Whisperer Terms of Use · ${SITE_NAME}`,
+    description:
+      'Terms of Use (EULA) for Whisperer, the voice ChatGPT client for Apple Watch and iPhone.',
+  },
 };
 
 export default function WhispererTermsOfUse() {

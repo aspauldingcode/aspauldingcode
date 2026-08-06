@@ -1,9 +1,26 @@
 import SectionTitle from '@/components/SectionTitle';
+import { absoluteUrl, SITE_NAME } from '@/lib/seo';
+import type { Metadata } from 'next';
 import { LegalPage } from '../_components/LegalPage';
 
-export const metadata = {
-  title: 'Whisperer : Privacy Policy',
-  description: 'Privacy Policy for the Whisperer app for Apple Watch and iPhone.',
+export const metadata: Metadata = {
+  title: 'Whisperer Privacy Policy',
+  description:
+    'Privacy Policy for Whisperer, the voice ChatGPT client for Apple Watch and iPhone by Alex Spaulding.',
+  alternates: { canonical: '/whisperer/privacy' },
+  openGraph: {
+    type: 'article',
+    url: absoluteUrl('/whisperer/privacy'),
+    title: `Whisperer Privacy Policy · ${SITE_NAME}`,
+    description:
+      'Privacy Policy for Whisperer, the voice ChatGPT client for Apple Watch and iPhone.',
+  },
+  twitter: {
+    card: 'summary',
+    title: `Whisperer Privacy Policy · ${SITE_NAME}`,
+    description:
+      'Privacy Policy for Whisperer, the voice ChatGPT client for Apple Watch and iPhone.',
+  },
 };
 
 export default function WhispererPrivacyPolicy() {

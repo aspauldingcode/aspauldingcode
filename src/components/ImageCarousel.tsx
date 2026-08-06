@@ -34,10 +34,14 @@ function stageAspect(sizes: ImgSize[]): ImgSize {
 export default function ImageCarousel({
   images,
   alt,
+  alts,
   sizes,
 }: {
   images: string[];
+  /** Fallback base name when `alts[i]` is missing. */
   alt: string;
+  /** Per-image descriptive alt text (SEO). */
+  alts?: string[];
   sizes: ImgSize[];
 }) {
   const [index, setIndex] = useState(0);
@@ -157,7 +161,10 @@ export default function ImageCarousel({
                 >
                   <Image
                     src={src}
-                    alt={i === index ? `${alt} (${i + 1} of ${count})` : ''}
+                    alt={
+                      alts?.[i]?.trim() ||
+                      (count > 1 ? `${alt} (${i + 1} of ${count})` : alt)
+                    }
                     width={dims.w}
                     height={dims.h}
                     sizes="(max-width: 640px) 100vw, 40rem"

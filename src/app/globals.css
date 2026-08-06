@@ -664,11 +664,23 @@ img[data-nimg='fill'] {
     max-height: 100%;
   }
 
+  .split-shell[data-open][data-active='view']
+    .split-detail:has(.embed-viewer.is-frame)
+    .split-detail-slot {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    height: 100%;
+  }
+
   .split-shell[data-open][data-active='view'] .embed-viewer.is-frame {
+    display: flex;
+    flex-direction: column;
     flex: 1 1 0;
     width: 100%;
     min-height: 0;
-    height: auto;
+    height: 100%;
   }
 
   .split-shell .wrap {
@@ -690,9 +702,11 @@ img[data-nimg='fill'] {
   }
 }
 
-/* Keyed remount wrapper; pass through so flex/height rules still hit children. */
+/* Keyed remount wrapper. Avoid display:contents — Safari drops flex height
+   for framed /view iframes when the slot is contents-only. */
 .split-detail-slot {
-  display: contents;
+  display: block;
+  min-height: 100%;
 }
 
 /* Detail column: project / resume / link preview / embed chrome share one shell. */
@@ -734,19 +748,25 @@ img[data-nimg='fill'] {
 .embed-stage {
   position: relative;
   flex: 1 1 0;
-  min-height: 12rem;
+  min-height: 16rem;
+  /* Flex child (not only absolute) so WebKit gives the iframe a real height. */
+  display: flex;
+  flex-direction: column;
   background: color-mix(in srgb, var(--bg) 88%, var(--line));
   border-top: 1px solid var(--line);
 }
 
 .embed-frame {
-  position: absolute;
-  inset: 0;
   display: block;
+  flex: 1 1 0;
   width: 100%;
+  min-width: 0;
+  min-height: 16rem;
   height: 100%;
   border: 0;
   background: var(--bg);
+  /* WebKit: avoid collapsing replaced flex items */
+  align-self: stretch;
 }
 
 .embed-home {
@@ -764,79 +784,82 @@ img[data-nimg='fill'] {
   }
 }
 
-/* Link preview body (non-embeddable) — same column as project copy. */
-.detail-preview {
+/* Uniform profile cards for non-embeddable social links. */
+.profile-card {
   display: grid;
-  gap: 0.85rem;
+  gap: 1rem;
   align-content: start;
   margin: 0 0 0.25rem;
+  min-width: 0;
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 92%, var(--line));
 }
 
-.detail-preview-media {
-  margin: 0;
-  min-height: 3rem;
+.profile-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  min-width: 0;
 }
 
-.detail-preview-media img {
-  display: block;
+.profile-card-avatar {
+  flex: 0 0 auto;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
   background: color-mix(in srgb, var(--bg) 70%, var(--line));
 }
 
-.detail-preview-media:not([class*='is-']) img {
-  max-width: 100%;
-  max-height: 12rem;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: var(--radius);
-}
-
-.detail-preview-media.is-square img {
-  width: 5.75rem;
-  height: 5.75rem;
-  object-fit: cover;
-  border-radius: var(--radius);
-}
-
-.detail-preview-media.is-wide img {
+.profile-card-avatar img {
+  display: block;
   width: 100%;
-  aspect-ratio: 1.91 / 1;
-  max-height: 14rem;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--radius);
 }
 
-.detail-preview-media.is-tall img {
-  max-width: min(100%, 14rem);
-  max-height: 16rem;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: var(--radius);
-}
-
-.detail-preview-header {
+.profile-card-avatar-fallback {
   display: grid;
-  gap: 0.35rem;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
-.detail-preview-site {
+.profile-card-identity {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-top: 0.1rem;
+}
+
+.profile-card-network {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--muted);
   min-width: 0;
 }
 
-.detail-preview-site span {
+.profile-card-network span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.detail-preview-favicon {
+.profile-card-favicon {
   width: 0.875rem;
   height: 0.875rem;
   border-radius: 2px;
@@ -844,34 +867,156 @@ img[data-nimg='fill'] {
   flex: 0 0 auto;
 }
 
-.detail-preview-title {
+.profile-card-name {
   margin: 0;
-  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  font-size: clamp(1.25rem, 3vw, 1.55rem);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--fg);
+  overflow-wrap: break-word;
+}
+
+.profile-card-username {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--accent);
   overflow-wrap: anywhere;
 }
 
-.detail-preview-desc {
+.profile-card-status {
+  margin: 0.15rem 0 0;
+  justify-self: start;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--accent-soft);
+  color: var(--fg);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.profile-card-bio {
   margin: 0;
-  font-size: 0.98rem;
-  line-height: 1.5;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--fg);
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+  white-space: pre-line;
+}
+
+.profile-card-bio.is-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.profile-card-bio.is-skeleton,
+.profile-card-username.is-skeleton {
+  min-height: 1.2em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--line) 55%, var(--bg));
+  color: transparent;
+}
+
+.profile-card-bio.is-skeleton {
+  min-height: 3.2em;
+}
+
+.profile-card-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 0.75rem 0;
+}
+
+.profile-card-stats li {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.profile-card-stat-value {
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+.profile-card-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-card-extras {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.profile-card-extra {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.5rem 0.75rem;
+  align-items: baseline;
+  font-size: 0.9rem;
+}
+
+.profile-card-extra dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-card-extra dd {
+  margin: 0;
   color: var(--fg);
   overflow-wrap: anywhere;
-  display: -webkit-box;
-  -webkit-line-clamp: 8;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-.detail-preview-note {
-  margin: 0.15rem 0 0;
-  font-size: 0.88rem;
+.profile-card-note {
+  margin: 0;
+  font-size: 0.85rem;
   line-height: 1.45;
   color: var(--muted);
-  max-width: 36rem;
+}
+
+.profile-card.is-loading .profile-card-name {
+  color: var(--muted);
+}
+
+/* Legacy preview skeleton hooks (unused by profile cards, keep harmless). */
+.detail-preview-skeleton {
+  width: 100%;
+  aspect-ratio: 1.91 / 1;
+  max-height: 10rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--line) 70%, var(--bg));
+}
+
+.detail-preview-skeleton-text {
+  min-height: 2.8em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--line) 55%, var(--bg));
+  color: transparent;
 }
 
 .years {
@@ -888,6 +1033,10 @@ img[data-nimg='fill'] {
 .more {
   margin: 0;
   font-size: 0.9rem;
+}
+
+.github-profile-link {
+  margin: 0 0 0.85rem;
 }
 
 .crumb {

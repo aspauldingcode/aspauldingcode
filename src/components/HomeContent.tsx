@@ -1,5 +1,6 @@
 import ContactForm from '@/components/ContactForm';
 import GitHubStats from '@/components/GitHubStats';
+import PrefetchViewLink from '@/components/PrefetchViewLink';
 import Section from '@/components/Section';
 import { projects } from '@/content/projects';
 import {
@@ -13,12 +14,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
 import { viewHref } from '@/lib/viewHref';
+import { projectImageAlt } from '@/lib/seo';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
 
 const year = new Date().getFullYear();
 const { basics } = resume;
 const alsoProjects = resumeOnlyProjects();
+const githubProfile =
+  (basics.profiles ?? []).find((p) => p.network?.toLowerCase() === 'github')?.url ||
+  'https://github.com/aspauldingcode';
 
 export default function HomeContent() {
   return (
@@ -27,7 +32,7 @@ export default function HomeContent() {
         <Image
           className="avatar"
           src="/profile_square.jpg"
-          alt={basics.name}
+          alt={`${basics.name} — square portrait photograph`}
           width={112}
           height={112}
           priority
@@ -77,7 +82,7 @@ export default function HomeContent() {
               <Link href={`/work/${project.slug}`} className="project-thumb-link">
                 <Image
                   src={project.images[0]}
-                  alt=""
+                  alt={projectImageAlt(project, 0)}
                   width={116}
                   height={87}
                   sizes="116px"
@@ -173,8 +178,14 @@ export default function HomeContent() {
       ) : null}
 
       <Section title="GitHub">
+        <p className="more github-profile-link">
+          <PrefetchViewLink href={githubProfile}>
+            {githubProfile.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+          </PrefetchViewLink>
+        </p>
+
         <div className="github-graph-scroller">
-          <Link className="github-graph-link" href={viewHref('https://github.com/aspauldingcode')}>
+          <Link className="github-graph-link" href={viewHref(githubProfile)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="github-graph"
@@ -197,7 +208,7 @@ export default function HomeContent() {
           {(basics.profiles ?? []).map((profile) =>
             profile.url ? (
               <li key={profile.network}>
-                <Link href={viewHref(profile.url)}>{profile.network}</Link>
+                <PrefetchViewLink href={profile.url}>{profile.network}</PrefetchViewLink>
               </li>
             ) : null
           )}

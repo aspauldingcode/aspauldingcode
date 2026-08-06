@@ -12,6 +12,13 @@ images:
   - /wawona_slider/wawona-macos_weston.jpg
   - /wawona_slider/wawona-ios-sway_landscape.jpg
   - /wawona_slider/wawona-android-sway_landscape.jpg
+imageAlts:
+  - "Wawona nesting a KDE Plasma Linux desktop session on macOS"
+  - "Wawona nesting an XFCE Linux desktop session on macOS"
+  - "Wawona nesting a COSMIC Linux desktop session on macOS"
+  - "Wawona running Weston Wayland compositor natively on macOS"
+  - "Wawona running sway in landscape on iOS"
+  - "Wawona running sway in landscape on Android"
 links:
   - label: GitHub
     href: https://github.com/Wawona/Wawona

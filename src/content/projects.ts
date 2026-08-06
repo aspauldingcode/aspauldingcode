@@ -26,6 +26,9 @@ function loadAll(): Project[] {
         blurb: String(data.blurb ?? ''),
         years: String(data.years ?? ''),
         images: Array.isArray(data.images) ? data.images.map(String) : [],
+        imageAlts: Array.isArray(data.imageAlts)
+          ? data.imageAlts.map(String)
+          : undefined,
         links: Array.isArray(data.links) ? (data.links as ProjectLink[]) : [],
         order: typeof data.order === 'number' ? data.order : 999,
         music: Boolean(data.music),
@@ -38,12 +41,13 @@ function loadAll(): Project[] {
 
 export function getProjects(): ProjectMeta[] {
   return loadAll().map(
-    ({ slug, title, blurb, years, images, links, order, music, tracks }) => ({
+    ({ slug, title, blurb, years, images, imageAlts, links, order, music, tracks }) => ({
       slug,
       title,
       blurb,
       years,
       images,
+      imageAlts,
       links,
       order,
       music,

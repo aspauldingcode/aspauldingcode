@@ -1,6 +1,12 @@
 import './globals.css';
+import JsonLd from '@/components/JsonLd';
+import {
+  personJsonLd,
+  profilePageJsonLd,
+  rootMetadata,
+  websiteJsonLd,
+} from '@/lib/seo';
 import { IBM_Plex_Sans } from 'next/font/google';
-import { resume } from '@/content/resume';
 
 const plex = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -11,12 +17,7 @@ const plex = IBM_Plex_Sans({
 
 export const runtime = 'nodejs';
 
-export const metadata = {
-  title: `${resume.basics.name} / ${resume.basics.label ?? 'Systems Software'}`,
-  description:
-    resume.basics.summary ??
-    'Systems software engineer building Wayland compositors, macOS and iOS runtime tooling, and Nix-based infrastructure.',
-};
+export const metadata = rootMetadata();
 
 export const viewport = {
   width: 'device-width',
@@ -30,7 +31,10 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={plex.variable} data-scroll-behavior="smooth">
-      <body className={plex.className}>{children}</body>
+      <body className={plex.className}>
+        <JsonLd data={[personJsonLd(), websiteJsonLd(), profilePageJsonLd()]} />
+        {children}
+      </body>
     </html>
   );
 }

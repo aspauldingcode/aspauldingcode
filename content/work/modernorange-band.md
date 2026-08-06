@@ -14,6 +14,14 @@ images:
   - /modernorange_slider/modernorangeband_spacetion_album_painting_2.jpg
   - /modernorange_slider/owen_alex_modernorangeband.jpg
   - /modernorange_slider/spacetion_pt_2_coverart_modernorangeband.jpg
+imageAlts:
+  - "ModernOrange band promotional group photo"
+  - "ModernOrange live at Forester Tollefson apartment show, photo 1"
+  - "ModernOrange live at Forester Tollefson apartment show, photo 2"
+  - "Spacetion album painting artwork for ModernOrange, view 1"
+  - "Spacetion album painting artwork for ModernOrange, view 2"
+  - "Owen and Alex of ModernOrange band"
+  - "Spacetion Pt. 2 cover art for ModernOrange"
 links:
   - label: Spotify
     href: https://open.spotify.com/artist/1E32wLOibjqY9busMJu8qD

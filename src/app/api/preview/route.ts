@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** GET /api/preview?u=https://… — Open Graph / Twitter Card unfurl. */
+/** GET /api/preview?u=https://… — uniform profile card JSON for non-embed links. */
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get('u');
   if (!raw) {

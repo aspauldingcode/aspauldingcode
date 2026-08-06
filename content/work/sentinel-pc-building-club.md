@@ -30,6 +30,30 @@ images:
   - /shspcbuildingclub_slider/shspcbuilds_2019_preview9.jpg
   - /shspcbuildingclub_slider/shspcbuilds_2019_preview10.jpg
   - /shspcbuildingclub_slider/shspcbuilds_2019_preview11.jpg
+imageAlts:
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 1"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 2"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 3"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 4"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 5"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 6"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 7"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 8"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 9"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 10"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 12"
+  - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 13"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 1"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 2"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 3"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 4"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 5"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 6"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 7"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 8"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 9"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 10"
+  - "Sentinel High School Computer Building Club 2019 — students and PC builds, photo 11"
 links: []
 ---
 

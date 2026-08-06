@@ -1,11 +1,18 @@
 import BandPlayer from '@/components/BandPlayer';
 import DetailCrumb from '@/components/DetailCrumb';
 import ImageCarousel from '@/components/ImageCarousel';
+import JsonLd from '@/components/JsonLd';
 import SectionTitle from '@/components/SectionTitle';
 import { getProject, getProjectSlugs } from '@/content/projects';
 import { resume } from '@/content/resume';
 import { detailTrail } from '@/lib/detailTrail';
 import { imageSize } from '@/lib/imageSize';
+import {
+  breadcrumbJsonLd,
+  projectImageAlt,
+  projectJsonLd,
+  projectMetadata,
+} from '@/lib/seo';
 import { viewHref } from '@/lib/viewHref';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -22,10 +29,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = getProject(slug);
   if (!project) return { title: 'Project' };
-  return {
-    title: `${project.title} · Alex Spaulding`,
-    description: project.blurb,
-  };
+  return projectMetadata(project);
 }
 
 export default async function ProjectPage({
@@ -41,9 +45,21 @@ export default async function ProjectPage({
   const sizes = project.images.map(
     (src) => imageSize(src) ?? { w: 1600, h: 1200 }
   );
+  const alts = project.images.map((_, i) => projectImageAlt(project, i));
 
   return (
     <div className="wrap detail-pane">
+      <JsonLd
+        data={[
+          projectJsonLd(project),
+          breadcrumbJsonLd([
+            { name: homeLabel, path: '/' },
+            { name: 'Selected work', path: '/#selected-work' },
+            { name: project.title, path: `/work/${project.slug}` },
+          ]),
+        ]}
+      />
+
       <DetailCrumb items={detailTrail('Selected work', project.title)} />
 
       <article className="project-detail">
@@ -55,6 +71,7 @@ export default async function ProjectPage({
         <ImageCarousel
           key={project.slug}
           images={project.images}
+          alts={alts}
           alt={project.title}
           sizes={sizes}
         />

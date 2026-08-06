@@ -1,0 +1,643 @@
+/**
+ * Uniform social profile card for hosts that block iframe embeds.
+ * Same fields everywhere; missing values render as "—".
+ */
+
+import { preview } from 'linkpeek';
+import { resume } from '@/content/resume';
+import { proxiedPreviewImage } from '@/lib/linkPreviewImage';
+
+export type ProfileCard = {
+  network: string;
+  username: string | null;
+  displayName: string | null;
+  avatar: string | null;
+  status: string | null;
+  bio: string | null;
+  url: string;
+  favicon: string | null;
+  /** Always three slots for a uniform grid. */
+  stats: {
+    followers: number | null;
+    following: number | null;
+    posts: number | null;
+  };
+  /** Labels for the three slots (network-specific wording). */
+  labels: {
+    followers: string;
+    following: string;
+    posts: string;
+  };
+  extras: { label: string; value: string }[];
+};
+
+const UA = 'aspauldingcode-preview/1.0 (+https://aspauldingcode.com)';
+
+function hostOf(href: string): string | null {
+  try {
+    return new URL(href).hostname.replace(/^www\./, '').toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function emptyCard(network: string, url: string): ProfileCard {
+  return {
+    network,
+    username: null,
+    displayName: null,
+    avatar: null,
+    status: null,
+    bio: null,
+    url,
+    favicon: null,
+    stats: { followers: null, following: null, posts: null },
+    labels: {
+      followers: 'Followers',
+      following: 'Following',
+      posts: 'Posts',
+    },
+    extras: [],
+  };
+}
+
+async function fetchJson<T>(
+  url: string,
+  signal: AbortSignal,
+  headers: Record<string, string> = {}
+): Promise<T | null> {
+  try {
+    const res = await fetch(url, {
+      signal,
+      headers: { Accept: 'application/json', 'User-Agent': UA, ...headers },
+      redirect: 'follow',
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** Best-effort OG/JSON-LD fill when a platform API is missing fields. */
+async function scrapeBasics(
+  href: string,
+  signal: AbortSignal
+): Promise<Partial<ProfileCard>> {
+  try {
+    const result = await preview(href, {
+      signal,
+      timeout: 4500,
+      maxBytes: 160_000,
+      includeBodyContent: true,
+      followMetaRefresh: true,
+      allowPrivateIPs: false,
+      userAgent:
+        'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+    });
+    return {
+      displayName: result.title,
+      bio: result.description,
+      avatar: proxiedPreviewImage(result.image),
+      favicon: result.favicon,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function merge(base: ProfileCard, patch: Partial<ProfileCard>): ProfileCard {
+  return {
+    ...base,
+    ...patch,
+    stats: { ...base.stats, ...patch.stats },
+    labels: { ...base.labels, ...patch.labels },
+    extras: patch.extras ?? base.extras,
+    avatar: proxiedPreviewImage(patch.avatar ?? base.avatar),
+  };
+}
+
+/* ─── GitHub ─────────────────────────────────────────────────────────── */
+
+type GhUser = {
+  login?: string;
+  name?: string | null;
+  avatar_url?: string;
+  bio?: string | null;
+  followers?: number;
+  following?: number;
+  public_repos?: number;
+  company?: string | null;
+  location?: string | null;
+  blog?: string | null;
+  twitter_username?: string | null;
+  created_at?: string;
+  hireable?: boolean | null;
+};
+
+function parseGitHubLogin(href: string): string | null {
+  try {
+    const path = new URL(href).pathname.replace(/\/$/, '');
+    const parts = path.split('/').filter(Boolean);
+    if (!parts.length) return null;
+    const skip = new Set([
+      'features',
+      'topics',
+      'collections',
+      'trending',
+      'events',
+      'sponsors',
+      'settings',
+      'marketplace',
+      'pulls',
+      'issues',
+      'explore',
+      'notifications',
+      'login',
+      'join',
+    ]);
+    if (skip.has(parts[0].toLowerCase())) return null;
+    return parts[0];
+  } catch {
+    return null;
+  }
+}
+
+async function fromGitHub(href: string, signal: AbortSignal): Promise<ProfileCard> {
+  const card = emptyCard('GitHub', href);
+  card.labels = {
+    followers: 'Followers',
+    following: 'Following',
+    posts: 'Repositories',
+  };
+  card.favicon = 'https://github.com/favicon.ico';
+
+  const login = parseGitHubLogin(href);
+  if (!login) return merge(card, await scrapeBasics(href, signal));
+
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const user = await fetchJson<GhUser>(
+    `https://api.github.com/users/${encodeURIComponent(login)}`,
+    signal,
+    headers
+  );
+  if (!user?.login) return merge(card, await scrapeBasics(href, signal));
+
+  const extras: ProfileCard['extras'] = [];
+  if (user.company) extras.push({ label: 'Company', value: user.company.replace(/^@/, '') });
+  if (user.location) extras.push({ label: 'Location', value: user.location });
+  if (user.blog) extras.push({ label: 'Website', value: user.blog.replace(/^https?:\/\//, '') });
+  if (user.twitter_username)
+    extras.push({ label: 'X', value: `@${user.twitter_username}` });
+  if (user.created_at) {
+    const y = new Date(user.created_at).getFullYear();
+    if (!Number.isNaN(y)) extras.push({ label: 'Joined', value: String(y) });
+  }
+
+  return {
+    ...card,
+    username: user.login,
+    displayName: user.name || user.login,
+    avatar: user.avatar_url || null,
+    status: user.hireable ? 'Open to work' : null,
+    bio: user.bio || null,
+    stats: {
+      followers: user.followers ?? null,
+      following: user.following ?? null,
+      posts: user.public_repos ?? null,
+    },
+    extras,
+  };
+}
+
+/* ─── Mastodon ───────────────────────────────────────────────────────── */
+
+type MastoAccount = {
+  username?: string;
+  acct?: string;
+  display_name?: string;
+  avatar?: string;
+  avatar_static?: string;
+  note?: string;
+  followers_count?: number;
+  following_count?: number;
+  statuses_count?: number;
+  locked?: boolean;
+  bot?: boolean;
+  created_at?: string;
+  fields?: { name?: string; value?: string }[];
+};
+
+function parseMastodonAcct(href: string): string | null {
+  try {
+    const path = new URL(href).pathname;
+    const m = path.match(/^\/@([^/]+)/);
+    return m?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function fromMastodon(href: string, signal: AbortSignal): Promise<ProfileCard> {
+  const card = emptyCard('Mastodon', href);
+  card.labels = {
+    followers: 'Followers',
+    following: 'Following',
+    posts: 'Posts',
+  };
+  card.favicon = 'https://mastodon.social/favicon.ico';
+
+  const acct = parseMastodonAcct(href);
+  if (!acct) return merge(card, await scrapeBasics(href, signal));
+
+  const account = await fetchJson<MastoAccount>(
+    `https://mastodon.social/api/v1/accounts/lookup?acct=${encodeURIComponent(acct)}`,
+    signal
+  );
+  if (!account?.username) return merge(card, await scrapeBasics(href, signal));
+
+  const extras: ProfileCard['extras'] = [];
+  if (account.bot) extras.push({ label: 'Type', value: 'Bot' });
+  if (account.locked) extras.push({ label: 'Status', value: 'Locked' });
+  if (account.created_at) {
+    const y = new Date(account.created_at).getFullYear();
+    if (!Number.isNaN(y)) extras.push({ label: 'Joined', value: String(y) });
+  }
+  for (const field of account.fields ?? []) {
+    if (!field.name || !field.value) continue;
+    const value = stripHtml(field.value);
+    if (value) extras.push({ label: field.name, value });
+  }
+
+  const status = account.locked ? 'Locked account' : account.bot ? 'Bot' : null;
+
+  return {
+    ...card,
+    username: account.acct || account.username,
+    displayName: account.display_name || account.username || null,
+    avatar: account.avatar_static || account.avatar || null,
+    status,
+    bio: account.note ? stripHtml(account.note) : null,
+    stats: {
+      followers: account.followers_count ?? null,
+      following: account.following_count ?? null,
+      posts: account.statuses_count ?? null,
+    },
+    extras,
+  };
+}
+
+/* ─── YouTube ────────────────────────────────────────────────────────── */
+
+type YtChannelList = {
+  items?: {
+    snippet?: {
+      title?: string;
+      description?: string;
+      customUrl?: string;
+      thumbnails?: { high?: { url?: string }; medium?: { url?: string } };
+    };
+    statistics?: {
+      subscriberCount?: string;
+      videoCount?: string;
+      viewCount?: string;
+      hiddenSubscriberCount?: boolean;
+    };
+  }[];
+};
+
+function parseYouTubeHandle(href: string): string | null {
+  try {
+    const u = new URL(href);
+    const host = u.hostname.replace(/^www\./, '').toLowerCase();
+    if (host === 'youtu.be') return null;
+    const at = u.pathname.match(/^\/@([^/]+)/);
+    if (at) return at[1];
+    const c = u.pathname.match(/^\/(?:c|user)\/([^/]+)/);
+    if (c) return c[1];
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function fromYouTube(href: string, signal: AbortSignal): Promise<ProfileCard> {
+  const card = emptyCard('YouTube', href);
+  card.labels = {
+    followers: 'Subscribers',
+    following: 'Following',
+    posts: 'Videos',
+  };
+  card.favicon = 'https://www.youtube.com/favicon.ico';
+
+  const handle = parseYouTubeHandle(href);
+  const key = process.env.YOUTUBE_API_KEY;
+
+  if (key && handle) {
+    const data = await fetchJson<YtChannelList>(
+      `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${encodeURIComponent(handle)}&key=${encodeURIComponent(key)}`,
+      signal
+    );
+    const item = data?.items?.[0];
+    if (item?.snippet) {
+      const stats = item.statistics;
+      const extras: ProfileCard['extras'] = [];
+      if (item.snippet.customUrl)
+        extras.push({ label: 'Handle', value: item.snippet.customUrl });
+      if (stats?.viewCount)
+        extras.push({
+          label: 'Views',
+          value: Number(stats.viewCount).toLocaleString('en'),
+        });
+
+      return {
+        ...card,
+        username: handle,
+        displayName: item.snippet.title || null,
+        avatar:
+          item.snippet.thumbnails?.high?.url ||
+          item.snippet.thumbnails?.medium?.url ||
+          null,
+        status: null,
+        bio: item.snippet.description?.split('\n').filter(Boolean)[0] || null,
+        stats: {
+          followers: stats?.hiddenSubscriberCount
+            ? null
+            : stats?.subscriberCount
+              ? Number(stats.subscriberCount)
+              : null,
+          following: null,
+          posts: stats?.videoCount ? Number(stats.videoCount) : null,
+        },
+        extras,
+      };
+    }
+  }
+
+  // oEmbed JSON fallback (no subscriber counts).
+  try {
+    const oem = await fetchJson<{
+      title?: string;
+      author_name?: string;
+      thumbnail_url?: string;
+      provider_name?: string;
+    }>(
+      `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(href)}`,
+      signal
+    );
+    if (oem) {
+      const basics = await scrapeBasics(href, signal);
+      return merge(card, {
+        username: handle,
+        displayName: oem.author_name || oem.title || basics.displayName || null,
+        avatar: oem.thumbnail_url || basics.avatar || null,
+        bio: basics.bio || oem.title || null,
+        favicon: card.favicon,
+      });
+    }
+  } catch {
+    /* fall through */
+  }
+
+  return merge(card, {
+    username: handle,
+    ...(await scrapeBasics(href, signal)),
+  });
+}
+
+/* ─── LinkedIn (OG / JSON-LD only) ───────────────────────────────────── */
+
+function parseLinkedInUsername(href: string): string | null {
+  try {
+    const m = new URL(href).pathname.match(/\/in\/([^/]+)/i);
+    return m?.[1] ? decodeURIComponent(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * LinkedIn og:description is an SEO frankenstein:
+ * "About blurb… · Experience: X · Education: Y · Location: Z · 500+ connections on LinkedIn.
+ *  View Name's profile on LinkedIn, a professional community of 1 billion members."
+ * Split that into bio + extras; never surface the marketing trailer.
+ */
+function parseLinkedInDescription(raw: string | null): {
+  about: string | null;
+  extras: ProfileCard['extras'];
+  connections: number | null;
+  connectionsLabel: string | null;
+} {
+  const extras: ProfileCard['extras'] = [];
+  let connections: number | null = null;
+  let connectionsLabel: string | null = null;
+  if (!raw?.trim()) return { about: null, extras, connections, connectionsLabel };
+
+  let text = raw.trim();
+  text = text.replace(/\s*View .+?['’]s profile on LinkedIn.*$/i, '').trim();
+  text = text.replace(/\s*,?\s*a professional community of [\d.,]+\s*members\.?\s*$/i, '').trim();
+
+  const parts = text
+    .split(/\s*·\s*/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  let about: string | null = null;
+  for (const part of parts) {
+    const exp = part.match(/^Experience:\s*(.+)$/i);
+    if (exp) {
+      extras.push({ label: 'Experience', value: exp[1].trim() });
+      continue;
+    }
+    const edu = part.match(/^Education:\s*(.+)$/i);
+    if (edu) {
+      extras.push({ label: 'Education', value: edu[1].trim() });
+      continue;
+    }
+    const loc = part.match(/^Location:\s*(.+)$/i);
+    if (loc) {
+      extras.push({ label: 'Location', value: loc[1].trim() });
+      continue;
+    }
+    const conn = part.match(/^([\d,]+)\+?\s*connections?(?:\s+on\s+LinkedIn)?$/i);
+    if (conn) {
+      const n = Number(conn[1].replace(/,/g, ''));
+      connections = Number.isFinite(n) ? n : null;
+      connectionsLabel = part.includes('+') ? `${conn[1]}+` : conn[1];
+      continue;
+    }
+    if (!about) {
+      about = part.replace(/…\s*$/u, '').replace(/\.{2,}\s*$/, '').trim();
+    }
+  }
+
+  return { about, extras, connections, connectionsLabel };
+}
+
+async function fromLinkedIn(href: string, signal: AbortSignal): Promise<ProfileCard> {
+  const card = emptyCard('LinkedIn', href);
+  card.labels = {
+    followers: 'Connections',
+    following: 'Following',
+    posts: 'Posts',
+  };
+  card.favicon = 'https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca';
+
+  const username = parseLinkedInUsername(href);
+  const basics = await scrapeBasics(href, signal);
+  const own =
+    username?.toLowerCase() === 'aspauldingcode' ||
+    username?.toLowerCase() === resume.basics.profiles?.find((p) =>
+      p.network?.toLowerCase() === 'linkedin'
+    )?.username?.toLowerCase();
+
+  // og:title → "Name - Headline | LinkedIn"
+  let displayName = basics.displayName || null;
+  let headline: string | null = null;
+  if (displayName?.includes(' - ')) {
+    const idx = displayName.indexOf(' - ');
+    const name = displayName.slice(0, idx).trim();
+    const rest = displayName.slice(idx + 3).replace(/\s*\|\s*LinkedIn\s*$/i, '').trim();
+    displayName = name;
+    headline = rest || null;
+  } else if (displayName) {
+    displayName = displayName.replace(/\s*\|\s*LinkedIn\s*$/i, '').trim();
+  }
+
+  const parsed = parseLinkedInDescription(basics.bio ?? null);
+
+  // Prefer: short about segment → title headline → own resume summary. Never the SEO dump.
+  let bio =
+    parsed.about ||
+    headline ||
+    (own ? resume.basics.summary?.trim() || null : null);
+
+  // If "about" is still absurdly long / still looks like a dump, fall back.
+  if (bio && (/connections on LinkedIn/i.test(bio) || /1 billion members/i.test(bio))) {
+    bio = headline || (own ? resume.basics.summary?.trim() || null : null);
+  }
+  if (bio && bio.length > 280) {
+    bio = `${bio.slice(0, 277).replace(/\s+\S*$/, '')}…`;
+  }
+
+  let avatar = basics.avatar;
+  if (!avatar && own) avatar = '/profile_square.jpg';
+
+  // Status = job headline when bio is the longer about blurb.
+  const status = headline && bio && headline !== bio ? headline : null;
+
+  return {
+    ...card,
+    username,
+    displayName: displayName || (own ? resume.basics.name : null),
+    avatar: avatar ?? null,
+    status,
+    bio: bio ?? null,
+    favicon: basics.favicon || card.favicon,
+    stats: {
+      followers: parsed.connections,
+      following: null,
+      posts: null,
+    },
+    extras: parsed.extras,
+  };
+}
+
+/* ─── X / Twitter (OG only) ──────────────────────────────────────────── */
+
+function parseXUsername(href: string): string | null {
+  try {
+    const path = new URL(href).pathname.replace(/\/$/, '');
+    const parts = path.split('/').filter(Boolean);
+    if (!parts.length) return null;
+    const skip = new Set(['home', 'explore', 'search', 'i', 'intent', 'share', 'hashtag']);
+    if (skip.has(parts[0].toLowerCase())) return null;
+    return parts[0].replace(/^@/, '');
+  } catch {
+    return null;
+  }
+}
+
+async function fromX(href: string, signal: AbortSignal): Promise<ProfileCard> {
+  const card = emptyCard('X', href);
+  card.labels = {
+    followers: 'Followers',
+    following: 'Following',
+    posts: 'Posts',
+  };
+  card.favicon = 'https://abs.twimg.com/favicons/twitter.3.ico';
+
+  const username = parseXUsername(href);
+  const basics = await scrapeBasics(href, signal);
+
+  let displayName = basics.displayName || null;
+  // "Name (@handle) / X"
+  const m = displayName?.match(/^(.*?)\s*\(@([^)]+)\)/);
+  if (m) {
+    displayName = m[1].trim();
+  } else if (displayName) {
+    displayName = displayName.replace(/\s*\/\s*X\s*$/i, '').trim();
+  }
+
+  return {
+    ...card,
+    username: username || null,
+    displayName,
+    avatar: basics.avatar ?? null,
+    bio: basics.bio ?? null,
+    favicon: basics.favicon || card.favicon,
+  };
+}
+
+/* ─── Router ─────────────────────────────────────────────────────────── */
+
+export async function fetchProfileCard(
+  href: string,
+  signal?: AbortSignal
+): Promise<ProfileCard | null> {
+  const host = hostOf(href);
+  if (!host) return null;
+
+  const ac = signal ?? new AbortController().signal;
+
+  if (host === 'github.com') return fromGitHub(href, ac);
+  if (host === 'mastodon.social') return fromMastodon(href, ac);
+  if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be')
+    return fromYouTube(href, ac);
+  if (host === 'linkedin.com') return fromLinkedIn(href, ac);
+  if (host === 'x.com' || host === 'twitter.com' || host === 'mobile.twitter.com')
+    return fromX(href, ac);
+
+  // Generic preview-only fallback still uses the uniform shape.
+  const card = emptyCard(host, href);
+  return merge(card, await scrapeBasics(href, ac));
+}
+
+export function formatStatCount(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return '—';
+  return new Intl.NumberFormat('en', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value);
+}

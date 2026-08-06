@@ -3,9 +3,9 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * One document at a time. Assigns src in an effect and blanks it on cleanup
- * so leaving /view (or switching u=) actually tears down the framed site
- * (network, media, timers) instead of leaving a zombie iframe document.
+ * One document at a time. Src is set on the element (Safari is unreliable when
+ * starting from about:blank and assigning in an effect). Cleanup still blanks
+ * the frame so leaving /view tears down network/media/timers.
  */
 export default function EmbedFrame({
   src,
@@ -20,7 +20,11 @@ export default function EmbedFrame({
     const el = ref.current;
     if (!el) return;
 
-    el.src = src;
+    // Re-assert after mount: WebKit sometimes keeps a stale about:blank
+    // document if the attribute was present before hydration.
+    if (el.getAttribute('src') !== src) {
+      el.src = src;
+    }
 
     return () => {
       try {
@@ -37,7 +41,8 @@ export default function EmbedFrame({
       ref={ref}
       className="embed-frame"
       title={title}
-      src="about:blank"
+      src={src}
+      referrerPolicy="strict-origin-when-cross-origin"
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       allowFullScreen
     />

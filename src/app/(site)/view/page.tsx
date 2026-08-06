@@ -1,6 +1,6 @@
 import EmbedViewer from '@/components/EmbedViewer';
-import { fetchLinkPreview } from '@/lib/linkPreview';
 import { parseViewTarget } from '@/lib/viewHref';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -9,19 +9,16 @@ export async function generateMetadata({
   searchParams,
 }: {
   searchParams: Promise<{ u?: string }>;
-}) {
+}): Promise<Metadata> {
   const { u } = await searchParams;
   const target = parseViewTarget(u);
-  if (!target) return { title: 'View' };
-
-  if (!target.embeddable) {
-    const preview = await fetchLinkPreview(target.openHref);
-    if (preview?.title) {
-      return { title: `${preview.title} · Alex Spaulding` };
-    }
-  }
-
-  return { title: `${target.label} · Alex Spaulding` };
+  if (!target) return { title: 'View', robots: { index: false, follow: false } };
+  // Proxy/preview panes should not compete with real profile URLs in search.
+  return {
+    title: target.label,
+    description: `In-portfolio preview of ${target.label}`,
+    robots: { index: false, follow: false, nocache: true },
+  };
 }
 
 export default async function ViewPage({
@@ -33,9 +30,5 @@ export default async function ViewPage({
   const target = parseViewTarget(u);
   if (!target) notFound();
 
-  const preview = target.embeddable
-    ? null
-    : await fetchLinkPreview(target.openHref);
-
-  return <EmbedViewer target={target} preview={preview} />;
+  return <EmbedViewer target={target} />;
 }

@@ -15,6 +15,16 @@ images:
   - /whisperer_slider/selectTTS-Language.png
   - /whisperer_slider/inputTimeout.png
   - /whisperer_slider/settingsAPIKey.png
+imageAlts:
+  - "Whisperer Apple Watch home screen with slate glow theme"
+  - "Whisperer Apple Watch home screen with red flat theme"
+  - "Whisperer chat conversation UI in green theme on Apple Watch"
+  - "Whisperer voice prompt listen screen in blue theme on Apple Watch"
+  - "Whisperer appearance settings on Apple Watch"
+  - "Whisperer language selection screen on Apple Watch"
+  - "Whisperer text-to-speech language selection on Apple Watch"
+  - "Whisperer input timeout settings on Apple Watch"
+  - "Whisperer API key settings screen on Apple Watch"
 links:
   - label: GitHub
     href: https://github.com/aspauldingcode/Whisperer

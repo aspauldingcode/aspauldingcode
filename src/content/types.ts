@@ -12,6 +12,8 @@ export type ProjectMeta = {
   blurb: string;
   years: string;
   images: string[];
+  /** Parallel to `images` — descriptive alt text for SEO / a11y. */
+  imageAlts?: string[];
   links: ProjectLink[];
   order: number;
   music?: boolean;

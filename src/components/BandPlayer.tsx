@@ -292,7 +292,7 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
         <p className="player-label">Listen (TIDAL preview)</p>
         {current?.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={current.coverUrl} alt="" className="player-cover" width={48} height={48} />
+          <img src={current.coverUrl} alt={`${current.title} album cover`} className="player-cover" width={48} height={48} />
         ) : null}
       </div>
 

@@ -15,12 +15,45 @@ export type ViewTarget = {
 const FRAME_HOSTS = new Set(['wawona.io', 'www.wawona.io']);
 
 /**
- * Map public share URLs to vendor embed URLs.
- * Full pages (GitHub, Spotify web, etc.) send CSP frame-ancestors / XFO and
- * cannot be forced. Official embed endpoints are the supported 2026 path.
+ * Known frame-blockers. Skip iframe attempts and go straight to OG preview
+ * cards — no embed probe / timeout fallback.
+ */
+const PREVIEW_ONLY_HOSTS = new Set([
+  'github.com',
+  'linkedin.com',
+  'x.com',
+  'twitter.com',
+  'mobile.twitter.com',
+  'youtube.com',
+  'm.youtube.com',
+  'youtu.be',
+  'youtube-nocookie.com',
+  'mastodon.social',
+]);
+
+function hostKey(hostname: string): string {
+  return hostname.replace(/^www\./, '').toLowerCase();
+}
+
+/** True when we never attempt an iframe for this URL. */
+export function isPreviewOnlyUrl(href: string): boolean {
+  try {
+    const u = new URL(href);
+    if (u.protocol !== 'https:') return false;
+    return PREVIEW_ONLY_HOSTS.has(hostKey(u.hostname));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Map public share URLs to vendor embed URLs (Spotify / Apple Music).
+ * Social + YouTube stay preview-only — they block framing or we prefer cards.
  */
 function toEmbedUrl(u: URL): string | null {
-  const host = u.hostname.replace(/^www\./, '');
+  const host = hostKey(u.hostname);
+
+  if (PREVIEW_ONLY_HOSTS.has(host)) return null;
 
   // Spotify: /artist|album|track|playlist|episode|show/:id → /embed/...
   if (host === 'open.spotify.com') {
@@ -36,21 +69,6 @@ function toEmbedUrl(u: URL): string | null {
     return `https://embed.music.apple.com${u.pathname}${u.search}`;
   }
 
-  // YouTube watch / shorts / youtu.be → youtube-nocookie embed
-  // Channels and @handles stay non-embeddable (preview card).
-  if (host === 'youtu.be') {
-    const id = u.pathname.replace(/^\//, '').split('/')[0];
-    if (id) return `https://www.youtube-nocookie.com/embed/${id}`;
-  }
-  if (host === 'youtube.com' || host === 'm.youtube.com') {
-    const v = u.searchParams.get('v');
-    if (v) return `https://www.youtube-nocookie.com/embed/${v}`;
-    const shorts = u.pathname.match(/^\/shorts\/([A-Za-z0-9_-]+)/);
-    if (shorts) return `https://www.youtube-nocookie.com/embed/${shorts[1]}`;
-    const embed = u.pathname.match(/^\/embed\/([A-Za-z0-9_-]+)/);
-    if (embed) return `https://www.youtube-nocookie.com/embed/${embed[1]}`;
-  }
-
   return null;
 }
 
@@ -59,12 +77,11 @@ function isEmbeddable(href: string): boolean {
   try {
     const u = new URL(href);
     if (u.protocol !== 'https:') return false;
-    const host = u.hostname.replace(/^www\./, '');
+    const host = hostKey(u.hostname);
+    if (PREVIEW_ONLY_HOSTS.has(host)) return false;
     if (FRAME_HOSTS.has(u.hostname) || FRAME_HOSTS.has(host)) return true;
     if (host === 'open.spotify.com' && u.pathname.startsWith('/embed/')) return true;
     if (host === 'embed.music.apple.com') return true;
-    if (host === 'youtube-nocookie.com' && u.pathname.startsWith('/embed/'))
-      return true;
     return false;
   } catch {
     return false;
@@ -92,6 +109,16 @@ export function parseViewTarget(raw: string | undefined | null): ViewTarget | nu
     if (u.protocol !== 'https:') return null;
     const openHref = u.toString();
     const label = `${u.host}${u.pathname === '/' ? '' : u.pathname}${u.search}`;
+
+    if (PREVIEW_ONLY_HOSTS.has(hostKey(u.hostname))) {
+      return {
+        href: openHref,
+        openHref,
+        label,
+        embeddable: false,
+      };
+    }
+
     const embed = toEmbedUrl(u);
     const href = embed ?? openHref;
     return {
