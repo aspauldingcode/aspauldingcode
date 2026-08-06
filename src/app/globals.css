@@ -1159,6 +1159,7 @@ img[data-nimg='fill'] {
    text size, and scroll horizontally like GitHub’s mobile app.
    data-mode="fit" scales the whole graph into the column (no sideways scroll). */
 .github-graph-panel {
+  --github-graph-min: 37.5rem;
   margin: 0 0 1.25rem;
 }
 
@@ -1238,8 +1239,8 @@ img[data-nimg='fill'] {
 .github-graph {
   display: block;
   height: auto;
-  /* Grow with the column; floor ≈ .wrap content at 40rem (− 1.25rem×2 pad). */
-  width: max(100%, 37.5rem);
+  /* Grow with the column; floor keeps cells readable (triggers scroll when tight). */
+  width: max(100%, var(--github-graph-min));
 }
 
 .github-graph-scroll-wrap[data-mode='fit'] .github-graph {

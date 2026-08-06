@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type EdgeState = {
-  /** True when the graph is wider than the viewport in scroll layout. */
+  /** True when scroll layout actually needs horizontal scrolling. */
   overflows: boolean;
   canScrollLeft: boolean;
   canScrollRight: boolean;
@@ -17,33 +17,44 @@ const IDLE: EdgeState = {
   canScrollRight: false,
 };
 
+const EPS = 2;
+
+function scrollMinPx(el: Element): number {
+  const raw =
+    getComputedStyle(el).getPropertyValue('--github-graph-min').trim() || '37.5rem';
+  if (raw.endsWith('rem')) {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    return parseFloat(raw) * rem;
+  }
+  if (raw.endsWith('px')) return parseFloat(raw);
+  return parseFloat(raw) || 600;
+}
+
 /**
  * Scroll detail (default) vs fit-to-width full graph.
- * Toggle and edge fades only appear when the graph actually overflows.
+ * Toggle and edge fades only when the scroller truly overflows.
  */
 export default function ContributionGraphPanel({ href }: { href: string }) {
   const [preferFit, setPreferFit] = useState(false);
   const [edges, setEdges] = useState<EdgeState>(IDLE);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const isFit = preferFit && edges.overflows;
   const mode = isFit ? 'fit' : 'scroll';
 
   const measure = useCallback(() => {
     const scroller = scrollerRef.current;
-    if (!scroller) return;
+    const panel = panelRef.current;
+    if (!scroller || !panel) return;
 
-    const svg = scroller.querySelector('svg.github-graph');
-    const natural = svg
-      ? Number(svg.getAttribute('width')) || svg.getBoundingClientRect().width
-      : 0;
     const view = scroller.clientWidth;
-    const naturalOverflow = natural > view + 1;
+    // Fit mode forces width:100%, so use the scroll-mode floor from CSS.
+    const wouldOverflow = view + EPS < scrollMinPx(panel);
 
-    // While fitted, SVG is width:100% so scroll metrics won't show overflow.
     if (preferFit) {
       setEdges({
-        overflows: naturalOverflow,
+        overflows: wouldOverflow,
         canScrollLeft: false,
         canScrollRight: false,
       });
@@ -51,10 +62,11 @@ export default function ContributionGraphPanel({ href }: { href: string }) {
     }
 
     const { scrollLeft, scrollWidth, clientWidth } = scroller;
+    const overflows = scrollWidth > clientWidth + EPS;
     setEdges({
-      overflows: scrollWidth > clientWidth + 1 || naturalOverflow,
-      canScrollLeft: scrollLeft > 1,
-      canScrollRight: scrollLeft + clientWidth < scrollWidth - 1,
+      overflows,
+      canScrollLeft: overflows && scrollLeft > EPS,
+      canScrollRight: overflows && scrollLeft + clientWidth < scrollWidth - EPS,
     });
   }, [preferFit]);
 
@@ -70,8 +82,6 @@ export default function ContributionGraphPanel({ href }: { href: string }) {
 
     const ro = new ResizeObserver(run);
     ro.observe(scroller);
-    const svg = scroller.querySelector('svg.github-graph');
-    if (svg) ro.observe(svg);
 
     window.addEventListener('resize', run);
     return () => {
@@ -82,7 +92,7 @@ export default function ContributionGraphPanel({ href }: { href: string }) {
   }, [measure, preferFit]);
 
   return (
-    <div className="github-graph-panel">
+    <div className="github-graph-panel" ref={panelRef}>
       {edges.overflows ? (
         <p className="github-graph-toolbar no-print">
           <button
