@@ -1,4 +1,4 @@
-import ContributionGraph from '@/components/ContributionGraph';
+import ContributionGraphPanel from '@/components/ContributionGraphPanel';
 import ContactForm from '@/components/ContactForm';
 import GitHubStats from '@/components/GitHubStats';
 import PrefetchViewLink from '@/components/PrefetchViewLink';
@@ -209,13 +209,7 @@ export default function HomeContent() {
           </PrefetchViewLink>
         </p>
 
-        <div className="github-graph-scroll-wrap">
-          <div className="github-graph-scroller">
-            <Link className="github-graph-link" href={viewHref(githubProfile)}>
-              <ContributionGraph />
-            </Link>
-          </div>
-        </div>
+        <ContributionGraphPanel href={viewHref(githubProfile)} />
 
         <GitHubStats />
       </Section>
