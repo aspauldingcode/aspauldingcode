@@ -102,6 +102,7 @@ export default function HireMe() {
     const hero = document.querySelector('h1.hero-title');
     const heroRow = hero?.closest('.hero-name');
     const main = document.querySelector('.split-main');
+    const wrap = main instanceof HTMLElement ? main.querySelector('.wrap') : null;
     const shell = document.querySelector('.split-shell');
     const flyHireEl = flyHire;
     if (
@@ -167,8 +168,10 @@ export default function HireMe() {
     measure.append(probe);
     document.body.append(measure);
 
-    const detailOpen = () =>
-      narrow.matches && shell instanceof HTMLElement && shell.hasAttribute('data-open');
+    const columnOpen = () =>
+      shell instanceof HTMLElement && shell.hasAttribute('data-open');
+
+    const detailOpen = () => narrow.matches && columnOpen();
 
     function countLines(el: HTMLElement) {
       const range = document.createRange();
@@ -205,8 +208,20 @@ export default function HireMe() {
       hostEl.hidden = false;
       let left = '0';
       let width = '100%';
-      if (!detailOpen() && main instanceof HTMLElement && main.clientHeight >= 2) {
-        left = `${main.getBoundingClientRect().left}px`;
+      if (detailOpen()) {
+        left = '0';
+        width = '100%';
+      } else if (columnOpen() && main instanceof HTMLElement && main.clientWidth >= 2) {
+        const pane = main.getBoundingClientRect();
+        left = `${pane.left}px`;
+        width = `${main.clientWidth}px`;
+      } else if (wrap instanceof HTMLElement && wrap.clientWidth >= 2) {
+        const box = wrap.getBoundingClientRect();
+        left = `${box.left}px`;
+        width = `${box.width}px`;
+      } else if (main instanceof HTMLElement && main.clientWidth >= 2) {
+        const pane = main.getBoundingClientRect();
+        left = `${pane.left}px`;
         width = `${main.clientWidth}px`;
       }
       if (pinnedLeft !== left) {
@@ -427,6 +442,7 @@ export default function HireMe() {
     if (shell) mo.observe(shell, { attributes: true, attributeFilter: ['data-open'] });
     const ro = new ResizeObserver(onResize);
     if (main instanceof HTMLElement) ro.observe(main);
+    if (wrap instanceof HTMLElement) ro.observe(wrap);
     const fonts = document.fonts;
     fonts?.ready.then(() => {
       stackBarW = -1;
