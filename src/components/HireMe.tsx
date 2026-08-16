@@ -33,19 +33,9 @@ export function goToHireContact(
   scheduleScrollToHomeSection('contact');
 }
 
-function scroller(): HTMLElement | Window {
-  const main = document.querySelector('.split-main');
-  if (
-    main instanceof HTMLElement &&
-    main.scrollHeight > main.clientHeight + 1
-  ) {
-    return main;
-  }
-  return window;
-}
-
-function scrollTop(el: HTMLElement | Window) {
-  return el instanceof HTMLElement ? el.scrollTop : el.scrollY;
+function scrollTop(main: Element | null) {
+  const pane = main instanceof HTMLElement ? main.scrollTop : 0;
+  return Math.max(pane, window.scrollY);
 }
 
 function lerp(a: number, b: number, t: number) {
@@ -90,7 +80,6 @@ export default function HireMe() {
   const heroHireRef = useRef<HTMLAnchorElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const flyRef = useRef<HTMLDivElement>(null);
-  const probeRef = useRef<HTMLParagraphElement>(null);
   const [ready, setReady] = useState(false);
   const name = resume.basics.name;
   const onHire = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -106,7 +95,6 @@ export default function HireMe() {
     const destHire = destHireRef.current;
     const heroHire = heroHireRef.current;
     const fly = flyRef.current;
-    const probe = probeRef.current;
     const bar = host?.querySelector('.hire-bar');
     const dest = destLead?.querySelector('.hire-bar-name');
     const flyName = fly?.querySelector('.hire-group-fly-name');
@@ -122,7 +110,6 @@ export default function HireMe() {
       !(dest instanceof HTMLElement) ||
       !(destHire instanceof HTMLElement) ||
       !(heroHire instanceof HTMLElement) ||
-      !(probe instanceof HTMLElement) ||
       !(bar instanceof HTMLElement) ||
       !(fly instanceof HTMLElement) ||
       !(flyName instanceof HTMLElement) ||
@@ -133,13 +120,27 @@ export default function HireMe() {
       return;
     }
 
+    const hostEl = host;
+    const destLeadEl = destLead;
+    const destEl = dest;
+    const destHireEl = destHire;
+    const heroHireEl = heroHire;
+    const barEl = bar;
+    const flyEl = fly;
+    const flyNameEl = flyName;
+    const flyHireNode = flyHireEl;
+    const heroEl = hero;
+    const heroRowEl = heroRow;
+
     const narrow = window.matchMedia('(max-width: 63.999rem)');
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let root: HTMLElement | Window = scroller();
     let phase = -1;
     let restGap = 1;
     let raf = 0;
     let settle = 0;
+    let scrolling = false;
+    let destBox: Box | null = null;
+    let destHireBox: Box | null = null;
     let flying = 0;
     let flyStart = 0;
     let flyFrom: Box | null = null;
@@ -149,6 +150,22 @@ export default function HireMe() {
     let pinnedLeft = '';
     let pinnedWidth = '';
     let stackBarW = -1;
+
+    const probe = document.createElement('p');
+    probe.className = 'hire-bar-copy';
+    probe.replaceChildren(
+      document.createTextNode(`${HIRE_COPY} `),
+      Object.assign(document.createElement('a'), {
+        className: 'ctrl-link resume-print',
+        textContent: 'Resume',
+      })
+    );
+    const measure = document.createElement('div');
+    measure.setAttribute('aria-hidden', 'true');
+    measure.style.cssText =
+      'position:fixed;left:0;top:0;width:0;height:0;overflow:hidden;clip-path:inset(50%);pointer-events:none;';
+    measure.append(probe);
+    document.body.append(measure);
 
     const detailOpen = () =>
       narrow.matches && shell instanceof HTMLElement && shell.hasAttribute('data-open');
@@ -167,25 +184,25 @@ export default function HireMe() {
     }
 
     function syncStack() {
-      const width = bar.clientWidth;
+      const width = barEl.clientWidth;
       if (width === stackBarW) return;
       stackBarW = width;
-      const cs = getComputedStyle(bar);
+      const cs = getComputedStyle(barEl);
       const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
       const gap = parseFloat(cs.columnGap) || 0;
       const leadGap =
-        parseFloat(getComputedStyle(destLead).columnGap) ||
-        parseFloat(getComputedStyle(destLead).gap) ||
+        parseFloat(getComputedStyle(destLeadEl).columnGap) ||
+        parseFloat(getComputedStyle(destLeadEl).gap) ||
         0;
-      const available = width - pad - dest.offsetWidth - destHire.offsetWidth - leadGap - gap;
+      const available = width - pad - destEl.offsetWidth - destHireEl.offsetWidth - leadGap - gap;
       probe.style.width = `${Math.max(available, 0)}px`;
       const stack = available < 8 || countLines(probe) >= 3;
-      bar.classList.toggle('is-stack', stack);
-      host.classList.toggle('is-stack', stack);
+      barEl.classList.toggle('is-stack', stack);
+      hostEl.classList.toggle('is-stack', stack);
     }
 
     function pin() {
-      host.hidden = false;
+      hostEl.hidden = false;
       let left = '0';
       let width = '100%';
       if (!detailOpen() && main instanceof HTMLElement && main.clientHeight >= 2) {
@@ -194,40 +211,58 @@ export default function HireMe() {
       }
       if (pinnedLeft !== left) {
         pinnedLeft = left;
-        host.style.left = left;
+        hostEl.style.left = left;
       }
       if (pinnedWidth !== width) {
         pinnedWidth = width;
-        host.style.width = width;
+        hostEl.style.width = width;
       }
       syncStack();
     }
 
     function measureRest() {
       pin();
-      const a = hero.getBoundingClientRect();
-      const b = dest.getBoundingClientRect();
-      if (a.width > 2 && b.width > 2) restGap = Math.max(a.top - b.top, 1);
+      const a = heroEl.getBoundingClientRect();
+      const destNow = readDest();
+      if (a.width > 2 && destNow) restGap = Math.max(a.top - destNow.to.top, 1);
     }
 
     function setPhase(next: number) {
       if (next === phase) return;
       phase = next;
-      host.classList.toggle('is-on', next !== IDLE);
-      host.setAttribute('aria-hidden', next === IDLE ? 'true' : 'false');
-      heroRow.classList.toggle('is-group-hidden', next !== IDLE);
-      destLead.classList.toggle('is-group-hidden', next !== DOCKED);
-      fly.classList.toggle('is-live', next === TRAVEL);
-      dest.tabIndex = destHire.tabIndex = next === DOCKED ? 0 : -1;
+      hostEl.classList.toggle('is-on', next !== IDLE);
+      hostEl.setAttribute('aria-hidden', next === IDLE ? 'true' : 'false');
+      heroRowEl.classList.toggle('is-group-hidden', next !== IDLE);
+      destLeadEl.classList.toggle('is-group-hidden', next !== DOCKED);
+      flyEl.classList.toggle('is-live', next === TRAVEL);
+      destEl.tabIndex = destHireEl.tabIndex = next === DOCKED ? 0 : -1;
       if (next !== TRAVEL) {
-        fly.style.transform = '';
-        flyName.style.transform = '';
-        flyHireEl.style.transform = '';
+        flyEl.style.transform = '';
+        flyNameEl.style.transform = '';
+        flyHireNode.style.transform = '';
       }
     }
 
-    /** One t drives name and Hire me so the pair cannot drift. */
-    function place(t: number, from: Box, to: Box, fromHire: Box, toHire: Box) {
+    function readDest() {
+      const to = boxOf(destEl);
+      const hire = boxOf(destHireEl);
+      if (to.width > 2) {
+        destBox = to;
+        destHireBox = hire;
+      }
+      return destBox && destHireBox ? { to: destBox, hire: destHireBox } : null;
+    }
+
+    /** One t drives name and Hire me. Scroll keeps Y on the live title. */
+    function place(
+      t: number,
+      from: Box,
+      to: Box,
+      fromHire: Box,
+      toHire: Box,
+      stickY = false
+    ) {
+      if (from.width < 2 || to.width < 2) return;
       const u = Math.min(1, Math.max(0, t));
       const scale = lerp(1, to.width / Math.max(from.width, 1), u);
       const gap = lerp(
@@ -235,13 +270,11 @@ export default function HireMe() {
         toHire.left - to.left - to.width,
         u
       );
-      fly.style.transform = `translate3d(${lerp(from.left, to.left, u)}px,${lerp(
-        from.top,
-        to.top,
-        u
-      )}px,0)`;
-      flyName.style.transform = `scale(${scale})`;
-      flyHireEl.style.transform = `translate3d(${from.width * scale + gap}px,${
+      flyEl.style.transform = `translate3d(${lerp(from.left, to.left, u)}px,${
+        stickY ? from.top : lerp(from.top, to.top, u)
+      }px,0)`;
+      flyNameEl.style.transform = `scale(${scale})`;
+      flyHireNode.style.transform = `translate3d(${from.width * scale + gap}px,${
         (from.height * scale - fromHire.height) / 2
       }px,0)`;
     }
@@ -259,9 +292,9 @@ export default function HireMe() {
       const u = Math.min(1, (now - flyStart) / FLY_MS);
       const t = easeColumn(u);
       if (flying > 0) {
-        place(t, flyFrom, boxOf(dest), flyFromHire, boxOf(destHire));
+        place(t, flyFrom, boxOf(destEl), flyFromHire, boxOf(destHireEl));
       } else {
-        place(t, flyFrom, boxOf(hero), flyFromHire, boxOf(heroHire));
+        place(t, flyFrom, boxOf(heroEl), flyFromHire, boxOf(heroHireEl));
       }
       if (u < 1) {
         flyRaf = requestAnimationFrame(stepFlight);
@@ -282,8 +315,8 @@ export default function HireMe() {
         setPhase(dir > 0 ? DOCKED : IDLE);
         return;
       }
-      const fromEl = dir > 0 ? hero : dest;
-      const fromHireEl = dir > 0 ? heroHire : destHire;
+      const fromEl = dir > 0 ? heroEl : destEl;
+      const fromHireEl = dir > 0 ? heroHireEl : destHireEl;
       const from = boxOf(fromEl);
       if (dir > 0 ? !onScreen(from) : from.width < 2) {
         stopFlight();
@@ -311,13 +344,13 @@ export default function HireMe() {
       }
       if (wasDetail) {
         wasDetail = false;
-        if (phase !== IDLE && onScreen(boxOf(hero))) {
+        if (phase !== IDLE && onScreen(boxOf(heroEl))) {
           beginFlight(-1);
           return;
         }
       }
 
-      const st = scrollTop(root);
+      const st = scrollTop(main);
       if (st <= 1) {
         if (phase !== IDLE) {
           setPhase(IDLE);
@@ -325,8 +358,10 @@ export default function HireMe() {
         }
         return;
       }
-      const from = boxOf(hero);
-      const to = boxOf(dest);
+      const from = boxOf(heroEl);
+      const destNow = readDest();
+      if (!destNow || from.width < 2) return;
+      const { to, hire: toHire } = destNow;
       if (motion.matches && from.top > to.top) {
         if (phase !== IDLE) {
           setPhase(IDLE);
@@ -351,37 +386,41 @@ export default function HireMe() {
         return;
       }
       setPhase(TRAVEL);
-      place(t, from, to, boxOf(heroHire), boxOf(destHire));
+      place(t, from, to, boxOf(heroHireEl), toHire, true);
     }
 
     function onScroll() {
-      if (!raf) raf = requestAnimationFrame(() => {
-        raf = 0;
-        sync();
-      });
+      scrolling = true;
       window.clearTimeout(settle);
-      settle = window.setTimeout(sync, 80);
+      settle = window.setTimeout(() => {
+        scrolling = false;
+        sync();
+      }, 120);
+      if (raf) return;
+      const tick = () => {
+        sync();
+        raf = scrolling ? requestAnimationFrame(tick) : 0;
+      };
+      raf = requestAnimationFrame(tick);
     }
 
     function onResize() {
       stackBarW = -1;
       pinnedLeft = '';
       pinnedWidth = '';
-      const next = scroller();
-      if (next !== root) {
-        root.removeEventListener('scroll', onScroll);
-        root.removeEventListener('scrollend', onScroll);
-        root = next;
-        root.addEventListener('scroll', onScroll, { passive: true });
-        root.addEventListener('scrollend', onScroll, { passive: true });
-      }
+      destBox = null;
+      destHireBox = null;
       measureRest();
       sync();
     }
 
     measureRest();
-    root.addEventListener('scroll', onScroll, { passive: true });
-    root.addEventListener('scrollend', onScroll, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scrollend', onScroll, { passive: true });
+    if (main instanceof HTMLElement) {
+      main.addEventListener('scroll', onScroll, { passive: true });
+      main.addEventListener('scrollend', onScroll, { passive: true });
+    }
     window.addEventListener('resize', onResize, { passive: true });
     narrow.addEventListener('change', sync);
     const mo = new MutationObserver(sync);
@@ -399,13 +438,18 @@ export default function HireMe() {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(flyRaf);
       window.clearTimeout(settle);
-      root.removeEventListener('scroll', onScroll);
-      root.removeEventListener('scrollend', onScroll);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scrollend', onScroll);
+      if (main instanceof HTMLElement) {
+        main.removeEventListener('scroll', onScroll);
+        main.removeEventListener('scrollend', onScroll);
+      }
       window.removeEventListener('resize', onResize);
       narrow.removeEventListener('change', sync);
       mo.disconnect();
       ro.disconnect();
-      heroRow.classList.remove('is-group-hidden');
+      measure.remove();
+      heroRowEl.classList.remove('is-group-hidden');
     };
   }, [ready]);
 
@@ -439,9 +483,6 @@ export default function HireMe() {
                 </div>
                 <p className="hire-bar-back">
                   <Link href="/">← Back to {name}</Link>
-                </p>
-                <p ref={probeRef} className="hire-bar-copy hire-bar-copy-probe" aria-hidden>
-                  {HIRE_COPY} <a className="ctrl-link resume-print">Resume</a>
                 </p>
               </div>
               <div ref={flyRef} className="hire-group-fly" aria-hidden>

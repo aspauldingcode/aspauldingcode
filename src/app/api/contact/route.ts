@@ -52,7 +52,15 @@ export async function POST(request: Request) {
       message: cleaned.message,
       hiring: body.hiring === true,
     });
-  } catch {
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : '';
+    if (detail.includes('misconfigured')) {
+      return NextResponse.json(
+        { ok: false, reason: 'Contact form is misconfigured.' },
+        { status: 503 }
+      );
+    }
+    console.error('contact send failed', detail);
     return NextResponse.json(
       { ok: false, reason: 'Could not send. Try again later.' },
       { status: 502 }

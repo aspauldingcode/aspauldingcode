@@ -179,7 +179,7 @@ export default function ContributionGraph() {
                       width={CELL}
                       height={CELL}
                       rx={2}
-                      title={tip}
+                      aria-label={tip}
                     />
                   );
                 })

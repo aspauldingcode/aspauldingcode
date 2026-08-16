@@ -402,7 +402,8 @@ img[data-nimg='fill'] {
 
 .hero-name.is-group-hidden,
 .hire-bar-lead.is-group-hidden {
-  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 a.hire-me,
@@ -465,6 +466,11 @@ a.hire-me:focus-visible {
 .hire-bar-host.is-on .hire-bar {
   opacity: 1;
   pointer-events: auto;
+}
+
+.hire-bar-host:not(.is-on) .hire-bar-copy,
+.hire-bar-host:not(.is-on) .hire-bar-back {
+  display: none;
 }
 
 .hire-group-fly {
@@ -545,16 +551,6 @@ a.hire-me:focus-visible {
 }
 
 .hire-bar.is-stack .hire-bar-copy {
-  text-align: left;
-}
-
-.hire-bar-copy-probe {
-  position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 0;
-  pointer-events: none;
-  z-index: -1;
   text-align: left;
 }
 
