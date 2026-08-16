@@ -3,7 +3,7 @@
 // EmailJS template fields: {{from_name}} {{from_email}} {{reply_to}} {{hire_me}} {{message}}
 export const emailConfig = {
   serviceId: 'portfolio',
-  templateId: 'portfolio_email_template',
+  templateId: 'aspauldingcode_portfolio_contact_form',
   publicKey: '_yza7UlF2bRQN74hN',
   recaptchaSiteKey: process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY || ''
 } as const; 
