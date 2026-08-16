@@ -20,9 +20,10 @@ import { projectImageAlt } from '@/lib/seo';
 import { viewHref } from '@/lib/viewHref';
 import Image from 'next/image';
 import Link from 'next/link';
+import { emailConfig } from '@/config/email';
 import Script from 'next/script';
 
-const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
+const SITE_KEY = emailConfig.recaptchaSiteKey;
 
 const { basics } = resume;
 // Never render basics.email / basics.phone on this page (contact form only).
