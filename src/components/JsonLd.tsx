@@ -1,15 +1,27 @@
-/** Serialize structured data for crawlers. */
+/** Serialize structured data for crawlers. Always a single object with @context. */
 export default function JsonLd({ data }: { data: object | object[] }) {
-  const payload = Array.isArray(data) ? data : [data];
+  const items = (Array.isArray(data) ? data : [data]).filter(
+    (item): item is object => Boolean(item) && typeof item === 'object'
+  );
+
+  const body =
+    items.length === 1
+      ? items[0]
+      : {
+          '@context': 'https://schema.org',
+          '@graph': items.map((item) => {
+            const rec = item as Record<string, unknown>;
+            if (!('@context' in rec)) return item;
+            const { '@context': _ctx, ...rest } = rec;
+            return rest;
+          }),
+        };
+
   return (
     <script
       type="application/ld+json"
-      // JSON-LD must be raw JSON in the document.
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(payload.length === 1 ? payload[0] : payload).replace(
-          /</g,
-          '\\u003c'
-        ),
+        __html: JSON.stringify(body).replace(/</g, '\\u003c'),
       }}
     />
   );

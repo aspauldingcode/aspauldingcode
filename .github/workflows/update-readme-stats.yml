@@ -9,6 +9,9 @@ on:
       - ".github/workflows/update-readme-stats.yml"
       - "scripts/generate-contribution-graph.mjs"
       - "scripts/generate-github-stats.mjs"
+      - "scripts/generate-project-stars.mjs"
+      - "content/work/**"
+      - "resume.json"
   workflow_dispatch:
 
 permissions:
@@ -32,6 +35,11 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: node scripts/generate-github-stats.mjs
 
+      - name: Generate project star counts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/generate-project-stars.mjs
+
       - name: Commit cards if changed
         run: |
           git config user.name "github-actions[bot]"
@@ -40,6 +48,7 @@ jobs:
           git add \
             public/github/contributions.json \
             public/github/stats.json \
+            public/github/project-stars.json \
             public/github/github-overview.svg \
             profile/github-overview.svg
           if git diff --cached --quiet; then

@@ -12,6 +12,7 @@
     "portfolio:collect": "node scripts/portfolio-agent/collect.mjs",
     "portfolio:propose": "node scripts/portfolio-agent/propose.mjs",
     "resume:pdf": "node scripts/export-resume.mjs",
+    "stars:refresh": "node scripts/generate-project-stars.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

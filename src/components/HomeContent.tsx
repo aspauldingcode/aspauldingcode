@@ -5,6 +5,7 @@ import HireMe from '@/components/HireMe';
 import PrefetchViewLink from '@/components/PrefetchViewLink';
 import PrintButton from '@/components/PrintButton';
 import Section from '@/components/Section';
+import SiteFooter from '@/components/SiteFooter';
 import { getProject } from '@/content/projects';
 import {
   awardsByYear,
@@ -14,6 +15,7 @@ import {
   resumeSelectedWork,
   yearOf,
 } from '@/content/resume';
+import { formatProjectStars } from '@/lib/projectStars';
 import { projectImageAlt } from '@/lib/seo';
 import { viewHref } from '@/lib/viewHref';
 import Image from 'next/image';
@@ -22,7 +24,6 @@ import Script from 'next/script';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY;
 
-const year = new Date().getFullYear();
 const { basics } = resume;
 // Never render basics.email / basics.phone on this page (contact form only).
 const selectedWork = resumeSelectedWork();
@@ -50,7 +51,7 @@ export default function HomeContent() {
         />
         <div className="hero-text">
           <div className="hero-name">
-            <h1>{basics.name}</h1>
+            <h1 className="hero-title">{basics.name}</h1>
             <HireMe />
           </div>
           {basics.label ? <p className="role">{basics.label}</p> : null}
@@ -124,6 +125,10 @@ export default function HomeContent() {
               project.years ||
               formatYearRange(entry.resume.startDate, entry.resume.endDate || undefined);
             const blurb = project.blurb || entry.resume.description || '';
+            const starLabel = formatProjectStars([
+              ...project.links.map((link) => link.href),
+              entry.resume.url,
+            ]);
             return (
               <li key={project.slug} className="project-row" data-slug={project.slug}>
                 <Link href={`/work/${project.slug}`} className="project-thumb-link">
@@ -141,6 +146,7 @@ export default function HomeContent() {
                     <Link href={`/work/${project.slug}`}>{project.title}</Link>
                   </h3>
                   {years ? <p className="years">{years}</p> : null}
+                  {starLabel ? <p className="project-stars">{starLabel}</p> : null}
                   {blurb ? <p className="blurb">{blurb}</p> : null}
                   <p className="more">
                     <Link href={`/work/${project.slug}`}>View project</Link>
@@ -250,15 +256,7 @@ export default function HomeContent() {
         <ContactForm />
       </Section>
 
-      <footer className="footer">
-        <hr className="footer-rule" aria-hidden="true" />
-        <p>
-          © {year > 2023 ? `2023-${year}` : '2023'} {basics.name} /{' '}
-          <Link href={viewHref('https://github.com/aspauldingcode/aspauldingcode')}>
-            source
-          </Link>
-        </p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

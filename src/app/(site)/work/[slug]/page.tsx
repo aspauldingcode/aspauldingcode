@@ -13,6 +13,7 @@ import {
   projectJsonLd,
   projectMetadata,
 } from '@/lib/seo';
+import { formatProjectStars, formatStarCount, starsForHref } from '@/lib/projectStars';
 import { viewHref } from '@/lib/viewHref';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -46,6 +47,7 @@ export default async function ProjectPage({
     (src) => imageSize(src) ?? { w: 1600, h: 1200 }
   );
   const alts = project.images.map((_, i) => projectImageAlt(project, i));
+  const starLabel = formatProjectStars(project.links.map((link) => link.href));
 
   return (
     <div className="wrap detail-pane">
@@ -66,6 +68,7 @@ export default async function ProjectPage({
         <header>
           <SectionTitle as="h1">{project.title}</SectionTitle>
           <p className="years">{project.years}</p>
+          {starLabel ? <p className="project-stars">{starLabel}</p> : null}
         </header>
 
         <ImageCarousel
@@ -83,11 +86,16 @@ export default async function ProjectPage({
 
         {project.links.length > 0 ? (
           <ul className="links">
-            {project.links.map((link) => (
-              <li key={link.href}>
-                <Link href={viewHref(link.href)}>{link.label}</Link>
-              </li>
-            ))}
+            {project.links.map((link) => {
+              const count = starsForHref(link.href);
+              const label =
+                count != null ? `${link.label} (${formatStarCount(count)})` : link.label;
+              return (
+                <li key={link.href}>
+                  <Link href={viewHref(link.href)}>{label}</Link>
+                </li>
+              );
+            })}
           </ul>
         ) : null}
 

@@ -91,7 +91,7 @@ export default function ContributionGraph() {
   const newestYear = yearCalendars[0]?.year ?? graph.fromYear;
   const oldestYear =
     yearCalendars[yearCalendars.length - 1]?.year ?? graph.fromYear;
-  const currentYear = new Date().getUTCFullYear();
+  const currentYear = newestYear;
 
   const aria = `GitHub contribution graphs for ${graph.login} by year from ${oldestYear} through ${newestYear}: ${graph.total} total contributions`;
 
@@ -104,9 +104,6 @@ export default function ContributionGraph() {
       role="img"
       aria-label={aria}
     >
-      <title>
-        GitHub contributions by year {oldestYear}-{newestYear} / {graph.login}
-      </title>
 
       {yearCalendars.map((entry, yi) => {
         const top = 8 + yi * (BAND_BLOCK + BAND_GAP);
@@ -170,7 +167,7 @@ export default function ContributionGraph() {
                   const level = LEVEL[day.contributionLevel] ?? 0;
                   const d = new Date(`${day.date}T12:00:00Z`);
                   const ri = d.getUTCDay();
-                  const title = `${day.contributionCount} contribution${
+                  const tip = `${day.contributionCount} contribution${
                     day.contributionCount === 1 ? '' : 's'
                   } on ${day.date}`;
                   return (
@@ -182,9 +179,8 @@ export default function ContributionGraph() {
                       width={CELL}
                       height={CELL}
                       rx={2}
-                    >
-                      <title>{title}</title>
-                    </rect>
+                      title={tip}
+                    />
                   );
                 })
             )}

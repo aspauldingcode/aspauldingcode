@@ -114,10 +114,11 @@ export default function ContactForm() {
       if (hasHireIntent()) setHiring(true);
     };
     syncHire();
-    window.addEventListener(HIRE_EVENT, syncHire);
+    const onHire = () => setHiring(true);
+    window.addEventListener(HIRE_EVENT, onHire);
     window.addEventListener('popstate', syncHire);
     return () => {
-      window.removeEventListener(HIRE_EVENT, syncHire);
+      window.removeEventListener(HIRE_EVENT, onHire);
       window.removeEventListener('popstate', syncHire);
     };
   }, []);

@@ -1,5 +1,6 @@
 export const HIRE_PARAM = 'hire';
 export const HIRE_EVENT = 'aspauldingcode:hire';
+export const HIRE_HREF = '/?hire=1#contact';
 
 export function searchHasHireIntent(search: string): boolean {
   return new URLSearchParams(search.startsWith('?') ? search.slice(1) : search).get(HIRE_PARAM) === '1';

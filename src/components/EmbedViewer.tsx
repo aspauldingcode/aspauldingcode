@@ -307,7 +307,7 @@ function ProfileCardView({
     stats.followers != null || stats.following != null || stats.posts != null;
   const showPapers = papers.length > 0;
   const showOwnGitHub = isOwnGitHubProfile(target.openHref);
-  const showStats = !showPapers && !showOwnGitHub && (loading || hasNumericStats);
+  const showStats = !showPapers && (loading || hasNumericStats);
   const openHref = card?.url || target.openHref;
 
   return (
@@ -380,39 +380,44 @@ function ProfileCardView({
           papers={papers}
           showSymposium={isEwuPreviewHost(target.openHref)}
         />
-      ) : showOwnGitHub ? (
-        <section className="profile-card-gh" aria-label="GitHub stats">
-          <h2 className="profile-card-section-heading">Stats</h2>
-          <GitHubStats />
-        </section>
-      ) : showStats ? (
-        <ul className="profile-card-stats" aria-label="Profile stats">
-          <li>
-            <span className="profile-card-stat-value">
-              {loading && stats.followers == null
-                ? '...'
-                : formatStatCount(stats.followers)}
-            </span>
-            <span className="profile-card-stat-label">{labels.followers}</span>
-          </li>
-          <li>
-            <span className="profile-card-stat-value">
-              {loading && stats.following == null
-                ? '...'
-                : formatStatCount(stats.following)}
-            </span>
-            <span className="profile-card-stat-label">{labels.following}</span>
-          </li>
-          <li>
-            <span className="profile-card-stat-value">
-              {loading && stats.posts == null
-                ? '...'
-                : formatStatCount(stats.posts)}
-            </span>
-            <span className="profile-card-stat-label">{labels.posts}</span>
-          </li>
-        </ul>
-      ) : null}
+      ) : (
+        <>
+          {showStats ? (
+            <ul className="profile-card-stats" aria-label="Profile stats">
+              <li>
+                <span className="profile-card-stat-value">
+                  {loading && stats.followers == null
+                    ? '...'
+                    : formatStatCount(stats.followers)}
+                </span>
+                <span className="profile-card-stat-label">{labels.followers}</span>
+              </li>
+              <li>
+                <span className="profile-card-stat-value">
+                  {loading && stats.following == null
+                    ? '...'
+                    : formatStatCount(stats.following)}
+                </span>
+                <span className="profile-card-stat-label">{labels.following}</span>
+              </li>
+              <li>
+                <span className="profile-card-stat-value">
+                  {loading && stats.posts == null
+                    ? '...'
+                    : formatStatCount(stats.posts)}
+                </span>
+                <span className="profile-card-stat-label">{labels.posts}</span>
+              </li>
+            </ul>
+          ) : null}
+          {showOwnGitHub ? (
+            <section className="profile-card-gh" aria-label="GitHub activity">
+              <h2 className="profile-card-section-heading">Activity</h2>
+              <GitHubStats />
+            </section>
+          ) : null}
+        </>
+      )}
 
       {pins.length > 0 ? <PinnedRepos pins={pins} /> : null}
 

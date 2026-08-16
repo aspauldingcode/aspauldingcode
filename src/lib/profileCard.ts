@@ -6,6 +6,7 @@
 import { preview } from 'linkpeek';
 import { resume } from '@/content/resume';
 import { proxiedPreviewImage } from '@/lib/linkPreviewImage';
+import ghStats from '../../public/github/stats.json';
 
 export type ProfilePaper = {
   title: string;
@@ -345,13 +346,42 @@ type GhGraphqlUser = {
       primaryLanguage?: { name?: string; color?: string | null } | null;
     } | null>;
   };
+  repositories?: {
+    nodes?: Array<{ stargazerCount?: number } | null>;
+  };
 };
+
+function committedOwnStars(login: string): number | null {
+  if (login.toLowerCase() !== ownGitHubLogin()) return null;
+  const n = Number(
+    (ghStats as { metrics?: { stars?: number } }).metrics?.stars
+  );
+  return Number.isFinite(n) ? n : null;
+}
+
+async function fetchGitHubStarTotal(
+  login: string,
+  signal: AbortSignal,
+  headers: Record<string, string>
+): Promise<number | null> {
+  const rows = await fetchJson<Array<{ fork?: boolean; stargazers_count?: number }>>(
+    `https://api.github.com/users/${encodeURIComponent(login)}/repos?per_page=100&type=owner&sort=updated`,
+    signal,
+    headers
+  );
+  if (!rows) return committedOwnStars(login);
+  const total = rows.reduce((sum, repo) => {
+    if (repo.fork) return sum;
+    return sum + (Number(repo.stargazers_count) || 0);
+  }, 0);
+  return total;
+}
 
 async function fetchGitHubPinsAndStatus(
   login: string,
   signal: AbortSignal,
   headers: Record<string, string>
-): Promise<{ pins: ProfilePin[]; status: string | null }> {
+): Promise<{ pins: ProfilePin[]; status: string | null; stars: number | null }> {
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
   if (token) {
     try {
@@ -379,6 +409,9 @@ async function fetchGitHubPinsAndStatus(
                   }
                 }
               }
+              repositories(ownerAffiliations: OWNER, isFork: false, first: 100) {
+                nodes { stargazerCount }
+              }
             }
           }`,
           variables: { login },
@@ -403,9 +436,14 @@ async function fetchGitHubPinsAndStatus(
               stars: node.stargazerCount ?? null,
             }));
           const message = user.status?.message?.trim() || '';
+          const stars = (user.repositories?.nodes ?? []).reduce(
+            (sum, node) => sum + (node?.stargazerCount ?? 0),
+            0
+          );
           return {
             pins,
             status: message || null,
+            stars,
           };
         }
       }
@@ -420,14 +458,17 @@ async function fetchGitHubPinsAndStatus(
       headers: { Accept: 'text/html', 'User-Agent': UA },
       redirect: 'follow',
     });
-    if (!res.ok) return { pins: [], status: null };
+    if (!res.ok) {
+      return { pins: [], status: null, stars: committedOwnStars(login) };
+    }
     const html = await res.text();
     return {
       pins: parseGitHubPinsFromHtml(html),
       status: parseGitHubStatusFromHtml(html),
+      stars: committedOwnStars(login),
     };
   } catch {
-    return { pins: [], status: null };
+    return { pins: [], status: null, stars: committedOwnStars(login) };
   }
 }
 
@@ -436,7 +477,7 @@ async function fromGitHub(href: string, signal: AbortSignal): Promise<ProfileCar
   card.labels = {
     followers: 'Followers',
     following: 'Following',
-    posts: 'Repositories',
+    posts: 'Stars',
   };
   card.favicon = 'https://github.com/favicon.ico';
 
@@ -475,6 +516,10 @@ async function fromGitHub(href: string, signal: AbortSignal): Promise<ProfileCar
       : isOwnGitHubProfile(href)
         ? pinsFromResume()
         : [];
+  const stars =
+    extra.stars ??
+    (await fetchGitHubStarTotal(user.login, signal, headers)) ??
+    committedOwnStars(user.login);
 
   return {
     ...card,
@@ -486,7 +531,7 @@ async function fromGitHub(href: string, signal: AbortSignal): Promise<ProfileCar
     stats: {
       followers: user.followers ?? null,
       following: user.following ?? null,
-      posts: user.public_repos ?? null,
+      posts: stars,
     },
     extras,
     pins,
