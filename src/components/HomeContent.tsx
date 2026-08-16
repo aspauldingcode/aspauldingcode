@@ -1,7 +1,9 @@
 import ContributionGraphPanel from '@/components/ContributionGraphPanel';
 import ContactForm from '@/components/ContactForm';
 import GitHubStats from '@/components/GitHubStats';
+import HireMe from '@/components/HireMe';
 import PrefetchViewLink from '@/components/PrefetchViewLink';
+import PrintButton from '@/components/PrintButton';
 import Section from '@/components/Section';
 import { getProject } from '@/content/projects';
 import {
@@ -47,11 +49,41 @@ export default function HomeContent() {
           sizes="112px"
         />
         <div className="hero-text">
-          <h1>{basics.name}</h1>
+          <div className="hero-name">
+            <h1>{basics.name}</h1>
+            <HireMe />
+          </div>
           {basics.label ? <p className="role">{basics.label}</p> : null}
           {basics.summary ? <p className="about">{basics.summary}</p> : null}
+          <p className="hero-actions">
+            <PrintButton />
+          </p>
         </div>
       </header>
+
+      {resume.education && resume.education.length > 0 ? (
+        <Section title="Education">
+          <ul className="resume-list">
+            {resume.education.map((ed) => {
+              const line = [ed.studyType, ed.area].filter(Boolean).join(', ');
+              const when = formatYearRange(ed.startDate, ed.endDate);
+              return (
+                <li key={`${ed.institution}-${ed.startDate}`} className="resume-entry">
+                  <h3>
+                    {ed.url ? (
+                      <Link href={viewHref(ed.url)}>{ed.institution}</Link>
+                    ) : (
+                      ed.institution
+                    )}
+                  </h3>
+                  {when ? <p className="when">{when}</p> : null}
+                  {line ? <p className="resume-meta">{line}</p> : null}
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
+      ) : null}
 
       {resume.work && resume.work.length > 0 ? (
         <Section title="Experience">
@@ -161,40 +193,22 @@ export default function HomeContent() {
         </Section>
       ) : null}
 
-      {resume.education && resume.education.length > 0 ? (
-        <Section title="Education">
-          <ul className="resume-list">
-            {resume.education.map((ed) => {
-              const line = [ed.studyType, ed.area].filter(Boolean).join(', ');
-              const when = formatYearRange(ed.startDate, ed.endDate);
-              return (
-                <li key={`${ed.institution}-${ed.startDate}`} className="resume-entry">
-                  <h3>
-                    {ed.url ? (
-                      <Link href={viewHref(ed.url)}>{ed.institution}</Link>
-                    ) : (
-                      ed.institution
-                    )}
-                  </h3>
-                  {when ? <p className="when">{when}</p> : null}
-                  {line ? <p className="resume-meta">{line}</p> : null}
-                </li>
-              );
-            })}
-          </ul>
-        </Section>
-      ) : null}
-
       {resume.awards && resume.awards.length > 0 ? (
         <Section title="Awards">
           <ul className="resume-bullets">
             {awardsByYear().map((award) => {
               const bits = [award.title, award.awarder].filter(Boolean).join(' / ');
               const y = yearOf(award.date);
+              const line = `${bits}${y ? ` (${y})` : ''}`;
               return (
                 <li key={`${award.title}-${award.date}`}>
-                  {bits}
-                  {y ? ` (${y})` : ''}
+                  {award.url ? (
+                    <a href={award.url} target="_blank" rel="noopener noreferrer">
+                      {line}
+                    </a>
+                  ) : (
+                    line
+                  )}
                 </li>
               );
             })}
@@ -216,9 +230,6 @@ export default function HomeContent() {
 
       <Section title="Links">
         <ul className="site-links">
-          <li>
-            <Link href="/resume">Resume</Link>
-          </li>
           {(basics.profiles ?? []).map((profile) =>
             profile.url ? (
               <li key={profile.network}>

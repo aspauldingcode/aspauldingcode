@@ -1,13 +1,18 @@
-/** Download the prebuilt Letter PDF (no browser print chrome). */
+export const RESUME_PDF_HREF = '/resume.pdf';
+export const RESUME_PDF_FILENAME = 'Alex-Spaulding-Resume.pdf';
+
+/** Download the prebuilt Letter PDF. Not a webview. */
 export default function PrintButton({
-  label = 'Download PDF',
-  href = '/resume.pdf',
+  label = 'Resume',
+  href = RESUME_PDF_HREF,
+  className = 'ctrl-link resume-print',
 }: {
   label?: string;
   href?: string;
+  className?: string;
 }) {
   return (
-    <a className="ctrl-link resume-print" href={href} download="Alex-Spaulding-Resume.pdf">
+    <a className={className} href={href} download={RESUME_PDF_FILENAME}>
       {label}
     </a>
   );

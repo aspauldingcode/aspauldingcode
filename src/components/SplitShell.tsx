@@ -5,7 +5,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
 
 function activeFromPath(pathname: string): string | undefined {
-  if (pathname === '/resume') return 'resume';
   if (pathname === '/view' || pathname.startsWith('/view/')) return 'view';
   if (pathname.startsWith('/work/')) {
     const slug = pathname.slice('/work/'.length).split('/')[0];

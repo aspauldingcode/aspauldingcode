@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server';
-import {
-  validateContactEmail,
-  validateContactMessage,
-  validateContactName,
-} from '@/lib/contactMessagePolicy';
+import { validateContactSubmission } from '@/lib/contactMessagePolicy';
 
 export const runtime = 'nodejs';
 
@@ -21,20 +17,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, reason: 'Invalid request.' }, { status: 400 });
   }
 
-  const nameResult = validateContactName(String(body.name || ''));
-  if (!nameResult.ok) {
-    return NextResponse.json(nameResult, { status: 400 });
+  const cleaned = await validateContactSubmission({
+    name: String(body.name || ''),
+    email: String(body.email || ''),
+    message: String(body.message || ''),
+  });
+  if (!cleaned.ok) {
+    return NextResponse.json(cleaned, { status: 400 });
   }
 
-  const emailResult = validateContactEmail(String(body.email || ''));
-  if (!emailResult.ok) {
-    return NextResponse.json(emailResult, { status: 400 });
-  }
-
-  const messageResult = validateContactMessage(String(body.message || ''));
-  if (!messageResult.ok) {
-    return NextResponse.json(messageResult, { status: 400 });
-  }
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, email: cleaned.email });
 }

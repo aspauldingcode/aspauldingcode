@@ -29,6 +29,7 @@ const PREVIEW_ONLY_HOSTS = new Set([
   'youtu.be',
   'youtube-nocookie.com',
   'mastodon.social',
+  'ewu.edu',
 ]);
 
 function hostKey(hostname: string): string {

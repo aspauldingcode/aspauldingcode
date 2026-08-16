@@ -5,16 +5,18 @@
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "dev:vercel": "vercel dev --yes",
-    "build": "next build",
+    "build": "node scripts/export-resume.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
-    "vercel-build": "next build",
+    "vercel-build": "node scripts/export-resume.mjs && next build",
     "portfolio:collect": "node scripts/portfolio-agent/collect.mjs",
     "portfolio:propose": "node scripts/portfolio-agent/propose.mjs",
-    "resume:pdf": "node scripts/export-resume.mjs"
+    "resume:pdf": "node scripts/export-resume.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
+    "@emailjs/nodejs": "^5.0.2",
     "gray-matter": "^4.0.3",
     "hls.js": "^1.6.17",
     "linkpeek": "^2.1.2",
@@ -22,7 +24,8 @@
     "next": "^16.3.0",
     "obscenity": "^0.4.6",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
@@ -30,12 +33,14 @@
     "@types/pdfkit": "^0.17.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@types/validator": "^13.15.10",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.3.0",
     "pdfkit": "^0.19.1",
     "postcss": "^8.5.25",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
-    "vercel": "^58.7.1"
+    "vercel": "^58.7.1",
+    "vitest": "^4.1.10"
   }
 }

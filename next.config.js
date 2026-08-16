@@ -17,6 +17,15 @@ if (cdnBase) {
 }
 
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/resume',
+        destination: '/resume.pdf',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns,

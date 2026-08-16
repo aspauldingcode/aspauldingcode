@@ -1,11 +1,26 @@
 /**
- * Uniform social profile card for hosts that block iframe embeds.
- * Same fields everywhere; missing values render as "-".
+ * Uniform profile card for hosts that block iframe embeds.
+ * Social networks fill follower counts; school pages can attach papers.
  */
 
 import { preview } from 'linkpeek';
 import { resume } from '@/content/resume';
 import { proxiedPreviewImage } from '@/lib/linkPreviewImage';
+
+export type ProfilePaper = {
+  title: string;
+  author: string;
+  venue: string;
+  date: string;
+  year: string;
+  href: string;
+  summary: string | null;
+  type: string | null;
+  location: string | null;
+  mentor: string | null;
+  image: string | null;
+  imageAlt: string | null;
+};
 
 export type ProfileCard = {
   network: string;
@@ -29,7 +44,65 @@ export type ProfileCard = {
     posts: string;
   };
   extras: { label: string; value: string }[];
+  /** Full paper list for school cards. Always shown on the card. */
+  papers: ProfilePaper[];
+  /** Pinned repositories (GitHub profile cards). */
+  pins: ProfilePin[];
 };
+
+export type ProfilePin = {
+  name: string;
+  href: string;
+  description: string | null;
+  language: string | null;
+  languageColor: string | null;
+  stars: number | null;
+};
+
+export const EWU_SYMPOSIUM_HREF = 'https://dc.ewu.edu/srcw_2026/';
+
+function formatPaperDate(iso?: string): string {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return String(iso).slice(0, 4);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+export function papersFromResume(): ProfilePaper[] {
+  const author = resume.basics.name;
+  return [...(resume.publications ?? [])]
+    .filter((pub) => pub.name && pub.url)
+    .sort((a, b) => String(b.releaseDate || '').localeCompare(String(a.releaseDate || '')))
+    .map((pub) => ({
+      title: pub.name,
+      author: pub.author || author,
+      venue: pub.publisher || 'Eastern Washington University',
+      date: formatPaperDate(pub.releaseDate),
+      year: String(pub.releaseDate || '').slice(0, 4),
+      href: pub.url as string,
+      summary: pub.summary?.trim() || null,
+      type: pub.type?.trim() || null,
+      location: pub.location?.trim() || null,
+      mentor: pub.mentor?.trim() || null,
+      image: pub.image || null,
+      imageAlt: pub.imageAlt || null,
+    }));
+}
+
+export const EWU_PUBLISHED_PAPERS: ProfilePaper[] = papersFromResume();
+
+export function isEwuPreviewHost(href: string): boolean {
+  return hostOf(href) === 'ewu.edu';
+}
+
+export function papersForUrl(href: string): ProfilePaper[] {
+  return isEwuPreviewHost(href) ? papersFromResume() : [];
+}
 
 const UA = 'aspauldingcode-preview/1.0 (+https://aspauldingcode.com)';
 
@@ -73,6 +146,8 @@ function emptyCard(network: string, url: string): ProfileCard {
       posts: 'Posts',
     },
     extras: [],
+    papers: [],
+    pins: [],
   };
 }
 
@@ -128,6 +203,8 @@ function merge(base: ProfileCard, patch: Partial<ProfileCard>): ProfileCard {
     stats: { ...base.stats, ...patch.stats },
     labels: { ...base.labels, ...patch.labels },
     extras: patch.extras ?? base.extras,
+    papers: patch.papers ?? base.papers,
+    pins: patch.pins ?? base.pins,
     avatar: proxiedPreviewImage(patch.avatar ?? base.avatar),
   };
 }
@@ -150,7 +227,7 @@ type GhUser = {
   hireable?: boolean | null;
 };
 
-function parseGitHubLogin(href: string): string | null {
+export function parseGitHubLogin(href: string): string | null {
   try {
     const path = new URL(href).pathname.replace(/\/$/, '');
     const parts = path.split('/').filter(Boolean);
@@ -175,6 +252,182 @@ function parseGitHubLogin(href: string): string | null {
     return parts[0];
   } catch {
     return null;
+  }
+}
+
+export function ownGitHubLogin(): string {
+  const profile = (resume.basics.profiles ?? []).find(
+    (row) => row.network?.toLowerCase() === 'github'
+  );
+  const fromUrl = profile?.url ? parseGitHubLogin(profile.url) : null;
+  return (profile?.username || fromUrl || 'aspauldingcode').toLowerCase();
+}
+
+export function isOwnGitHubProfile(href: string): boolean {
+  const login = parseGitHubLogin(href);
+  return !!login && login.toLowerCase() === ownGitHubLogin();
+}
+
+export function pinsFromResume(): ProfilePin[] {
+  return (resume.projects ?? [])
+    .filter((project) => project.name && project.url)
+    .map((project) => ({
+      name: project.name,
+      href: project.url as string,
+      description: project.description?.trim() || null,
+      language: null,
+      languageColor: null,
+      stars: null,
+    }));
+}
+
+export function parseGitHubStatusFromHtml(html: string): string | null {
+  const match = html.match(
+    /user-status-emoji-container[\s\S]*?<div>([^<]*)<\/div>[\s\S]*?user-status-message-wrapper[\s\S]*?<div>([\s\S]*?)<\/div>/i
+  );
+  if (!match) return null;
+  const emoji = match[1].trim();
+  const message = stripHtml(match[2]).replace(/\s+/g, ' ').trim();
+  if (!message) return null;
+  return emoji ? `${emoji} ${message}` : message;
+}
+
+export function parseGitHubPinsFromHtml(html: string): ProfilePin[] {
+  const chunks = html.split('pinned-item-list-item-content').slice(1);
+  const pins: ProfilePin[] = [];
+
+  for (const chunk of chunks) {
+    const link = chunk.match(
+      /href="(\/[^"]+)"[^>]*class="[^"]*wb-break-word[^"]*"/i
+    );
+    const repo = chunk.match(/<span class="repo">([^<]+)<\/span>/i);
+    if (!link || !repo) continue;
+
+    const path = link[1].split('?')[0];
+    if (path.includes('/stargazers') || path.includes('/forks')) continue;
+
+    const owner = chunk.match(/<span class="owner[^"]*">([^<]+)<\/span>/i);
+    const ownerName = owner?.[1].replace(/\/$/, '').trim();
+    const repoName = repo[1].trim();
+    const name = ownerName ? `${ownerName}/${repoName}` : repoName;
+
+    const descMatch = chunk.match(/pinned-item-desc[^>]*>([\s\S]*?)<\/p>/i);
+    const langMatch = chunk.match(/itemprop="programmingLanguage">([^<]+)</i);
+    const colorMatch = chunk.match(
+      /repo-language-color"[^>]*style="background-color:\s*([^";]+)/i
+    );
+    const starsMatch = chunk.match(/aria-label="stars"[\s\S]*?<\/svg>\s*([\d,]+)/i);
+
+    pins.push({
+      name,
+      href: `https://github.com${path}`,
+      description: descMatch
+        ? stripHtml(descMatch[1]).replace(/\s+/g, ' ').trim() || null
+        : null,
+      language: langMatch?.[1].trim() || null,
+      languageColor: colorMatch?.[1].trim() || null,
+      stars: starsMatch ? Number(starsMatch[1].replace(/,/g, '')) : null,
+    });
+  }
+
+  return pins;
+}
+
+type GhGraphqlUser = {
+  status?: { message?: string | null; emoji?: string | null } | null;
+  pinnedItems?: {
+    nodes?: Array<{
+      name?: string;
+      nameWithOwner?: string;
+      description?: string | null;
+      url?: string;
+      stargazerCount?: number;
+      primaryLanguage?: { name?: string; color?: string | null } | null;
+    } | null>;
+  };
+};
+
+async function fetchGitHubPinsAndStatus(
+  login: string,
+  signal: AbortSignal,
+  headers: Record<string, string>
+): Promise<{ pins: ProfilePin[]; status: string | null }> {
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  if (token) {
+    try {
+      const res = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        signal,
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `query($login: String!) {
+            user(login: $login) {
+              status { message emoji }
+              pinnedItems(first: 6, types: REPOSITORY) {
+                nodes {
+                  ... on Repository {
+                    name
+                    nameWithOwner
+                    description
+                    url
+                    stargazerCount
+                    primaryLanguage { name color }
+                  }
+                }
+              }
+            }
+          }`,
+          variables: { login },
+        }),
+      });
+      if (res.ok) {
+        const body = (await res.json()) as { data?: { user?: GhGraphqlUser | null } };
+        const user = body.data?.user;
+        if (user) {
+          const pins = (user.pinnedItems?.nodes ?? [])
+            .filter((node): node is NonNullable<typeof node> => !!node?.url && !!node.name)
+            .map((node) => ({
+              name:
+                node.nameWithOwner &&
+                node.nameWithOwner.split('/')[0].toLowerCase() !== login.toLowerCase()
+                  ? node.nameWithOwner
+                  : node.name || node.nameWithOwner || '',
+              href: node.url as string,
+              description: node.description?.trim() || null,
+              language: node.primaryLanguage?.name || null,
+              languageColor: node.primaryLanguage?.color || null,
+              stars: node.stargazerCount ?? null,
+            }));
+          const message = user.status?.message?.trim() || '';
+          return {
+            pins,
+            status: message || null,
+          };
+        }
+      }
+    } catch {
+      /* scrape the public profile instead */
+    }
+  }
+
+  try {
+    const res = await fetch(`https://github.com/${encodeURIComponent(login)}`, {
+      signal,
+      headers: { Accept: 'text/html', 'User-Agent': UA },
+      redirect: 'follow',
+    });
+    if (!res.ok) return { pins: [], status: null };
+    const html = await res.text();
+    return {
+      pins: parseGitHubPinsFromHtml(html),
+      status: parseGitHubStatusFromHtml(html),
+    };
+  } catch {
+    return { pins: [], status: null };
   }
 }
 
@@ -215,12 +468,20 @@ async function fromGitHub(href: string, signal: AbortSignal): Promise<ProfileCar
     if (!Number.isNaN(y)) extras.push({ label: 'Joined', value: String(y) });
   }
 
+  const extra = await fetchGitHubPinsAndStatus(user.login, signal, headers);
+  const pins =
+    extra.pins.length > 0
+      ? extra.pins
+      : isOwnGitHubProfile(href)
+        ? pinsFromResume()
+        : [];
+
   return {
     ...card,
     username: user.login,
     displayName: user.name || user.login,
     avatar: user.avatar_url || null,
-    status: user.hireable ? 'Open to work' : null,
+    status: extra.status || (user.hireable ? 'Open to work' : null),
     bio: user.bio || null,
     stats: {
       followers: user.followers ?? null,
@@ -228,6 +489,7 @@ async function fromGitHub(href: string, signal: AbortSignal): Promise<ProfileCar
       posts: user.public_repos ?? null,
     },
     extras,
+    pins,
   };
 }
 
@@ -722,6 +984,15 @@ async function fromX(href: string, signal: AbortSignal): Promise<ProfileCard> {
   };
 }
 
+/* ─── Eastern Washington University ──────────────────────────────────── */
+
+async function fromEwu(href: string, signal: AbortSignal): Promise<ProfileCard> {
+  const card = emptyCard('ewu.edu', href);
+  card.favicon = 'https://www.ewu.edu/favicon.ico';
+  card.papers = EWU_PUBLISHED_PAPERS;
+  return merge(card, await scrapeBasics(href, signal));
+}
+
 /* ─── Router ─────────────────────────────────────────────────────────── */
 
 export async function fetchProfileCard(
@@ -740,6 +1011,7 @@ export async function fetchProfileCard(
   if (host === 'linkedin.com') return fromLinkedIn(href, ac);
   if (host === 'x.com' || host === 'twitter.com' || host === 'mobile.twitter.com')
     return fromX(href, ac);
+  if (isEwuPreviewHost(href)) return fromEwu(href, ac);
 
   const card = emptyCard(host, href);
   return merge(card, await scrapeBasics(href, ac));

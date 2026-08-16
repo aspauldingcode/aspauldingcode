@@ -31,6 +31,7 @@ export type ResumeAward = {
   date?: string;
   awarder?: string;
   summary?: string;
+  url?: string;
 };
 
 export type ResumeSkill = {
@@ -44,6 +45,20 @@ export type ResumeProject = {
   url?: string;
   startDate?: string;
   endDate?: string;
+};
+
+export type ResumePublication = {
+  name: string;
+  publisher?: string;
+  releaseDate?: string;
+  url?: string;
+  summary?: string;
+  author?: string;
+  type?: string;
+  location?: string;
+  mentor?: string;
+  image?: string;
+  imageAlt?: string;
 };
 
 export type Resume = {
@@ -64,6 +79,7 @@ export type Resume = {
   work?: ResumeWork[];
   education?: ResumeEducation[];
   awards?: ResumeAward[];
+  publications?: ResumePublication[];
   skills?: ResumeSkill[];
   projects?: ResumeProject[];
 };

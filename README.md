@@ -1,8 +1,12 @@
-# Alex Spaulding
+# Alex Spaulding · [Hire me](https://aspauldingcode.com/?hire=1#contact)
+
+[![CI](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml/badge.svg)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml)
 
 ### Systems software · Apple platforms · Wayland compositors
 
-[aspauldingcode.com](https://aspauldingcode.com) · Computer Science at [Eastern Washington University](https://www.ewu.edu/)
+[Portfolio](https://aspauldingcode.com) · [Resume](https://aspauldingcode.com/resume.pdf) · Computer Science at [Eastern Washington University](https://www.ewu.edu/)
+
+This repository is the GitHub profile README and the source for the portfolio and resume at [aspauldingcode.com](https://aspauldingcode.com).
 
 I build software close to the machine: the layers under apps. My work centers on **native compositors**, **macOS and iOS runtime tooling**, **reverse engineering**, and **Nix-based** cross-platform infrastructure.
 
@@ -34,7 +38,7 @@ Started programming at 10 with LEGO Mindstorms. Still happiest asking: *why does
 
 ## Student life
 
-Bachelor of Science in Computer Science at Eastern Washington University. Transfer from the University of Montana. Coursework includes algorithms, computer architecture, C and UNIX, networks, and cybersecurity. Vice President of the Association for Computing Machinery chapter; hackathon and Capture The Flag wins; Eastern Washington University symposium poster on Wawona.
+Bachelor of Science in Computer Science at Eastern Washington University (2022-2027, expected). Coursework includes algorithms, computer architecture, C and UNIX, networks, and cybersecurity. Vice President of the Association for Computing Machinery chapter; hackathon and Capture The Flag wins; Eastern Washington University symposium poster on Wawona.
 
 ## Contact
 

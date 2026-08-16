@@ -8,8 +8,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import emailjs from '@emailjs/browser';
 import { emailConfig } from '@/config/email';
+import { HIRE_EVENT, hasHireIntent } from '@/lib/hireIntent';
 import {
   MAX_MESSAGE_CHARS,
   MAX_MESSAGE_WORDS,
@@ -91,6 +91,7 @@ export default function ContactForm() {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [hiring, setHiring] = useState(false);
   const [boxHeight, setBoxHeight] = useState(MESSAGE_BOX_MIN_PX);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gripRef = useRef<HTMLButtonElement>(null);
@@ -107,6 +108,19 @@ export default function ContactForm() {
   const resizeEdge = edgeForHeight(boxHeight);
   const canSubmit =
     status !== 'sending' && !underWordLimit && !overWordLimit && wordCount > 0;
+
+  useEffect(() => {
+    const syncHire = () => {
+      if (hasHireIntent()) setHiring(true);
+    };
+    syncHire();
+    window.addEventListener(HIRE_EVENT, syncHire);
+    window.addEventListener('popstate', syncHire);
+    return () => {
+      window.removeEventListener(HIRE_EVENT, syncHire);
+      window.removeEventListener('popstate', syncHire);
+    };
+  }, []);
 
   useEffect(() => {
     function stopDrag(pointerId: number) {
@@ -210,37 +224,28 @@ export default function ContactForm() {
     }
 
     try {
-      const policy = await fetch('/api/contact-validate', {
+      const token = await getRecaptchaToken();
+      const sent = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message: nextMessage }),
+        body: JSON.stringify({
+          name,
+          email,
+          message: nextMessage,
+          hiring,
+          token,
+        }),
       });
-      const policyJson = (await policy.json()) as { ok?: boolean; reason?: string };
-      if (!policy.ok || !policyJson.ok) {
+      const sentJson = (await sent.json()) as { ok?: boolean; reason?: string };
+      if (!sent.ok || !sentJson.ok) {
         setStatus('error');
-        setError(policyJson.reason || 'Please revise your message and try again.');
+        setError(sentJson.reason || 'Please revise your message and try again.');
         return;
       }
 
-      const token = await getRecaptchaToken();
-      const verify = await fetch('/api/verify-recaptcha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, action: RECAPTCHA_ACTION }),
-      });
-      const result = (await verify.json()) as { success?: boolean };
-      if (!verify.ok || !result.success) {
-        throw new Error('reCAPTCHA failed');
-      }
-
-      await emailjs.send(
-        emailConfig.serviceId,
-        emailConfig.templateId,
-        { from_name: name, reply_to: email, message: nextMessage },
-        emailConfig.publicKey
-      );
       form.reset();
       setMessage('');
+      setHiring(hasHireIntent());
       setBoxHeight(MESSAGE_BOX_MIN_PX);
       setStatus('sent');
     } catch (err) {
@@ -335,6 +340,19 @@ export default function ContactForm() {
             ? `${wordCount} / ${MIN_MESSAGE_WORDS} min words`
             : `${wordCount} / ${MAX_MESSAGE_WORDS} words`}
         </span>
+      </div>
+      <div className="contact-check">
+        <input
+          id="contact-hiring"
+          name="hiring"
+          type="checkbox"
+          checked={hiring}
+          onChange={(e) => setHiring(e.target.checked)}
+          disabled={status === 'sending'}
+        />
+        <label htmlFor="contact-hiring">
+          I want to hire Alex (internship or full-time)
+        </label>
       </div>
       <button type="submit" className="ctrl-link" disabled={!canSubmit}>
         {status === 'sending' ? 'Sending...' : 'Send message'}

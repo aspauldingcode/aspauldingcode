@@ -82,6 +82,8 @@ export function trailForViewUrl(
     }
   }
 
+  const host = hostOf(openHref);
+
   for (const project of resume.projects ?? []) {
     if (project.url && urlRelated(project.url, openHref)) {
       return {
@@ -91,7 +93,6 @@ export function trailForViewUrl(
     }
   }
 
-  const host = hostOf(openHref);
   if (host === 'github.com') {
     try {
       const path = new URL(openHref).pathname.toLowerCase();

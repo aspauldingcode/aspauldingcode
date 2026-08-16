@@ -1,8 +1,9 @@
 // Public site keys are safe to commit to the repo.
-// Private keys should be stored in .env.local and not committed to the repo.
+// EMAILJS_PRIVATE_KEY stays in .env.local / Vercel. Send goes through /api/contact (HTTPS).
+// EmailJS template fields: {{from_name}} {{from_email}} {{reply_to}} {{hire_me}} {{message}}
 export const emailConfig = {
   serviceId: 'portfolio',
-  templateId: 'portfolio_email_template',
+  templateId: 'aspauldingcode_portfolio_contact_form',
   publicKey: '_yza7UlF2bRQN74hN',
   recaptchaSiteKey: process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY || ''
 } as const; 

@@ -14,7 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${SITE_URL}/resume`,
+      url: `${SITE_URL}/resume.pdf`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.9,

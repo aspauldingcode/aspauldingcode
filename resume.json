@@ -77,7 +77,7 @@
       "url": "https://www.ewu.edu/",
       "area": "Computer Science",
       "studyType": "Bachelor of Science (expected 2027)",
-      "startDate": "2025-02-01",
+      "startDate": "2022-01-01",
       "endDate": "2027-05-01",
       "score": "",
       "courses": []
@@ -88,6 +88,7 @@
       "title": "Symposium poster: Native Wayland Compositing on Apple Ecosystems (Wawona)",
       "date": "2026-04-01",
       "awarder": "Eastern Washington University",
+      "url": "https://dc.ewu.edu/srcw_2026/ps_2026/p2_2026/31/",
       "summary": ""
     },
     {
@@ -110,7 +111,21 @@
     }
   ],
   "certificates": [],
-  "publications": [],
+  "publications": [
+    {
+      "name": "Native Wayland Compositing on Apple Ecosystems: Assessing the Feasibility of Wawona Compositor",
+      "publisher": "Student Research and Creative Works Symposium, Eastern Washington University",
+      "releaseDate": "2026-04-14",
+      "url": "https://dc.ewu.edu/srcw_2026/ps_2026/p2_2026/31/",
+      "summary": "Assesses a native Wayland compositor for macOS, iOS, and Android. Wawona maps the Wayland protocol onto Metal, Core Animation, and the Android graphics pipeline, and shows unmodified Linux clients running on those platforms.",
+      "author": "Alex Spaulding",
+      "type": "Poster",
+      "location": "Nysether Community Room, Cheney, Washington",
+      "mentor": "Karen Thurston",
+      "image": "/ewu/symposium-2026-alex-poster.jpg",
+      "imageAlt": "Alex Spaulding presenting the Wawona Compositor poster at the 2026 Student Research and Creative Works Symposium"
+    }
+  ],
   "skills": [
     {
       "name": "Core",

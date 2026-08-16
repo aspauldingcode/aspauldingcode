@@ -167,6 +167,17 @@ function writePdf(resume) {
         .text(basics.summary, { width: contentWidth, align: 'left' });
     }
 
+    if (resume.education?.length) {
+      section('Education');
+      for (const ed of resume.education) {
+        const left = [ed.studyType, ed.area, ed.institution]
+          .filter(Boolean)
+          .join(', ');
+        entryHead(left, yearRange(ed.startDate, ed.endDate));
+        doc.moveDown(0.15);
+      }
+    }
+
     if (resume.work?.length) {
       section('Experience');
       for (const job of resume.work) {
@@ -212,17 +223,6 @@ function writePdf(resume) {
           .fillColor(ink)
           .text(`${group.name}: `, { continued: true });
         doc.font('Helvetica').text(words);
-      }
-    }
-
-    if (resume.education?.length) {
-      section('Education');
-      for (const ed of resume.education) {
-        const left = [ed.studyType, ed.area, ed.institution]
-          .filter(Boolean)
-          .join(', ');
-        entryHead(left, yearRange(ed.startDate, ed.endDate));
-        doc.moveDown(0.15);
       }
     }
 

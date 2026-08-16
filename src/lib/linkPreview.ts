@@ -30,7 +30,7 @@ export function fetchLinkPreview(href: string): Promise<LinkPreview | null> {
         clearTimeout(timer);
       }
     },
-    ['profile-card-v3', href],
+    ['profile-card-v8', href],
     { revalidate: 3600 }
   )();
 }

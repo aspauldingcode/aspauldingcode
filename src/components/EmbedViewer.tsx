@@ -3,9 +3,16 @@
 import DetailCrumb from '@/components/DetailCrumb';
 import EmbedFrame from '@/components/EmbedFrame';
 import { detailTrail, trailForViewUrl } from '@/lib/detailTrail';
+import GitHubStats from '@/components/GitHubStats';
 import {
+  EWU_SYMPOSIUM_HREF,
   formatStatCount,
+  isEwuPreviewHost,
+  isOwnGitHubProfile,
+  papersForUrl,
   type ProfileCard,
+  type ProfilePaper,
+  type ProfilePin,
 } from '@/lib/profileCard';
 import type { ViewTarget } from '@/lib/viewHref';
 import { resume } from '@/content/resume';
@@ -59,6 +66,10 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
   }, [target.embeddable, target.openHref]);
 
   const previewData = preview.status === 'ready' ? preview.data : null;
+  const papers =
+    previewData?.papers?.length
+      ? previewData.papers
+      : papersForUrl(target.openHref);
   const trailMeta = trailForViewUrl(target.openHref, {
     siteName: previewData?.network,
     title: previewData?.displayName || previewData?.username,
@@ -88,6 +99,7 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
             target={target}
             card={previewData}
             loading={preview.status === 'loading'}
+            papers={papers}
           />
         )}
 
@@ -116,14 +128,161 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
   );
 }
 
+function paperHost(href: string): string {
+  try {
+    const u = new URL(href);
+    return `${u.host}${u.pathname === '/' ? '' : u.pathname}`;
+  } catch {
+    return href;
+  }
+}
+
+function PublishedPapers({
+  papers,
+  showSymposium,
+}: {
+  papers: ProfilePaper[];
+  showSymposium: boolean;
+}) {
+  const author = resume.basics.name;
+  return (
+    <section className="profile-papers" aria-label={`Papers by ${author}`}>
+      <h2 className="profile-papers-heading">Papers by {author}</h2>
+      <ul className="profile-papers-list">
+        {papers.map((paper) => (
+          <li key={paper.href}>
+            {paper.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="profile-papers-photo"
+                src={paper.image}
+                alt={
+                  paper.imageAlt ||
+                  `${paper.author} presenting ${paper.title}`
+                }
+                width={900}
+                height={600}
+                loading="eager"
+                decoding="async"
+              />
+            ) : null}
+            <p className="profile-papers-author">
+              Published by {paper.author}
+            </p>
+            <a
+              className="profile-papers-title"
+              href={paper.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {paper.title}
+            </a>
+            <dl className="profile-papers-meta">
+              {paper.type ? (
+                <div>
+                  <dt>Type</dt>
+                  <dd>{paper.type}</dd>
+                </div>
+              ) : null}
+              {paper.date ? (
+                <div>
+                  <dt>When</dt>
+                  <dd>{paper.date}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>For</dt>
+                <dd>{paper.venue}</dd>
+              </div>
+              {paper.location ? (
+                <div>
+                  <dt>Where</dt>
+                  <dd>{paper.location}</dd>
+                </div>
+              ) : null}
+              {paper.mentor ? (
+                <div>
+                  <dt>Faculty mentor</dt>
+                  <dd>{paper.mentor}</dd>
+                </div>
+              ) : null}
+            </dl>
+            {paper.summary ? (
+              <p className="profile-papers-summary">{paper.summary}</p>
+            ) : null}
+            <p className="profile-papers-href">
+              <a href={paper.href} target="_blank" rel="noopener noreferrer">
+                Open paper ({paperHost(paper.href)})
+              </a>
+            </p>
+          </li>
+        ))}
+      </ul>
+      {showSymposium ? (
+        <p className="profile-papers-symposium">
+          <a href={EWU_SYMPOSIUM_HREF} target="_blank" rel="noopener noreferrer">
+            2026 Student Research and Creative Works Symposium archive
+          </a>
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function PinnedRepos({ pins }: { pins: ProfilePin[] }) {
+  return (
+    <section className="profile-pins" aria-label="Pinned repositories">
+      <h2 className="profile-card-section-heading">Pinned</h2>
+      <ul className="profile-pins-list">
+        {pins.map((pin) => (
+          <li key={pin.href}>
+            <a
+              className="profile-pin"
+              href={pin.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="profile-pin-name">{pin.name}</span>
+              {pin.description ? (
+                <span className="profile-pin-desc">{pin.description}</span>
+              ) : null}
+              <span className="profile-pin-meta">
+                {pin.language ? (
+                  <span className="profile-pin-lang">
+                    {pin.languageColor ? (
+                      <span
+                        className="profile-pin-swatch"
+                        style={{ background: pin.languageColor }}
+                        aria-hidden
+                      />
+                    ) : null}
+                    {pin.language}
+                  </span>
+                ) : null}
+                {pin.stars != null ? (
+                  <span className="profile-pin-stars">
+                    {formatStatCount(pin.stars)} stars
+                  </span>
+                ) : null}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function ProfileCardView({
   target,
   card,
   loading,
+  papers,
 }: {
   target: ViewTarget;
   card: ProfileCard | null;
   loading: boolean;
+  papers: ProfilePaper[];
 }) {
   const network = card?.network || fallbackNetwork(target.openHref);
   const displayName = card?.displayName || card?.username || target.label;
@@ -143,20 +302,29 @@ function ProfileCardView({
     posts: null,
   };
   const extras = card?.extras || [];
+  const pins = card?.pins || [];
+  const hasNumericStats =
+    stats.followers != null || stats.following != null || stats.posts != null;
+  const showPapers = papers.length > 0;
+  const showOwnGitHub = isOwnGitHubProfile(target.openHref);
+  const showStats = !showPapers && !showOwnGitHub && (loading || hasNumericStats);
+  const openHref = card?.url || target.openHref;
 
   return (
     <article className={`profile-card${loading ? ' is-loading' : ''}`}>
-      <header className="profile-card-head">
+      <a
+        className="profile-card-head"
+        href={openHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Open ${displayName} on ${network} in a new tab`}
+      >
         <div className="profile-card-avatar">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={avatar}
-              alt={
-                displayName
-                  ? `${displayName} profile photo`
-                  : `${network} profile photo`
-              }
+              alt=""
               width={88}
               height={88}
               loading="eager"
@@ -195,7 +363,7 @@ function ProfileCardView({
           ) : null}
           {status ? <p className="profile-card-status">{status}</p> : null}
         </div>
-      </header>
+      </a>
 
       {bio ? (
         <p className="profile-card-bio">{bio}</p>
@@ -207,26 +375,46 @@ function ProfileCardView({
         <p className="profile-card-bio is-empty">No bio</p>
       )}
 
-      <ul className="profile-card-stats" aria-label="Profile stats">
-        <li>
-          <span className="profile-card-stat-value">
-            {loading && stats.followers == null ? '...' : formatStatCount(stats.followers)}
-          </span>
-          <span className="profile-card-stat-label">{labels.followers}</span>
-        </li>
-        <li>
-          <span className="profile-card-stat-value">
-            {loading && stats.following == null ? '...' : formatStatCount(stats.following)}
-          </span>
-          <span className="profile-card-stat-label">{labels.following}</span>
-        </li>
-        <li>
-          <span className="profile-card-stat-value">
-            {loading && stats.posts == null ? '...' : formatStatCount(stats.posts)}
-          </span>
-          <span className="profile-card-stat-label">{labels.posts}</span>
-        </li>
-      </ul>
+      {showPapers ? (
+        <PublishedPapers
+          papers={papers}
+          showSymposium={isEwuPreviewHost(target.openHref)}
+        />
+      ) : showOwnGitHub ? (
+        <section className="profile-card-gh" aria-label="GitHub stats">
+          <h2 className="profile-card-section-heading">Stats</h2>
+          <GitHubStats />
+        </section>
+      ) : showStats ? (
+        <ul className="profile-card-stats" aria-label="Profile stats">
+          <li>
+            <span className="profile-card-stat-value">
+              {loading && stats.followers == null
+                ? '...'
+                : formatStatCount(stats.followers)}
+            </span>
+            <span className="profile-card-stat-label">{labels.followers}</span>
+          </li>
+          <li>
+            <span className="profile-card-stat-value">
+              {loading && stats.following == null
+                ? '...'
+                : formatStatCount(stats.following)}
+            </span>
+            <span className="profile-card-stat-label">{labels.following}</span>
+          </li>
+          <li>
+            <span className="profile-card-stat-value">
+              {loading && stats.posts == null
+                ? '...'
+                : formatStatCount(stats.posts)}
+            </span>
+            <span className="profile-card-stat-label">{labels.posts}</span>
+          </li>
+        </ul>
+      ) : null}
+
+      {pins.length > 0 ? <PinnedRepos pins={pins} /> : null}
 
       {extras.length > 0 ? (
         <dl className="profile-card-extras">
@@ -243,7 +431,9 @@ function ProfileCardView({
         {loading
           ? 'Loading profile...'
           : card
-            ? 'Open in a new tab to visit this profile.'
+            ? showPapers
+              ? 'Click the header to open the university site in a new tab.'
+              : 'Click the header to open this profile in a new tab.'
             : 'Preview unavailable. Open in a new tab to continue.'}
       </p>
     </article>
