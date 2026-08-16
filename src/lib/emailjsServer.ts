@@ -29,13 +29,19 @@ export async function sendContactMail(mail: ContactMail): Promise<void> {
     throw new Error('Contact form is misconfigured.');
   }
 
-  await emailjs.send(
-    emailConfig.serviceId,
-    emailConfig.templateId,
-    contactTemplateParams(mail),
-    {
-      publicKey: emailConfig.publicKey,
-      privateKey,
-    }
-  );
+  try {
+    await emailjs.send(
+      emailConfig.serviceId,
+      emailConfig.templateId,
+      contactTemplateParams(mail),
+      {
+        publicKey: emailConfig.publicKey,
+        privateKey,
+      }
+    );
+  } catch (err) {
+    const rec = err && typeof err === 'object' ? (err as { text?: string; status?: number }) : null;
+    const text = rec?.text || (err instanceof Error ? err.message : 'EmailJS send failed');
+    throw new Error(text);
+  }
 }
