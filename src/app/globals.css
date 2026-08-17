@@ -435,11 +435,13 @@ a.hire-me:focus-visible {
 .hire-bar-host {
   position: fixed;
   top: 0;
+  bottom: auto;
   left: 0;
   width: 100%;
+  height: auto;
   z-index: 40;
   pointer-events: none;
-  contain: layout style;
+  contain: style;
 }
 
 .hire-bar {
@@ -878,6 +880,10 @@ a.hire-me:focus-visible {
     pointer-events: none;
   }
 
+  body:has(.split-shell[data-open]) .hire-group-fly {
+    visibility: hidden;
+  }
+
   .split-detail {
     display: block;
     grid-column: 2;
@@ -894,18 +900,13 @@ a.hire-me:focus-visible {
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-top: 5rem;
+    padding-top: var(--hire-chrome, 0px);
     opacity: 1;
     pointer-events: auto;
   }
 
-  body:has(.hire-bar-host.is-stack) .split-shell[data-open] .split-detail {
-    padding-top: 6.75rem;
-  }
-
   .split-shell[data-open] .split-detail .wrap {
-    padding-top: 0.7rem;
-    padding-bottom: 2rem;
+    padding: 0.45rem 1rem 2rem;
   }
 
   .footer.site-chrome-foot {

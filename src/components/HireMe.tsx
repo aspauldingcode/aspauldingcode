@@ -122,6 +122,7 @@ export default function HireMe() {
     let pinnedLeft = '';
     let pinnedWidth = '';
     let stackBarW = -1;
+    let chromeH = '';
 
     const probe = document.createElement('p');
     probe.className = 'hire-bar-copy';
@@ -142,9 +143,9 @@ export default function HireMe() {
     const columnOpen = () =>
       shell instanceof HTMLElement && shell.hasAttribute('data-open');
 
-    const onHome = () => window.location.pathname === '/';
-
-    const detailOpen = () => !onHome() && narrow.matches && columnOpen();
+    // Narrow + data-open only. Do not read window.location: Safari can still
+    // report / while the project column is already taking the view.
+    const detailOpen = () => narrow.matches && columnOpen();
 
     function countLines(el: HTMLElement) {
       const range = document.createRange();
@@ -206,6 +207,29 @@ export default function HireMe() {
         hostEl.style.width = width;
       }
       syncStack();
+      writeChrome();
+    }
+
+    function rowHeight(el: Element | null) {
+      if (!(el instanceof HTMLElement)) return 0;
+      if (getComputedStyle(el).display === 'none') return 0;
+      return el.offsetHeight;
+    }
+
+    function writeChrome() {
+      if (!detailOpen()) {
+        if (!chromeH) return;
+        chromeH = '';
+        document.documentElement.style.removeProperty('--hire-chrome');
+        return;
+      }
+      const back = hostEl.querySelector('.hire-bar-back');
+      const h = Math.min(rowHeight(barEl) + rowHeight(back), 220);
+      const next = h > 8 ? `${h}px` : '';
+      if (next === chromeH) return;
+      chromeH = next;
+      if (next) document.documentElement.style.setProperty('--hire-chrome', next);
+      else document.documentElement.style.removeProperty('--hire-chrome');
     }
 
     function measureRest() {
@@ -274,6 +298,7 @@ export default function HireMe() {
       if (detail) {
         wasDetail = true;
         if (phase !== DOCKED) setPhase(DOCKED);
+        writeChrome();
         return;
       }
       if (wasDetail) wasDetail = false;
@@ -356,6 +381,8 @@ export default function HireMe() {
     const ro = new ResizeObserver(onResize);
     if (main instanceof HTMLElement) ro.observe(main);
     if (wrap instanceof HTMLElement) ro.observe(wrap);
+    const chromeRo = new ResizeObserver(() => writeChrome());
+    chromeRo.observe(hostEl);
     const fonts = document.fonts;
     fonts?.ready.then(() => {
       stackBarW = -1;
@@ -376,6 +403,8 @@ export default function HireMe() {
       narrow.removeEventListener('change', sync);
       mo.disconnect();
       ro.disconnect();
+      chromeRo.disconnect();
+      document.documentElement.style.removeProperty('--hire-chrome');
       measure.remove();
       heroRowEl.classList.remove('is-group-hidden');
     };
