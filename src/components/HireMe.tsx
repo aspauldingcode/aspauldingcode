@@ -6,7 +6,7 @@ import { HIRE_EVENT, HIRE_HREF, markHireIntent } from '@/lib/hireIntent';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react';
+import { useLayoutEffect, useRef, useSyncExternalStore, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 
 const HIRE_COPY =
@@ -15,7 +15,6 @@ const HIRE_COPY =
 const IDLE = 0;
 const TRAVEL = 1;
 const DOCKED = 2;
-const FLY_MS = 420;
 
 type Box = { left: number; top: number; width: number; height: number };
 
@@ -47,31 +46,6 @@ function boxOf(el: Element): Box {
   return { left: r.left, top: r.top, width: r.width, height: r.height };
 }
 
-function sampleBez(t: number, a: number, b: number) {
-  return 3 * (1 - t) * (1 - t) * t * a + 3 * (1 - t) * t * t * b + t * t * t;
-}
-
-function sampleBezDeriv(t: number, a: number, b: number) {
-  return 3 * (1 - t) * (1 - t) * a + 6 * (1 - t) * t * (b - a) + 3 * t * t * (1 - b);
-}
-
-/** Same curve as the split column: cubic-bezier(0.22, 1, 0.36, 1). */
-function easeColumn(x: number) {
-  if (x <= 0) return 0;
-  if (x >= 1) return 1;
-  let t = x;
-  for (let i = 0; i < 6; i++) {
-    const dx = sampleBezDeriv(t, 0.22, 0.36);
-    if (Math.abs(dx) < 1e-6) break;
-    t = Math.min(1, Math.max(0, t - (sampleBez(t, 0.22, 0.36) - x) / dx));
-  }
-  return sampleBez(t, 1, 1);
-}
-
-function onScreen(b: Box) {
-  return b.width > 2 && b.top + b.height > 8 && b.top < window.innerHeight - 8;
-}
-
 /** Hire me next to the name. The pair rides into the banner as one group. */
 export default function HireMe() {
   const router = useRouter();
@@ -80,13 +54,15 @@ export default function HireMe() {
   const heroHireRef = useRef<HTMLAnchorElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const flyRef = useRef<HTMLDivElement>(null);
-  const [ready, setReady] = useState(false);
+  const ready = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const name = resume.basics.name;
   const onHire = (event: MouseEvent<HTMLAnchorElement>) => {
     goToHireContact(event, router);
   };
-
-  useLayoutEffect(() => setReady(true), []);
 
   useLayoutEffect(() => {
     if (!ready) return;
@@ -142,11 +118,6 @@ export default function HireMe() {
     let scrolling = false;
     let destBox: Box | null = null;
     let destHireBox: Box | null = null;
-    let flying = 0;
-    let flyStart = 0;
-    let flyFrom: Box | null = null;
-    let flyFromHire: Box | null = null;
-    let flyRaf = 0;
     let wasDetail = false;
     let pinnedLeft = '';
     let pinnedWidth = '';
@@ -171,7 +142,9 @@ export default function HireMe() {
     const columnOpen = () =>
       shell instanceof HTMLElement && shell.hasAttribute('data-open');
 
-    const detailOpen = () => narrow.matches && columnOpen();
+    const onHome = () => window.location.pathname === '/';
+
+    const detailOpen = () => !onHome() && narrow.matches && columnOpen();
 
     function countLines(el: HTMLElement) {
       const range = document.createRange();
@@ -294,76 +267,16 @@ export default function HireMe() {
       }px,0)`;
     }
 
-    function stopFlight() {
-      if (flyRaf) cancelAnimationFrame(flyRaf);
-      flyRaf = 0;
-      flying = 0;
-      flyFrom = null;
-      flyFromHire = null;
-    }
-
-    function stepFlight(now: number) {
-      if (!flyFrom || !flyFromHire || !flying) return;
-      const u = Math.min(1, (now - flyStart) / FLY_MS);
-      const t = easeColumn(u);
-      if (flying > 0) {
-        place(t, flyFrom, boxOf(destEl), flyFromHire, boxOf(destHireEl));
-      } else {
-        place(t, flyFrom, boxOf(heroEl), flyFromHire, boxOf(heroHireEl));
-      }
-      if (u < 1) {
-        flyRaf = requestAnimationFrame(stepFlight);
-        return;
-      }
-      const dir = flying;
-      stopFlight();
-      setPhase(dir > 0 ? DOCKED : IDLE);
-      if (dir < 0) {
-        measureRest();
-        sync();
-      }
-    }
-
-    function beginFlight(dir: 1 | -1) {
-      if (motion.matches) {
-        stopFlight();
-        setPhase(dir > 0 ? DOCKED : IDLE);
-        return;
-      }
-      const fromEl = dir > 0 ? heroEl : destEl;
-      const fromHireEl = dir > 0 ? heroHireEl : destHireEl;
-      const from = boxOf(fromEl);
-      if (dir > 0 ? !onScreen(from) : from.width < 2) {
-        stopFlight();
-        setPhase(dir > 0 ? DOCKED : IDLE);
-        return;
-      }
-      flyFrom = from;
-      flyFromHire = boxOf(fromHireEl);
-      flying = dir;
-      flyStart = performance.now();
-      setPhase(TRAVEL);
-      if (flyRaf) cancelAnimationFrame(flyRaf);
-      flyRaf = requestAnimationFrame(stepFlight);
-    }
-
     function sync() {
       pin();
-      if (flying) return;
 
       const detail = detailOpen();
       if (detail) {
         wasDetail = true;
-        if (phase !== DOCKED) beginFlight(1);
+        if (phase !== DOCKED) setPhase(DOCKED);
         return;
       }
-      if (wasDetail) {
-        wasDetail = false;
-        if (phase !== IDLE && onScreen(boxOf(heroEl))) {
-          beginFlight(-1);
-          return;
-        }
-      }
+      if (wasDetail) wasDetail = false;
 
       const st = scrollTop(main);
       if (st <= 1) {
@@ -452,7 +365,6 @@ export default function HireMe() {
 
     return () => {
       cancelAnimationFrame(raf);
-      cancelAnimationFrame(flyRaf);
       window.clearTimeout(settle);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('scrollend', onScroll);
@@ -480,9 +392,9 @@ export default function HireMe() {
               <div ref={hostRef} className="hire-bar-host" aria-hidden="true">
                 <div className="hire-bar">
                   <div ref={destLeadRef} className="hire-bar-lead is-group-hidden">
-                    <a className="hire-bar-name" href="/" tabIndex={-1}>
+                    <Link className="hire-bar-name" href="/" tabIndex={-1}>
                       {name}
-                    </a>
+                    </Link>
                     <a
                       ref={destHireRef}
                       className="hire-me"
