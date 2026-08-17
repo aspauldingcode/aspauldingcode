@@ -894,13 +894,18 @@ a.hire-me:focus-visible {
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-top: 7rem;
+    padding-top: 5rem;
     opacity: 1;
     pointer-events: auto;
   }
 
   body:has(.hire-bar-host.is-stack) .split-shell[data-open] .split-detail {
-    padding-top: 10rem;
+    padding-top: 6.75rem;
+  }
+
+  .split-shell[data-open] .split-detail .wrap {
+    padding-top: 0.7rem;
+    padding-bottom: 2rem;
   }
 
   .footer.site-chrome-foot {
