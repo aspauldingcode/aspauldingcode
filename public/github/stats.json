@@ -1,6 +1,6 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-08-18T08:54:17.899Z",
+  "generatedAt": "2026-08-19T08:55:42.185Z",
   "fromYear": 2023,
   "metrics": {
     "commits": 3350,
@@ -14,7 +14,7 @@
     "followers": 73
   },
   "streak": {
-    "current": 13,
+    "current": 0,
     "longest": 17,
     "totalActiveDays": 597
   },
