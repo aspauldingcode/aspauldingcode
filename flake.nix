@@ -41,7 +41,7 @@
 
         dev = pkgs.writeShellApplication {
           name = "dev";
-          runtimeInputs = [ pkgs.nodejs_22 ];
+          runtimeInputs = [ pkgs.nodejs_24 ];
           text = ''
             set -euo pipefail
             echo "Starting development server..."
@@ -64,7 +64,7 @@
 
         vercel = pkgs.writeShellApplication {
           name = "vercel";
-          runtimeInputs = [ pkgs.nodejs_22 ];
+          runtimeInputs = [ pkgs.nodejs_24 ];
           text = ''
             set -euo pipefail
             if [ ! -d node_modules ]; then
@@ -98,7 +98,7 @@
         default = pkgs.mkShell {
           buildInputs = [
             pkgs.imagemagick
-            pkgs.nodejs_22
+            pkgs.nodejs_24
           ];
           shellHook = ''
             echo "Portfolio development shell"
