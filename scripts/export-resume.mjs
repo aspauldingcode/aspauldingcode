@@ -174,6 +174,10 @@ function writePdf(resume) {
           .filter(Boolean)
           .join(', ');
         entryHead(left, yearRange(ed.startDate, ed.endDate));
+        if (ed.score) {
+          doc.font('Helvetica').fontSize(9).fillColor(muted).text(`GPA ${ed.score}`);
+          doc.fillColor(ink);
+        }
         doc.moveDown(0.15);
       }
     }

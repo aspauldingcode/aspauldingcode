@@ -80,6 +80,7 @@ export default function HomeContent() {
                   </h3>
                   {when ? <p className="when">{when}</p> : null}
                   {line ? <p className="resume-meta">{line}</p> : null}
+                  {ed.score ? <p className="resume-meta">GPA {ed.score}</p> : null}
                 </li>
               );
             })}

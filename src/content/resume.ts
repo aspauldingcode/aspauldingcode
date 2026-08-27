@@ -24,6 +24,7 @@ export type ResumeEducation = {
   studyType?: string;
   startDate?: string;
   endDate?: string;
+  score?: string;
 };
 
 export type ResumeAward = {
