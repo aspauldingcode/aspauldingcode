@@ -1,76 +1,76 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-08-26T09:04:14.271Z",
+  "generatedAt": "2026-08-27T02:41:00.932Z",
   "fromYear": 2023,
   "metrics": {
-    "commits": 3443,
-    "contributions": 4214,
-    "pullRequests": 45,
+    "commits": 3445,
+    "contributions": 4215,
+    "pullRequests": 44,
     "issues": 593,
     "reviews": 17,
-    "repositories": 55,
+    "repositories": 56,
     "stars": 462,
     "forks": 12,
     "followers": 74
   },
   "streak": {
-    "current": 6,
+    "current": 7,
     "longest": 17,
-    "totalActiveDays": 603
+    "totalActiveDays": 604
   },
   "languages": [
     {
-      "name": "Swift",
-      "size": 2716862,
-      "percent": 31.4,
-      "color": "#F05138"
+      "name": "Objective-C",
+      "size": 3063993,
+      "percent": 30.3,
+      "color": "#438eff"
     },
     {
-      "name": "Objective-C",
-      "size": 1603806,
-      "percent": 18.5,
-      "color": "#438eff"
+      "name": "Swift",
+      "size": 2716862,
+      "percent": 26.9,
+      "color": "#F05138"
     },
     {
       "name": "Nix",
       "size": 1266972,
-      "percent": 14.6,
+      "percent": 12.5,
       "color": "#7e7eff"
     },
     {
       "name": "Shell",
       "size": 612654,
-      "percent": 7.1,
+      "percent": 6.1,
       "color": "#89e051"
     },
     {
       "name": "Python",
       "size": 563120,
-      "percent": 6.5,
+      "percent": 5.6,
       "color": "#3572A5"
     },
     {
       "name": "JavaScript",
       "size": 504982,
-      "percent": 5.8,
+      "percent": 5,
       "color": "#f1e05a"
     },
     {
       "name": "TypeScript",
       "size": 423675,
-      "percent": 4.9,
+      "percent": 4.2,
       "color": "#3178c6"
     },
     {
       "name": "Rust",
       "size": 271227,
-      "percent": 3.1,
+      "percent": 2.7,
       "color": "#dea584"
     },
     {
       "name": "Other",
       "size": 691617,
-      "percent": 8,
+      "percent": 6.8,
       "color": "#8b949e"
     }
   ]
