@@ -28,7 +28,7 @@
   <text class="lbl" y="28">PRs</text>
 </g>
 <g transform="translate(438,36)">
-  <text class="num">462</text>
+  <text class="num">463</text>
   <text class="lbl" y="28">Stars</text>
 </g>
 <g transform="translate(576,36)">
@@ -37,7 +37,7 @@
 </g>
   <g transform="translate(24,100)">
   <text class="sec">Streak</text>
-  <text class="body" y="26">Current 7 days · Longest 17 days · 604 active days</text>
+  <text class="body" y="26">Current 0 days · Longest 17 days · 604 active days</text>
 </g>
   <g transform="translate(24,148)">
     <text class="sec">Languages</text>
