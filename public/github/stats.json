@@ -1,10 +1,10 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-09-04T12:44:24.774Z",
+  "generatedAt": "2026-09-05T11:50:38.182Z",
   "fromYear": 2023,
   "metrics": {
-    "commits": 3486,
-    "contributions": 4267,
+    "commits": 3492,
+    "contributions": 4273,
     "pullRequests": 49,
     "issues": 598,
     "reviews": 17,
@@ -21,7 +21,7 @@
   "languages": [
     {
       "name": "Objective-C",
-      "size": 3063993,
+      "size": 3063810,
       "percent": 29.9,
       "color": "#438eff"
     },
@@ -33,7 +33,7 @@
     },
     {
       "name": "Nix",
-      "size": 1303838,
+      "size": 1304254,
       "percent": 12.7,
       "color": "#7e7eff"
     },
