@@ -52,6 +52,11 @@ describe('SEO', () => {
     expect(page).toContain('SplitShell');
     const shell = readFileSync(path.join(root, 'src/components/SplitShell.tsx'), 'utf8');
     expect(shell).toContain('showHome');
+    expect(shell).toContain('/home-fragment');
+    const home = readFileSync(path.join(root, 'src/components/HomePage.astro'), 'utf8');
+    expect(home).not.toContain('hydrate');
+    const index = readFileSync(path.join(root, 'src/pages/index.astro'), 'utf8');
+    expect(index).not.toContain('site-chrome-foot');
   });
 
   it('derives sitemap lastmod from content files, not the build clock', () => {

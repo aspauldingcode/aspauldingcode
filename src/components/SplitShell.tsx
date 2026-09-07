@@ -95,8 +95,10 @@ export default function SplitShell({
         const doc = new DOMParser().parseFromString(html, 'text/html');
         const nodes = Array.from(doc.body.childNodes).map((node) => document.importNode(node, true));
         main.replaceChildren(...nodes);
+        main.querySelectorAll('script').forEach((el) => el.remove());
         const mount = main.querySelector('#contact-form-root');
         if (mount) {
+          mount.replaceChildren();
           contactRoot = createRoot(mount);
           contactRoot.render(<ContactForm />);
         }
