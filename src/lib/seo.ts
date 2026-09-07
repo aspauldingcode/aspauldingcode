@@ -1,11 +1,10 @@
 import { resume } from '@/content/resume';
 import type { ProjectMeta } from '@/content/types';
 
-export const SITE_URL = (
-  process.env.PUBLIC_SITE_URL ||
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://www.aspauldingcode.com'
-).replace(/\/$/, '');
+export const SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://www.aspauldingcode.com').replace(
+  /\/$/,
+  ''
+);
 
 export const SITE_NAME = resume.basics.name;
 export const SITE_HANDLE = '@aspauldingcode';

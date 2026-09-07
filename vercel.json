@@ -7,16 +7,6 @@
       "permanent": true
     },
     {
-      "source": "/resume",
-      "destination": "/resume.pdf",
-      "permanent": true
-    },
-    {
-      "source": "/projects",
-      "destination": "/",
-      "permanent": true
-    },
-    {
       "source": "/projects/:path*",
       "destination": "/",
       "permanent": true

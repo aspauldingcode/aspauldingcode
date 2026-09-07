@@ -1,10 +1,11 @@
 'use client';
 
-import HomeContent from '@/components/HomeContent';
+import ContactForm from '@/components/ContactForm';
 import SiteFooter from '@/components/SiteFooter';
-import type { HomeModel } from '@/lib/homeData';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
+import { bootHome } from '@/scripts/boot-home';
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
 
 function activeFromPath(pathname: string): string | undefined {
   if (pathname === '/view' || pathname.startsWith('/view/')) return 'view';
@@ -76,26 +77,39 @@ export default function SplitShell({
   const active = activeFromPath(pathname);
   const open = Boolean(active);
   const shellRef = useRef<HTMLDivElement>(null);
-  const [home, setHome] = useState<HomeModel | null>(null);
   const [showHome, setShowHome] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/home.json')
+    let contactRoot: Root | null = null;
+
+    fetch('/home-fragment')
       .then((res) => {
-        if (!res.ok) throw new Error('home.json');
-        return res.json() as Promise<HomeModel>;
+        if (!res.ok) throw new Error('home-fragment');
+        return res.text();
       })
-      .then((model) => {
+      .then((html) => {
         if (cancelled) return;
-        setHome(model);
+        const main = shellRef.current?.querySelector('.split-main');
+        if (!(main instanceof HTMLElement)) return;
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const nodes = Array.from(doc.body.childNodes).map((node) => document.importNode(node, true));
+        main.replaceChildren(...nodes);
+        const mount = main.querySelector('#contact-form-root');
+        if (mount) {
+          contactRoot = createRoot(mount);
+          contactRoot.render(<ContactForm />);
+        }
+        bootHome(main);
         setShowHome(true);
       })
       .catch(() => {
         if (!cancelled) setShowHome(false);
       });
+
     return () => {
       cancelled = true;
+      contactRoot?.unmount();
     };
   }, []);
 
@@ -111,7 +125,7 @@ export default function SplitShell({
         else link.removeAttribute('aria-current');
       }
     });
-  }, [active, children]);
+  }, [active, children, showHome]);
 
   useEffect(() => {
     if (!open) return;
@@ -133,7 +147,7 @@ export default function SplitShell({
     sync();
     narrow.addEventListener('change', sync);
     return () => narrow.removeEventListener('change', sync);
-  }, [open]);
+  }, [open, showHome]);
 
   useEffect(() => {
     if (open || pathname !== '/') return;
@@ -158,9 +172,7 @@ export default function SplitShell({
       data-open={open ? '' : undefined}
       data-active={active || undefined}
     >
-      <div className="split-main">
-        {showHome && home ? <HomeContent model={home} /> : null}
-      </div>
+      <div className="split-main" />
       <div
         className="split-detail"
         aria-hidden={open ? undefined : true}

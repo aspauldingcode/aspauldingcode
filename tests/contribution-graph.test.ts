@@ -27,12 +27,8 @@ describe('contribution graph', () => {
   });
 
   it('keeps contributions.json out of the work-column React tree', () => {
-    const home = readFileSync(path.join(root, 'src/components/HomeContent.tsx'), 'utf8');
-    const host = readFileSync(path.join(root, 'src/components/ContributionGraphHost.tsx'), 'utf8');
     const shell = readFileSync(path.join(root, 'src/components/SplitShell.tsx'), 'utf8');
-    expect(home).not.toMatch('contributions.json');
-    expect(host).not.toMatch('contributions.json');
     expect(shell).not.toMatch('contributions.json');
-    expect(home).toContain('ContributionGraphHost');
+    expect(shell).toContain('/home-fragment');
   });
 });

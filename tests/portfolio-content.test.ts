@@ -25,8 +25,8 @@ describe('education and papers', () => {
     expect(papers.length).toBeGreaterThan(0);
     expect(papers[0].title).toMatch(/Wawona/);
     expect(papers[0].href).toMatch(/^https:\/\/dc\.ewu\.edu\//);
-    expect(papers[0].image).toBe('/ewu/symposium-2026-alex-poster.jpg');
-    expect(existsSync(path.join(root, 'public', 'ewu', 'symposium-2026-alex-poster.jpg'))).toBe(
+    expect(papers[0].image).toBe('/ewu/symposium-2026-alex-poster.avif');
+    expect(existsSync(path.join(root, 'public', 'ewu', 'symposium-2026-alex-poster.avif'))).toBe(
       true
     );
     expect(isEwuPreviewHost('https://www.ewu.edu/')).toBe(true);
@@ -40,19 +40,26 @@ describe('resume PDF', () => {
     expect(existsSync(path.join(root, 'public', 'resume.pdf'))).toBe(true);
     expect(astroConfig).toMatch(/['"]\/resume['"]/);
     expect(astroConfig).toMatch(/['"]\/resume\.pdf['"]/);
+    expect(astroConfig).toMatch(/['"]\/projects['"]/);
     expect(vercelConfig.redirects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: '/resume',
-          destination: '/resume.pdf',
+          source: '/:path*',
+          destination: 'https://www.aspauldingcode.com/:path*',
           permanent: true,
         }),
         expect.objectContaining({
-          source: '/projects',
+          source: '/projects/:path*',
           destination: '/',
           permanent: true,
         }),
       ])
+    );
+    expect(vercelConfig.redirects.some((row: { source: string }) => row.source === '/resume')).toBe(
+      false
+    );
+    expect(vercelConfig.redirects.some((row: { source: string }) => row.source === '/projects')).toBe(
+      false
     );
   });
 });

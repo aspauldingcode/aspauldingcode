@@ -1,0 +1,17 @@
+---
+export const prerender = true;
+
+import HomePage from '@/components/HomePage.astro';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>home</title>
+  </head>
+  <body>
+    <HomePage hydrate={false} />
+  </body>
+</html>

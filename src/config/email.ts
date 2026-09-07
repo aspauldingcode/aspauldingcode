@@ -9,7 +9,5 @@ export const emailConfig = {
   templateId: 'aspauldingcode_portfolio',
   publicKey: '_yza7UlF2bRQN74hN',
   recaptchaSiteKey:
-    process.env.PUBLIC_RECAPTCHA_SITEKEY ||
-    process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY ||
-    '6Lf_gKwqAAAAAA345u55OyMl2EYYy5DKAxEMzfPt',
+    process.env.PUBLIC_RECAPTCHA_SITEKEY || '6Lf_gKwqAAAAAA345u55OyMl2EYYy5DKAxEMzfPt',
 } as const; 

@@ -11,6 +11,11 @@ import { HIRE_HREF } from '@/lib/hireIntent';
 import { homeModel } from '@/lib/homeData';
 import { viewHref } from '@/lib/viewHref';
 
+interface Props {
+  hydrate?: boolean;
+}
+
+const { hydrate = true } = Astro.props;
 const home = homeModel();
 const warmProjects = getProjects().map((p) => ({
   slug: p.slug,
@@ -22,7 +27,7 @@ const warmProjects = getProjects().map((p) => ({
   <header class="hero">
     <img
       class="avatar"
-      src="/profile_avatar.jpg"
+      src="/profile_avatar.avif"
       alt={`${home.name}, square portrait photograph`}
       width="112"
       height="112"
@@ -190,7 +195,9 @@ const warmProjects = getProjects().map((p) => ({
   </Section>
 
   <Section title="Contact">
-    <ContactForm client:visible />
+    <div id="contact-form-root">
+      {hydrate ? <ContactForm client:visible /> : null}
+    </div>
   </Section>
 
   <SiteFooter />
@@ -204,6 +211,10 @@ const warmProjects = getProjects().map((p) => ({
   id="image-warm-data"
   set:html={JSON.stringify(warmProjects)}
 />
-<script>
-  import '@/scripts/home';
-</script>
+{
+  hydrate ? (
+    <script>
+      import '@/scripts/home';
+    </script>
+  ) : null
+}

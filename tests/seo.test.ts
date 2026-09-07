@@ -24,6 +24,7 @@ describe('SEO', () => {
     expect(sitemap).not.toMatch(/new Date\(\)\.toISOString\(\)/);
     const robots = readFileSync(path.join(root, 'src/pages/robots.txt.ts'), 'utf8');
     expect(robots).toContain('Disallow: /api/');
+    expect(robots).toContain('Disallow: /home-fragment');
     expect(robots).toContain('Disallow: /view');
   });
 

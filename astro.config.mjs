@@ -3,11 +3,10 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
 
-const site = (
-  process.env.PUBLIC_SITE_URL ||
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://www.aspauldingcode.com'
-).replace(/\/$/, '');
+const site = (process.env.PUBLIC_SITE_URL || 'https://www.aspauldingcode.com').replace(
+  /\/$/,
+  ''
+);
 
 export default defineConfig({
   site,
