@@ -18,6 +18,7 @@
     "stars:refresh": "node scripts/generate-project-stars.mjs",
     "bench": "node scripts/bench.mjs",
     "images:optimize": "node scripts/optimize-images.mjs",
+    "images:icons": "node scripts/optimize-icons.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

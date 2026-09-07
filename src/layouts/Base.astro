@@ -1,7 +1,4 @@
 ---
-import '@fontsource/ibm-plex-sans/latin-400.css';
-import '@fontsource/ibm-plex-sans/latin-600.css';
-import '@fontsource/ibm-plex-sans/latin-700.css';
 import '@/styles/globals.css';
 import {
   absoluteUrl,
@@ -44,8 +41,9 @@ const keywords = seo.keywords?.join(', ');
     <meta name="application-name" content={SITE_NAME} />
     <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" href={DEFAULT_OG_IMAGE} />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48 32x32 16x16" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta property="og:type" content={seo.ogType || 'website'} />
     <meta property="og:locale" content="en_US" />
