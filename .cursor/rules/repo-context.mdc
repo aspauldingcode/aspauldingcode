@@ -1,0 +1,31 @@
+---
+description: Repo purpose and agent defaults for aspauldingcode.com portfolio
+alwaysApply: true
+---
+
+# aspauldingcode repo
+
+Minimal personal site + GitHub profile README + JSON Resume for Alex Spaulding.
+
+## What this repo is
+
+- Astro site (React islands on Vercel): homepage from `resume.json` via `src/components/HomePage.astro`. Work and view columns fetch `/home-fragment` (same renderer, no React home tree). Portfolio addons live in `content/work/*.md` plus GitHub cards and the contact form
+- Projects (galleries): one Markdown file each in `content/work/{slug}.md` (YAML frontmatter + body)
+- Profile README (`README.md`): systems identity; no em dashes, emoji, or unexplained acronyms
+- Profile stats: custom cards from `scripts/generate-github-stats.mjs` → `public/github/stats.json` (site React) + `profile/github-overview.svg`; contribution graph via `scripts/generate-contribution-graph.mjs` (years newest-first). Both refreshed by `.github/workflows/update-readme-stats.yml`. Languages, stars, forks, and repository counts include public non-fork repos in the Wawona GitHub organization, not only @aspauldingcode-owned repos.
+- Resume: `resume.json` drives the homepage. The Resume control downloads `public/resume.pdf` (built by `scripts/export-resume.mjs`). `/resume` redirects to that PDF. No webview resume page.
+- Do not put email or phone on the public site; contact form only (`/#contact`)
+- Contact send goes through `/api/contact` (HTTPS + EmailJS private key). Template fields: `from_name`, `from_email`, `reply_to`, `hire_me` (`true`/`false`), `message`
+- Whisperer App Store legal: `/whisperer/privacy`, `/whisperer/terms`
+
+## Agent defaults
+
+- Keep the site minimal. Do not reintroduce Persona chrome, framer-motion decks, in-browser PDF viewers, or Chromium resume export
+- Edit projects only via `content/work/*.md`; do not hardcode project copy in React
+- Keep image carousels and the ModernOrange TIDAL preview player (`/api/tidal-*` + `BandPlayer`)
+- After resume content changes: update `resume.json` and regenerate the PDF (`npm run resume:pdf`)
+- Education is the first body section on the homepage and in the PDF, above Experience and projects (`education-first.mdc`)
+- Hire me sits next to the name and scrolls to `#contact` (same form as Contact). After that button leaves view, a sticky header repeats the CTA and says internships or full-time for systems, platform, or developer-tools roles
+- Do not reintroduce front-end / web-dev branding
+- Prefer linking Wawona to `https://github.com/Wawona/Wawona` and `https://wawona.io`
+- Follow `writing.mdc` for all copy

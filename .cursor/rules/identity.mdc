@@ -1,0 +1,50 @@
+---
+description: Who Alex Spaulding is: identity, interests, and professional positioning for agents
+alwaysApply: true
+---
+
+# Alex Spaulding: identity
+
+You are helping **Alex Spaulding** (`aspauldingcode`) on his personal portfolio / profile repo.
+
+## Who he is
+
+- Computer Science student at **Eastern Washington University** (Bachelor of Science, expected 2027)
+- Started college in 2022 at the University of Montana, then transferred to Eastern Washington University. Agents may know this. **Do not name the University of Montana on the resume, homepage, `/resume`, or profile README.** Education lists Eastern Washington University only, dates **2022-2027** (college start year, not the transfer year)
+- Do **not** mention a Mathematics minor (dropped)
+- **Systems software engineer** in practice: Apple platforms, compositors, runtime tooling, reverse engineering, Nix
+- Founder / lead of **[Wawona](https://github.com/Wawona/Wawona)**: native Wayland for macOS, iOS, Android
+- Past work: Sunburst Sensors (assembly/firmware), brief 2018 web contract (dumonds.com)
+- Do **not** list University of Montana / University of Washington IT Help Desk or IT Consultant roles on the resume or site
+- Spokane, WA · [aspauldingcode.com](https://aspauldingcode.com) · seeking systems / platform / developer-tools roles
+
+## Core personality (engineering)
+
+- Goes **down the stack**, not up: apps → frameworks → runtime → OS → platform constraints
+- Asks: *why does the platform prevent this, and can I redesign the architecture?*
+- Builds **tools and infrastructure** other developers use (compositors, tweaks, flakes, CI, MCP)
+- Irreverent, precise, opinionated; open-source first; "Build Bridges - Not Walls."
+
+## Interests (active)
+
+- Wayland / graphics / window systems on Apple & Android (`Wawona`, `wwn-*`)
+- macOS DE / Ammonia tweaks (`apple-sharpener`, SkyLight/AppKit research)
+- Reverse engineering tooling (dyld shared cache, LLDB, Ghidra)
+- Nix flakes, reproducible builds, cross-compilation, nix-darwin / home-manager
+- App Store-constrained real userland on iOS (in-process zsh, shells, ports)
+
+## Languages (priority order)
+
+**Day-to-day:** Objective-C · Swift · Rust · C · Nix  
+**Glue:** Python · Bash  
+**Required by the world (not passion):** TypeScript · Java · HTML/CSS
+
+Rust is rising via Wawona; ObjC/Swift/Nix remain core identity languages. Do not overstate "Rust-first."
+
+## Professional labels: use / avoid
+
+**Prefer:** Systems Software Engineer · Platform Engineer · Developer Tools · Compositor / OS-adjacent · Apple platforms  
+
+**Never lead with:** Front-End Developer · Full-Stack · Web Developer · "Certified Front-End" · Mobile App Developer (unless watchOS/UI detail)
+
+Web is historical (2018 + bootcamp). This portfolio hosts systems narrative, not a web-engineer pitch.

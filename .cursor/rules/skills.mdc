@@ -1,0 +1,14 @@
+---
+description: Load this repo's Cursor skills and write new learnings back into them
+alwaysApply: true
+---
+
+# Project skills
+
+Before architecture, first-load, homepage, work/view, images, icons, fonts, or benches: read every `SKILL.md` under `.cursor/skills/` (start with `aspauldingcode-site`). Do not wait for the user to name the skill.
+
+## Improve the skills
+
+When a change proves a new constraint, cost number, engine split (Blink / Gecko / WebKit), or a rejected approach, update the matching skill in the same turn. Facts and verbs. No em dashes. Keep `SKILL.md` short; put tables of numbers in `reference.md`.
+
+Do not invent skills for one-off chat. Do not duplicate `identity.mdc` or `writing.mdc` into a skill.

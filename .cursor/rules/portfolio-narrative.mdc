@@ -1,0 +1,44 @@
+---
+description: Narrative rules for README, resume, and portfolio copy
+globs: README.md,resume.json,src/app/page.tsx,src/app/layout.tsx,src/content/**,src/components/HomeContent.tsx
+alwaysApply: false
+---
+
+# Portfolio & resume narrative
+
+When editing profile README, `resume.json`, homepage copy, or project blurbs:
+
+## Positioning
+
+- Lead with **systems / Apple platforms / Wawona**, not student + web cert
+- Homepage / bio one-liner: systems software · Apple platforms · Eastern Washington University
+- Resume `basics.label`: systems / compositors / Apple platforms; never Front-End
+- **Section order:** Education first, then Experience, then Selected work / Projects. See `education-first.mdc`.
+- Education copy: Eastern Washington University only, 2022-2027, expected 2027. Do not name the University of Montana or say transfer.
+
+## Featured projects on the site
+
+1. **Wawona**
+2. **apple-sharpener**
+3. **Whisperer** (Apple Watch; keep `/whisperer/privacy` + `/whisperer/terms`)
+4. **ModernOrange Band** (required; static gallery + TIDAL preview player via `/api/tidal-*`)
+5. **Sentinel High School Computer Building Club** (required)
+
+Project list stays compact on the home page. Each project is one file: `content/work/{slug}.md` (frontmatter + write-up). Gallery, write-up, and music live on `/work/[slug]`.
+Resume: edit `resume.json`, then `npm run resume:pdf`. The homepage is the interactive resume. The Resume control downloads the PDF. Do not add a `/resume` webview.
+Do not dump the full GitHub catalog onto the site.
+
+## Copy rules
+
+- Demote or omit: Certified Front-End, React bootcamp, CRUD/FET assignments as highlights
+- Keep `/resume` tight enough to print cleanly on one or two pages
+- No decorative symbols in resume copy (no middle dots, bullets, stars, em/en dashes, emoji). Prefer words or ASCII `/` and `-`
+- Keep: Sunburst Sensors on the resume (one tight bullet)
+- Do not list IT Help Desk / IT Consultant roles (University of Montana or otherwise)
+- Web work (dumonds): omit from resume unless space allows a single historical line; not a site project
+- Skills: one compact Core line (ObjC/Swift/Rust/C/Nix first)
+- Follow `writing.mdc`: no em dashes, no AI filler language
+
+## Tone
+
+Direct, technical, minimal. Match the single-page quiet UI; change words, not design system, unless asked.

@@ -1,0 +1,42 @@
+---
+description: Education must render first on the portfolio and resume, above Experience and projects
+globs: src/components/HomePage.astro,scripts/export-resume.mjs,resume.json,src/content/resume.ts
+alwaysApply: false
+---
+
+# Education first
+
+On the homepage and the downloadable PDF, **Education is the first body section** after the name / label / summary header.
+
+Never place Experience, Selected work, Projects, Skills, Awards, GitHub, Links, or Contact above Education.
+
+## Required order
+
+1. Header (name, label, summary)
+2. **Education**
+3. Experience
+4. Selected work / Projects
+5. Everything else
+
+## Do not
+
+```tsx
+// BAD: Experience before Education
+<Section title="Experience">...</Section>
+<Section title="Education">...</Section>
+```
+
+```tsx
+// GOOD
+<Section title="Education">...</Section>
+<Section title="Experience">...</Section>
+<Section title="Selected work">...</Section>
+```
+
+## Notes
+
+- One Education entry: Eastern Washington University. Keep it linked (`viewHref` on the site).
+- Dates: **2022-2027** (started college in 2022, Bachelor of Science expected 2027). Do not use the 2025 transfer year as `startDate`.
+- Do not add the University of Montana as a school, transfer line, or second Education row on the homepage or PDF.
+- `resume.json` field order does not matter. Render order in `HomePage.astro` and `scripts/export-resume.mjs` does.
+- Copy can still lead with systems / Wawona. Section order still starts with Education.

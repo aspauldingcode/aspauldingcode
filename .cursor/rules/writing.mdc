@@ -1,0 +1,37 @@
+---
+description: No em dashes or AI writing quirks in copy, commits, or UI text
+alwaysApply: true
+---
+
+# Writing voice
+
+Write like a precise engineer, not a chatbot.
+
+## Punctuation
+
+- **No em dashes** (`—`) or en dashes (`–`) anywhere in user-facing copy, README, resume, commits, or comments you add
+- Prefer commas, periods, colons, parentheses, hyphens, or a short new sentence
+- Never reintroduce em/en dashes into `resume.json` or site/resume copy
+- No decorative symbols in resume copy (middle dots, bullet glyphs, stars, emoji). Prefer words or ASCII `/` and `-`
+- Year ranges: use a hyphen (`2019-2023`), not an en/em dash
+- Ongoing work: always write an end (`2024-present`), never a dangling start (`2024-`)
+- Keep the Wawona motto in quotes as written by Alex: "Build Bridges - Not Walls." (hyphen ok)
+
+## Acronyms
+
+- Spell out acronyms in the profile README and public site copy (Association for Computing Machinery, Capture The Flag, continuous integration, inter-process communication, Model Context Protocol, reverse engineering, desktop environment)
+- Always write **Computer Science**, never the shorthand "CS" (README, portfolio, resume, rules, commits)
+- Do not mention a Mathematics minor (dropped; not part of the narrative)
+- School and org names: full form (Eastern Washington University, not EWU alone)
+- Resume and site Education: Eastern Washington University only. Do not write University of Montana or "transfer" on those pages. College dates are 2022-2027.
+- Keep product and protocol names as written when they are the proper name: Nix, Wayland, Mach-O, dyld, AppKit, Metal, Vulkan, Ammonia, Ghidra, LLDB, TIDAL
+- No emoji in README or resume copy
+- Prefer no star symbols; write "stars" in words when needed
+
+## Ban AI filler
+
+Avoid: delve, tapestry, landscape of, robust, seamless, leverage, cutting-edge, utilize, empower, unlock, elevate, "it's worth noting", "in today's", "furthermore", "moreover", "whilst", "game-changer", "excited to share", stacked rhetorical questions, fake enthusiasm.
+
+## Prefer
+
+Short sentences. Concrete nouns (Mach-O, Wayland, Ammonia, Nix). Active voice. Irreverent when it fits Alex; never corporate-bland or LinkedIn-poetic.
