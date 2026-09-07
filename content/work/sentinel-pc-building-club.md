@@ -7,29 +7,29 @@ blurb: >-
   through Missoula Computes (a computer store).
 years: 2018-2019
 images:
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview1.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview2.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview3.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview4.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview5.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview6.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview7.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview8.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview9.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview10.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview12.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2018_preview13.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview1.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview2.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview3.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview4.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview5.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview6.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview7.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview8.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview9.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview10.jpg
-  - /shspcbuildingclub_slider/shspcbuilds_2019_preview11.jpg
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview1.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview2.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview3.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview4.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview5.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview6.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview7.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview8.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview9.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview10.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview12.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2018_preview13.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview1.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview2.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview3.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview4.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview5.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview6.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview7.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview8.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview9.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview10.avif
+  - /shspcbuildingclub_slider/shspcbuilds_2019_preview11.avif
 imageAlts:
   - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 1"
   - "Sentinel High School Computer Building Club 2018 — students and PC builds, photo 2"

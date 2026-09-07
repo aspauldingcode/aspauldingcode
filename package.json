@@ -17,6 +17,7 @@
     "resume:pdf": "node scripts/export-resume.mjs",
     "stars:refresh": "node scripts/generate-project-stars.mjs",
     "bench": "node scripts/bench.mjs",
+    "images:optimize": "node scripts/optimize-images.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -42,6 +43,7 @@
     "eslint": "^9.39.2",
     "eslint-plugin-astro": "^1.5.0",
     "pdfkit": "^0.19.1",
+    "sharp": "^0.35.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.0",
     "vitest": "^4.1.10"

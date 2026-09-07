@@ -7,13 +7,13 @@ blurb: >-
 years: 2019-2023
 music: true
 images:
-  - /modernorange_slider/ModernOrangeBand.jpg
-  - /modernorange_slider/modernorangeband_forester_tollefson_apartment_1.jpg
-  - /modernorange_slider/modernorangeband_forester_tollefson_apartment_2.jpg
-  - /modernorange_slider/modernorangeband_spacetion_album_painting_1.jpg
-  - /modernorange_slider/modernorangeband_spacetion_album_painting_2.jpg
-  - /modernorange_slider/owen_alex_modernorangeband.jpg
-  - /modernorange_slider/spacetion_pt_2_coverart_modernorangeband.jpg
+  - /modernorange_slider/ModernOrangeBand.avif
+  - /modernorange_slider/modernorangeband_forester_tollefson_apartment_1.avif
+  - /modernorange_slider/modernorangeband_forester_tollefson_apartment_2.avif
+  - /modernorange_slider/modernorangeband_spacetion_album_painting_1.avif
+  - /modernorange_slider/modernorangeband_spacetion_album_painting_2.avif
+  - /modernorange_slider/owen_alex_modernorangeband.avif
+  - /modernorange_slider/spacetion_pt_2_coverart_modernorangeband.avif
 imageAlts:
   - "ModernOrange band promotional group photo"
   - "ModernOrange live at Forester Tollefson apartment show, photo 1"

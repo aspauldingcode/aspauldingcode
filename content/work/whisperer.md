@@ -6,15 +6,15 @@ blurb: >-
   TTS, OCR, and image generation.
 years: 2024-present
 images:
-  - /whisperer_slider/homeSlateGlowUI.png
-  - /whisperer_slider/homeRedFlatUI.png
-  - /whisperer_slider/chatGreen.png
-  - /whisperer_slider/promptListenBlue.png
-  - /whisperer_slider/appearence.png
-  - /whisperer_slider/selectLanguage.png
-  - /whisperer_slider/selectTTS-Language.png
-  - /whisperer_slider/inputTimeout.png
-  - /whisperer_slider/settingsAPIKey.png
+  - /whisperer_slider/homeSlateGlowUI.avif
+  - /whisperer_slider/homeRedFlatUI.avif
+  - /whisperer_slider/chatGreen.avif
+  - /whisperer_slider/promptListenBlue.avif
+  - /whisperer_slider/appearence.avif
+  - /whisperer_slider/selectLanguage.avif
+  - /whisperer_slider/selectTTS-Language.avif
+  - /whisperer_slider/inputTimeout.avif
+  - /whisperer_slider/settingsAPIKey.avif
 imageAlts:
   - "Whisperer Apple Watch home screen with slate glow theme"
   - "Whisperer Apple Watch home screen with red flat theme"

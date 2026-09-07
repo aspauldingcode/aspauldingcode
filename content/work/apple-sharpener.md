@@ -6,7 +6,7 @@ blurb: >-
   squircles). Widely used after Liquid Glass pushed system radii much larger.
 years: 2024-present
 images:
-  - /applesharpener_slider/apple_sharpener_preview.jpg
+  - /applesharpener_slider/apple_sharpener_preview.avif
 imageAlts:
   - "macOS windows with apple-sharpener applying custom corner radii beside the default Liquid Glass look"
 links:

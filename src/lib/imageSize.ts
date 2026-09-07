@@ -1,7 +1,47 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** Natural width/height from a public/ file (JPEG or PNG). */
+function avifSize(buf: Buffer): { w: number; h: number } | null {
+  const tag = Buffer.from('ispe');
+  let from = 0;
+  while (from + 16 < buf.length) {
+    const idx = buf.indexOf(tag, from);
+    if (idx < 4) return null;
+    const box = buf.readUInt32BE(idx - 4);
+    if (box >= 20 && idx + 16 <= buf.length) {
+      const w = buf.readUInt32BE(idx + 8);
+      const h = buf.readUInt32BE(idx + 12);
+      if (w > 0 && w < 65536 && h > 0 && h < 65536) return { w, h };
+    }
+    from = idx + 4;
+  }
+  return null;
+}
+
+function webpSize(buf: Buffer): { w: number; h: number } | null {
+  if (buf.length < 30 || buf.toString('ascii', 0, 4) !== 'RIFF') return null;
+  if (buf.toString('ascii', 8, 12) !== 'WEBP') return null;
+  const kind = buf.toString('ascii', 12, 16);
+  if (kind === 'VP8X' && buf.length >= 30) {
+    const w = 1 + buf.readUIntLE(24, 3);
+    const h = 1 + buf.readUIntLE(27, 3);
+    return w > 0 && h > 0 ? { w, h } : null;
+  }
+  if (kind === 'VP8 ' && buf.length >= 30) {
+    const w = buf.readUInt16LE(26) & 0x3fff;
+    const h = buf.readUInt16LE(28) & 0x3fff;
+    return w > 0 && h > 0 ? { w, h } : null;
+  }
+  if (kind === 'VP8L' && buf.length >= 25) {
+    const bits = buf.readUInt32LE(21);
+    const w = (bits & 0x3fff) + 1;
+    const h = ((bits >> 14) & 0x3fff) + 1;
+    return w > 0 && h > 0 ? { w, h } : null;
+  }
+  return null;
+}
+
+/** Natural width/height from a public/ file (AVIF, WebP, JPEG, or PNG). */
 export function imageSize(publicPath: string): { w: number; h: number } | null {
   const rel = publicPath.replace(/^\//, '');
   const file = path.join(process.cwd(), 'public', rel);
@@ -9,6 +49,13 @@ export function imageSize(publicPath: string): { w: number; h: number } | null {
 
   const buf = fs.readFileSync(file);
   if (buf.length < 24) return null;
+
+  if (buf.toString('ascii', 4, 8) === 'ftyp' && buf.includes(Buffer.from('avif'), 8)) {
+    return avifSize(buf);
+  }
+
+  const webp = webpSize(buf);
+  if (webp) return webp;
 
   // PNG
   if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {

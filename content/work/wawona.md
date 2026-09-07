@@ -6,12 +6,12 @@ blurb: >-
   Waypipe, and on-device shell.
 years: 2025-present
 images:
-  - /wawona_slider/wawona_nested_plasma.jpg
-  - /wawona_slider/wawona_nested_xfce.jpg
-  - /wawona_slider/wawona_nested_cosmic.jpg
-  - /wawona_slider/wawona-macos_weston.jpg
-  - /wawona_slider/wawona-ios-sway_landscape.jpg
-  - /wawona_slider/wawona-android-sway_landscape.jpg
+  - /wawona_slider/wawona_nested_plasma.avif
+  - /wawona_slider/wawona_nested_xfce.avif
+  - /wawona_slider/wawona_nested_cosmic.avif
+  - /wawona_slider/wawona-macos_weston.avif
+  - /wawona_slider/wawona-ios-sway_landscape.avif
+  - /wawona_slider/wawona-android-sway_landscape.avif
 imageAlts:
   - "Wawona nesting a KDE Plasma Linux desktop session on macOS"
   - "Wawona nesting an XFCE Linux desktop session on macOS"

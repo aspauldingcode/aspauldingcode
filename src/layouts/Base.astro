@@ -64,7 +64,7 @@ const keywords = seo.keywords?.join(', ');
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={ogAlt} />
     {seo.canonicalPath === '/' ? (
-      <link rel="preload" as="image" href="/profile_avatar.jpg" />
+      <link rel="preload" as="image" href="/profile_avatar.avif" type="image/avif" />
     ) : null}
     {jsonLd ? (
       <script type="application/ld+json" set:html={jsonLdScript(jsonLd)} />
