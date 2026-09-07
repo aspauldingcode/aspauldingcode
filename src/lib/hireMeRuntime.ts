@@ -35,6 +35,23 @@ function boxOf(el: Element): Box {
   return { left: r.left, top: r.top, width: r.width, height: r.height };
 }
 
+type PinRect = { left: number; width: number };
+
+/** Sticky hire bar matches the centered wrap. Overlay must not go 100vw. */
+export function hireBarPin(
+  wrap: PinRect | null,
+  main: PinRect | null,
+  overlay: boolean
+): { left: string; width: string } {
+  if (wrap && wrap.width >= 2) {
+    return { left: `${wrap.left}px`, width: `${wrap.width}px` };
+  }
+  if (!overlay && main && main.width >= 2) {
+    return { left: `${main.left}px`, width: `${main.width}px` };
+  }
+  return { left: '0px', width: '100%' };
+}
+
 export type HireMeEls = {
   host: HTMLElement;
   destLead: HTMLElement;
@@ -52,10 +69,21 @@ export function initHireMe(els: HireMeEls): () => void {
   const flyHire = fly.querySelector('.hire-me');
   const hero = document.querySelector('h1.hero-title');
   const heroRow = hero?.closest('.hero-name');
-  const main = document.querySelector('.split-main');
-  const wrap = main instanceof HTMLElement ? main.querySelector('.wrap') : null;
-  const shell = document.querySelector('.split-shell');
   const flyHireEl = flyHire;
+
+  const shellEl = () => {
+    const el = document.querySelector('.split-shell');
+    return el instanceof HTMLElement ? el : null;
+  };
+  const mainEl = () => {
+    const el = document.querySelector('.split-main');
+    return el instanceof HTMLElement ? el : null;
+  };
+  const wrapEl = () => {
+    const main = mainEl();
+    const el = main?.querySelector('.wrap') ?? document.querySelector('.wrap');
+    return el instanceof HTMLElement ? el : null;
+  };
   if (
     !(dest instanceof HTMLElement) ||
     !(bar instanceof HTMLElement) ||
@@ -110,12 +138,15 @@ export function initHireMe(els: HireMeEls): () => void {
   measure.append(probe);
   document.body.append(measure);
 
-  const columnOpen = () =>
-    shell instanceof HTMLElement && shell.hasAttribute('data-open');
+  const columnOpen = () => Boolean(shellEl()?.hasAttribute('data-open'));
+  const overlayOpen = () => {
+    const shell = shellEl();
+    return Boolean(shell?.hasAttribute('data-home-shell') && shell.hasAttribute('data-open'));
+  };
 
-  // Narrow + data-open only. Do not read window.location: Safari can still
-  // report / while the project column is already taking the view.
-  const detailOpen = () => narrow.matches && columnOpen();
+  // Overlay or narrow column. Do not read window.location: Safari can still
+  // report / while the project pane is already taking the view.
+  const detailOpen = () => overlayOpen() || (narrow.matches && columnOpen());
 
   function countLines(el: HTMLElement) {
     const range = document.createRange();
@@ -148,26 +179,27 @@ export function initHireMe(els: HireMeEls): () => void {
     hostEl.classList.toggle('is-stack', stack);
   }
 
+  function pinWrap() {
+    if (overlayOpen()) {
+      const pane = document.querySelector('[data-work-pane][data-show]');
+      const workWrap = pane?.querySelector('.wrap');
+      if (workWrap instanceof HTMLElement && workWrap.clientWidth >= 2) return workWrap;
+    }
+    return wrapEl();
+  }
+
   function pin() {
     hostEl.hidden = false;
-    let left = '0';
-    let width = '100%';
-    if (detailOpen()) {
-      left = '0';
-      width = '100%';
-    } else if (columnOpen() && main instanceof HTMLElement && main.clientWidth >= 2) {
-      const pane = main.getBoundingClientRect();
-      left = `${pane.left}px`;
-      width = `${main.clientWidth}px`;
-    } else if (wrap instanceof HTMLElement && wrap.clientWidth >= 2) {
-      const box = wrap.getBoundingClientRect();
-      left = `${box.left}px`;
-      width = `${box.width}px`;
-    } else if (main instanceof HTMLElement && main.clientWidth >= 2) {
-      const pane = main.getBoundingClientRect();
-      left = `${pane.left}px`;
-      width = `${main.clientWidth}px`;
-    }
+    const main = mainEl();
+    const wrap = pinWrap();
+    const wrapBox = wrap && wrap.clientWidth >= 2 ? wrap.getBoundingClientRect() : null;
+    const { left, width } = hireBarPin(
+      wrapBox ? { left: wrapBox.left, width: wrapBox.width } : null,
+      main && main.clientWidth >= 2
+        ? { left: main.getBoundingClientRect().left, width: main.clientWidth }
+        : null,
+      overlayOpen()
+    );
     if (pinnedLeft !== left) {
       pinnedLeft = left;
       hostEl.style.left = left;
@@ -187,7 +219,7 @@ export function initHireMe(els: HireMeEls): () => void {
   }
 
   function writeChrome() {
-    if (!detailOpen()) {
+    if (!detailOpen() || !hostEl.classList.contains('is-on')) {
       if (!chromeH) return;
       chromeH = '';
       document.documentElement.style.removeProperty('--hire-chrome');
@@ -213,7 +245,8 @@ export function initHireMe(els: HireMeEls): () => void {
     if (next === phase) return;
     phase = next;
     hostEl.classList.toggle('is-on', next !== IDLE);
-    hostEl.setAttribute('aria-hidden', next === IDLE ? 'true' : 'false');
+    if (next === IDLE) hostEl.setAttribute('aria-hidden', 'true');
+    else hostEl.removeAttribute('aria-hidden');
     heroRowEl.classList.toggle('is-group-hidden', next !== IDLE);
     destLeadEl.classList.toggle('is-group-hidden', next !== DOCKED);
     flyEl.classList.toggle('is-live', next === TRAVEL);
@@ -273,7 +306,7 @@ export function initHireMe(els: HireMeEls): () => void {
     }
     if (wasDetail) wasDetail = false;
 
-    const st = scrollTop(main);
+    const st = scrollTop(mainEl());
     if (st <= 1) {
       if (phase !== IDLE) {
         setPhase(IDLE);
@@ -337,22 +370,54 @@ export function initHireMe(els: HireMeEls): () => void {
     sync();
   }
 
+  let listenedMain: HTMLElement | null = null;
+  let observedShell: HTMLElement | null = null;
+  const mo = new MutationObserver(sync);
+  const ro = new ResizeObserver(onResize);
+  const chromeRo = new ResizeObserver(() => writeChrome());
+
+  function bindShell() {
+    const shell = shellEl();
+    const main = mainEl();
+    const wrap = wrapEl();
+    if (shell && shell !== observedShell) {
+      mo.disconnect();
+      mo.observe(shell, {
+        attributes: true,
+        attributeFilter: ['data-open', 'data-home-shell'],
+      });
+      observedShell = shell;
+    }
+    if (main !== listenedMain) {
+      if (listenedMain) {
+        listenedMain.removeEventListener('scroll', onScroll);
+        listenedMain.removeEventListener('scrollend', onScroll);
+        ro.unobserve(listenedMain);
+      }
+      listenedMain = main;
+      if (main) {
+        main.addEventListener('scroll', onScroll, { passive: true });
+        main.addEventListener('scrollend', onScroll, { passive: true });
+        ro.observe(main);
+      }
+    }
+    if (wrap) ro.observe(wrap);
+    const workWrap = pinWrap();
+    if (workWrap && workWrap !== wrap) ro.observe(workWrap);
+  }
+
   measureRest();
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('scrollend', onScroll, { passive: true });
-  if (main instanceof HTMLElement) {
-    main.addEventListener('scroll', onScroll, { passive: true });
-    main.addEventListener('scrollend', onScroll, { passive: true });
-  }
   window.addEventListener('resize', onResize, { passive: true });
   narrow.addEventListener('change', sync);
-  const mo = new MutationObserver(sync);
-  if (shell) mo.observe(shell, { attributes: true, attributeFilter: ['data-open'] });
-  const ro = new ResizeObserver(onResize);
-  if (main instanceof HTMLElement) ro.observe(main);
-  if (wrap instanceof HTMLElement) ro.observe(wrap);
-  const chromeRo = new ResizeObserver(() => writeChrome());
   chromeRo.observe(hostEl);
+  bindShell();
+  const bodyMo = new MutationObserver(() => {
+    bindShell();
+    sync();
+  });
+  bodyMo.observe(document.body, { childList: true });
   const fonts = document.fonts;
   fonts?.ready.then(() => {
     stackBarW = -1;
@@ -365,13 +430,14 @@ export function initHireMe(els: HireMeEls): () => void {
     window.clearTimeout(settle);
     window.removeEventListener('scroll', onScroll);
     window.removeEventListener('scrollend', onScroll);
-    if (main instanceof HTMLElement) {
-      main.removeEventListener('scroll', onScroll);
-      main.removeEventListener('scrollend', onScroll);
+    if (listenedMain) {
+      listenedMain.removeEventListener('scroll', onScroll);
+      listenedMain.removeEventListener('scrollend', onScroll);
     }
     window.removeEventListener('resize', onResize);
     narrow.removeEventListener('change', sync);
     mo.disconnect();
+    bodyMo.disconnect();
     ro.disconnect();
     chromeRo.disconnect();
     document.documentElement.style.removeProperty('--hire-chrome');

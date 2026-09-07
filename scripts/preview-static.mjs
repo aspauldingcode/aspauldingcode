@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-/** Serve prerendered dist/client for benches. APIs need `astro dev` or Vercel. */
+/** Serve prerendered dist/client for benches. /view is a static shell.
+ *  Live /api/preview and TIDAL need `astro dev` or Vercel. */
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';

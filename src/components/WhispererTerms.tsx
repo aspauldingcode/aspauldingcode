@@ -104,9 +104,7 @@ export default function WhispererTermsOfUse() {
       <SectionTitle>Contact</SectionTitle>
       <p>
         Questions about these Terms? Reach us through the contact form at{' '}
-        <a href="https://aspauldingcode.com" target="_blank" rel="noopener noreferrer">
-          aspauldingcode.com
-        </a>
+        <a href="/">aspauldingcode.com</a>
         .
       </p>
     </LegalPage>

@@ -14,7 +14,7 @@ import {
   type ProfilePaper,
   type ProfilePin,
 } from '@/lib/profileCard';
-import type { ViewTarget } from '@/lib/viewHref';
+import { localPathForHref, parseViewTarget, type ViewTarget } from '@/lib/viewHref';
 import { resume } from '@/content/resume';
 import { useEffect, useState } from 'react';
 
@@ -24,14 +24,29 @@ type PreviewState =
   | { status: 'ready'; data: ProfileCard }
   | { status: 'empty' };
 
-export default function EmbedViewer({ target }: { target: ViewTarget }) {
+export default function EmbedViewer() {
   const homeLabel = resume.basics.name;
-  const [preview, setPreview] = useState<PreviewState>(() =>
-    target.embeddable ? { status: 'idle' } : { status: 'loading' }
-  );
+  const [target, setTarget] = useState<ViewTarget | null>(null);
+  const [preview, setPreview] = useState<PreviewState>({ status: 'idle' });
 
   useEffect(() => {
-    if (target.embeddable) return;
+    const raw = new URL(window.location.href).searchParams.get('u');
+    if (!raw) {
+      setTarget(null);
+      return;
+    }
+    const local = localPathForHref(raw, window.location.origin);
+    if (local) {
+      window.location.replace(local);
+      return;
+    }
+    const next = parseViewTarget(raw);
+    setTarget(next);
+    setPreview(next?.embeddable ? { status: 'idle' } : { status: 'loading' });
+  }, []);
+
+  useEffect(() => {
+    if (!target || target.embeddable) return;
 
     const href = target.openHref;
     let cancelled = false;
@@ -62,7 +77,19 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
       cancelled = true;
       ac.abort();
     };
-  }, [target.embeddable, target.openHref]);
+  }, [target?.embeddable, target?.openHref]);
+
+  if (!target) {
+    return (
+      <div className="detail-pane">
+        <div className="wrap">
+          <p className="project-home">
+            <a href="/">← Back to {homeLabel}</a>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const previewData = preview.status === 'ready' ? preview.data : null;
   const papers =

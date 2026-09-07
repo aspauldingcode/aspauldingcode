@@ -1,7 +1,7 @@
 ---
 export const prerender = true;
 
-import '@/styles/work.css';
+import workSheet from '@/styles/work.css?url';
 import WhispererTermsOfUse from '@/components/WhispererTerms';
 import Base from '@/layouts/Base.astro';
 
@@ -14,6 +14,6 @@ const seo = {
 };
 ---
 
-<Base seo={seo}>
+<Base seo={seo} sheets={[workSheet]}>
   <WhispererTermsOfUse />
 </Base>

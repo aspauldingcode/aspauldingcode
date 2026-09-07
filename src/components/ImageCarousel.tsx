@@ -53,11 +53,14 @@ export default function ImageCarousel({
   const aspect = useMemo(() => stageAspect(sizes), [sizes]);
 
   const jump = useCallback(
-    (next: number) => {
+    (next: number, tries = 0) => {
       const track = trackRef.current;
       if (!track || !multi) return;
       const w = track.clientWidth;
-      if (w <= 0) return;
+      if (w <= 0) {
+        if (tries < 8) requestAnimationFrame(() => jump(next, tries + 1));
+        return;
+      }
       const i = ((next % count) + count) % count;
       lockRef.current = true;
       indexRef.current = i;

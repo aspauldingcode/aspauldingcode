@@ -1,8 +1,9 @@
 # Alex Spaulding · [Hire me](https://aspauldingcode.com/?hire=1#contact)
 
-[![CI](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml/badge.svg)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml)
-[![On-site search](https://img.shields.io/badge/on--site_search-100%2F100-brightgreen)](https://aspauldingcode.com)
-[![Speed](https://img.shields.io/badge/speed-69%2F100-yellow)](https://aspauldingcode.com)
+[![Portfolio tests](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml/badge.svg)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml)
+[![Portfolio SEO](https://img.shields.io/badge/portfolio_SEO-100%2F100-brightgreen)](https://www.aspauldingcode.com)
+[![Portfolio speed](https://img.shields.io/badge/portfolio_speed-100%2F100-brightgreen)](https://www.aspauldingcode.com)
+[![Resume](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/resume.yml/badge.svg)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/resume.yml)
 
 ### Systems software · Apple platforms · Wayland compositors
 
@@ -52,10 +53,10 @@ Bachelor of Science in Computer Science at Eastern Washington University (2022-2
 
 | Lab | Score |
 | --- | ---: |
-| Search engine optimization (on-site) | 100 / 100 |
+| Search engine optimization (SEO) | 100 / 100 |
 | Speed | 100 / 100 |
 
-On-site search is unique `/work` HTML, www canonicals, robots, sitemap, and query-shaped titles. It is not a ranking guarantee and does not score LinkedIn, GitHub, or wawona.io. Speed is first-load JavaScript and CSS vs a static-first budget: homepage script is 18 KB (Next.js was 427 KB).
+Search engine optimization (SEO) here is on-site only: unique `/work` HTML, www canonicals, robots, sitemap, and query-shaped titles. It is not a ranking guarantee and does not score LinkedIn, GitHub, or wawona.io. Speed is first-load JavaScript and CSS vs a static-first budget: homepage script is 21 KB (Next.js was 427 KB).
 
 ---
 

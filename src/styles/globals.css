@@ -1,7 +1,7 @@
 @font-face {
   font-family: "IBM Plex Sans";
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
   font-weight: 400;
   src: url("@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2") format("woff2");
 }
@@ -9,7 +9,7 @@
 @font-face {
   font-family: "IBM Plex Sans";
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
   font-weight: 600;
   src: url("@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2") format("woff2");
 }
@@ -17,7 +17,7 @@
 @font-face {
   font-family: "IBM Plex Sans";
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
   font-weight: 700;
   src: url("@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff2") format("woff2");
 }
@@ -27,6 +27,7 @@
   src: url("/fonts/nerd-icons.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
+  /* swap: optional drops PUA glyphs for the page view if the subset is late */
   font-display: swap;
   unicode-range: U+F0141, U+F0142, U+F037D, U+F03CC, U+F03E4, U+F040A, U+F04CE, U+F0616;
 }
@@ -98,6 +99,69 @@ body {
   -webkit-font-smoothing: antialiased;
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* Home-born work overlay. Visibility only (no opacity / will-change).
+   A child with visibility:visible paints through a hidden ancestor (CSS). */
+.split-shell[data-home-shell] > .split-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: block;
+  width: auto;
+  height: auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  background: var(--bg);
+  isolation: isolate;
+  opacity: 1;
+  pointer-events: none;
+  visibility: hidden;
+  padding-top: 0;
+  border: 0;
+  transition: none;
+  will-change: auto;
+}
+
+.split-shell[data-home-shell][data-open] > .split-detail {
+  visibility: visible;
+  pointer-events: auto;
+  padding-top: 0;
+}
+
+.split-shell[data-home-shell][data-open] [data-work-pane][data-show] .wrap {
+  padding-top: calc(var(--hire-chrome, 0px) + 0.45rem);
+}
+
+.split-shell[data-home-shell]:not([data-open]) [data-work-pane] {
+  visibility: hidden !important;
+}
+
+html.work-open,
+body.work-open {
+  overflow: hidden;
+}
+
+[data-work-cache] {
+  display: grid;
+}
+
+[data-work-pane] {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  content-visibility: hidden;
+  pointer-events: none;
+}
+
+[data-work-pane][data-show] {
+  visibility: visible;
+  content-visibility: visible;
+  pointer-events: auto;
+}
+
+[data-work-island] {
+  display: contents;
 }
 
 /* Scrollbars: accent thumb on a quiet track (Firefox + WebKit). */
@@ -454,7 +518,7 @@ a.hire-me:focus-visible {
   left: 0;
   width: 100%;
   height: auto;
-  z-index: 40;
+  z-index: 50;
   pointer-events: none;
   contain: style;
 }

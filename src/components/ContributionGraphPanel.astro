@@ -18,7 +18,7 @@ const svg = renderContributionSvg(graph, currentYearBand(graph));
 <div class="github-graph-panel" data-graph-panel>
   <p class="github-graph-toolbar no-print" hidden>
     <button type="button" class="ctrl-link github-graph-toggle" aria-pressed="false">
-      <span class="nf" aria-hidden>󰘖</span>{' '}
+      <span class="nf" aria-hidden="true">󰘖</span>{' '}
       <span data-graph-label>Show entire graph</span>
     </button>
   </p>
@@ -30,7 +30,12 @@ const svg = renderContributionSvg(graph, currentYearBand(graph));
     data-fade-right="0"
   >
     <div class="github-graph-scroller">
-      <a class="github-graph-link" href={href} set:html={svg} />
+      <a
+        class="github-graph-link"
+        href={href}
+        aria-label={`GitHub contribution graph for @${graph.login}`}
+        set:html={svg}
+      />
     </div>
   </div>
 </div>

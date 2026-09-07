@@ -1,7 +1,7 @@
 ---
 export const prerender = true;
 
-import '@/styles/work.css';
+import workSheet from '@/styles/work.css?url';
 import BandPlayer from '@/components/BandPlayer';
 import DetailCrumb from '@/components/DetailCrumb';
 import ImageCarousel from '@/components/ImageCarousel';
@@ -43,6 +43,7 @@ const seo = projectSeo(project);
 
 <Base
   seo={seo}
+  sheets={[workSheet]}
   jsonLd={[
     projectJsonLd(project),
     breadcrumbJsonLd([

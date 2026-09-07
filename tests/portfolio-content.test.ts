@@ -17,7 +17,7 @@ describe('education and papers', () => {
     expect(school.startDate).toMatch(/^2022-/);
     expect(school.endDate).toMatch(/^2027-/);
     expect(school.studyType).toMatch(/2027/);
-    expect(JSON.stringify(resume.education)).not.toMatch(/University of Montana/i);
+    expect(JSON.stringify(resume)).not.toMatch(/University of Montana/i);
   });
 
   it('maps the symposium poster onto EWU preview cards', () => {
@@ -70,9 +70,13 @@ describe('site lab scores', () => {
     const bench = JSON.parse(readFileSync(path.join(root, 'bench/latest.json'), 'utf8'));
     expect(bench.seoScore).toBe(100);
     expect(bench.speedScore).toBe(100);
-    expect(readme).toContain('Search engine optimization (on-site)');
+    expect(readme).toContain('Search engine optimization (SEO)');
     expect(readme).toContain('100 / 100');
-    expect(readme).toContain('18 KB');
+    expect(readme).toContain('21 KB');
+    expect(readme).toContain('portfolio_SEO-100');
+    expect(readme).toContain('portfolio_speed-100');
+    expect(readme).not.toMatch(/speed-69/);
+    expect(readme).toContain('actions/workflows/resume.yml');
   });
 });
 

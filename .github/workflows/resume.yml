@@ -1,0 +1,45 @@
+name: Resume
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - resume.json
+      - public/resume.pdf
+      - scripts/validate-resume.mjs
+      - scripts/export-resume.mjs
+      - tests/resume.test.ts
+      - .github/workflows/resume.yml
+  pull_request:
+    paths:
+      - resume.json
+      - public/resume.pdf
+      - scripts/validate-resume.mjs
+      - scripts/export-resume.mjs
+      - tests/resume.test.ts
+      - .github/workflows/resume.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  resume:
+    name: Resume JSON
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Check resume.json
+        run: npm run resume:check
+
+      - name: Export PDF
+        run: npm run resume:pdf

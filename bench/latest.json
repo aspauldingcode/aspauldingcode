@@ -1,7 +1,7 @@
 {
   "framework": "astro",
   "measuredAt": "2026-09-07",
-  "origin": "http://127.0.0.1:3001",
+  "origin": "http://127.0.0.1:3000",
   "seoScore": 100,
   "speedScore": 100,
   "seo": {
@@ -61,16 +61,16 @@
   },
   "speed": {
     "score": 100,
-    "homepageScriptKb": 18,
+    "homepageScriptKb": 21,
     "nextHomepageScriptKb": 427
   },
   "routes": {
     "/": {
       "path": "/",
       "status": 200,
-      "htmlBytes": 57026,
-      "scriptBytes": 18255,
-      "styleBytes": 19593,
+      "htmlBytes": 58529,
+      "scriptBytes": 21452,
+      "styleBytes": 19727,
       "containsEducation": true,
       "containsContactForm": true,
       "title": "Alex Spaulding / Systems Software / Apple Platforms / Compositors",
@@ -80,9 +80,9 @@
     "/work/wawona": {
       "path": "/work/wawona",
       "status": 200,
-      "htmlBytes": 14832,
+      "htmlBytes": 14949,
       "scriptBytes": 4150,
-      "styleBytes": 35091,
+      "styleBytes": 37518,
       "containsEducation": false,
       "containsContactForm": false,
       "title": "Wawona: native Wayland compositor for macOS / Alex Spaulding",
@@ -92,9 +92,9 @@
     "/work/whisperer": {
       "path": "/work/whisperer",
       "status": 200,
-      "htmlBytes": 24289,
+      "htmlBytes": 24455,
       "scriptBytes": 5056,
-      "styleBytes": 35091,
+      "styleBytes": 37518,
       "containsEducation": false,
       "containsContactForm": false,
       "title": "Whisperer: ChatGPT for Apple Watch / Alex Spaulding",
@@ -104,9 +104,9 @@
     "/work/modernorange-band": {
       "path": "/work/modernorange-band",
       "status": 200,
-      "htmlBytes": 29205,
+      "htmlBytes": 29359,
       "scriptBytes": 5056,
-      "styleBytes": 35091,
+      "styleBytes": 37518,
       "containsEducation": false,
       "containsContactForm": false,
       "title": "ModernOrange Band / Alex Spaulding",

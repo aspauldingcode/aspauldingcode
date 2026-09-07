@@ -1,25 +1,21 @@
 ---
-import '@/styles/work.css';
+export const prerender = true;
+
+import workSheet from '@/styles/work.css?url';
 import EmbedViewer from '@/components/EmbedViewer';
 import SplitShell from '@/components/SplitShell';
 import Base from '@/layouts/Base.astro';
-import { parseViewTarget } from '@/lib/viewHref';
-
-const target = parseViewTarget(Astro.url.searchParams.get('u'));
-if (!target) {
-  return new Response(null, { status: 404 });
-}
 
 const seo = {
-  title: target.label,
-  description: `In-portfolio preview of ${target.label}`,
+  title: 'Preview',
+  description: 'In-portfolio preview',
   canonicalPath: '/view',
   robots: 'noindex, nofollow, noarchive',
 };
 ---
 
-<Base seo={seo}>
-  <SplitShell client:idle pathname="/view" viewUrl={target.openHref}>
-    <EmbedViewer client:visible target={target} />
+<Base seo={seo} sheets={[workSheet]}>
+  <SplitShell client:idle pathname="/view">
+    <EmbedViewer client:visible />
   </SplitShell>
 </Base>

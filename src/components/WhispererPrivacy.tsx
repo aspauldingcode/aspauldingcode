@@ -15,9 +15,7 @@ export default function WhispererPrivacyPolicy() {
       <p>
         Whisperer is developed by Alex Spaulding (&ldquo;we&rdquo;, &ldquo;us&rdquo;). You can reach us
         through the contact form at{' '}
-        <a href="https://aspauldingcode.com" target="_blank" rel="noopener noreferrer">
-          aspauldingcode.com
-        </a>
+        <a href="/">aspauldingcode.com</a>
         .
       </p>
 

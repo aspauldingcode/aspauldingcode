@@ -87,11 +87,20 @@
     transition: opacity 0.28s ease;
   }
 
-  .split-shell[data-open] .split-detail {
+  .split-shell[data-open]:not([data-home-shell]) .split-detail {
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding-top: var(--hire-chrome, 0px);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .split-shell[data-home-shell][data-open] .split-detail {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 0;
     opacity: 1;
     pointer-events: auto;
   }
@@ -249,6 +258,79 @@
 .split-detail-slot {
   display: block;
   min-height: 100%;
+}
+
+/* Home-born overlay geometry is in globals.css. Kill grid lerp and opacity. */
+.split-shell[data-home-shell],
+.split-shell[data-home-shell] .split-detail {
+  transition: none;
+}
+
+.split-shell[data-home-shell] {
+  display: block;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  grid-template-columns: none;
+}
+
+.split-shell[data-home-shell] .split-main {
+  display: block !important;
+  height: auto;
+  overflow: visible;
+}
+
+.split-shell[data-home-shell] > .split-detail,
+.split-shell[data-home-shell][data-open] > .split-detail {
+  opacity: 1 !important;
+  will-change: auto;
+  border-left: none;
+}
+
+@media (min-width: 64rem) {
+  .split-shell[data-home-shell] .split-detail .wrap {
+    width: min(40rem, 100%);
+    padding-top: 0.45rem;
+    padding-bottom: 2.5rem;
+    padding-inline: 1.25rem;
+  }
+
+  .split-shell[data-home-shell][data-open] [data-work-pane][data-show] .wrap {
+    padding-top: calc(var(--hire-chrome, 0px) + 0.45rem);
+  }
+
+  .split-shell[data-home-shell] .project-home {
+    display: none;
+  }
+}
+
+[data-work-cache] {
+  display: grid;
+}
+
+[data-work-pane] {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  content-visibility: hidden;
+  pointer-events: none;
+}
+
+[data-work-pane][data-show] {
+  visibility: visible;
+  content-visibility: visible;
+  pointer-events: auto;
+}
+
+@media (max-width: 63.999rem) {
+  .split-shell:not([data-open]) [data-work-cache] {
+    width: 100vw;
+  }
+}
+
+@media (min-width: 64rem) {
+  .split-shell:not([data-open]) [data-work-cache] {
+    width: min(40rem, 50vw);
+  }
 }
 
 /* Detail column: project / resume / link preview / embed chrome share one shell. */

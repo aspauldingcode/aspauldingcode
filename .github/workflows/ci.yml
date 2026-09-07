@@ -1,4 +1,4 @@
-name: CI
+name: Portfolio tests
 
 on:
   push:

@@ -49,7 +49,6 @@
       "position": "Founder and Lead Engineer",
       "url": "https://wawona.io",
       "startDate": "2025-01-01",
-      "endDate": "",
       "summary": "",
       "location": "Open Source",
       "highlights": [
@@ -60,7 +59,6 @@
     {
       "name": "Sunburst Sensors",
       "position": "Assembly Technician",
-      "url": "",
       "startDate": "2022-01-01",
       "endDate": "2025-03-31",
       "summary": "",
@@ -106,7 +104,6 @@
     {
       "title": "First place, Cyber Capture The Flag",
       "date": "2024-01-01",
-      "awarder": "The University of Montana",
       "summary": ""
     }
   ],
@@ -129,7 +126,6 @@
   "skills": [
     {
       "name": "Core",
-      "level": "",
       "keywords": [
         "Objective-C",
         "Swift",
@@ -154,7 +150,6 @@
       "highlights": [],
       "keywords": [],
       "startDate": "2025-01-01",
-      "endDate": "",
       "url": "https://github.com/Wawona/Wawona",
       "roles": [],
       "entity": "",
@@ -166,7 +161,6 @@
       "highlights": [],
       "keywords": [],
       "startDate": "2024-12-01",
-      "endDate": "",
       "url": "https://github.com/aspauldingcode/apple-sharpener",
       "roles": [],
       "entity": "",
@@ -178,7 +172,6 @@
       "highlights": [],
       "keywords": [],
       "startDate": "2024-09-01",
-      "endDate": "",
       "url": "https://github.com/aspauldingcode/Whisperer",
       "roles": [],
       "entity": "",

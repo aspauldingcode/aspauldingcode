@@ -4,7 +4,7 @@ import ContactForm from '@/components/ContactForm';
 import SiteFooter from '@/components/SiteFooter';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
 import { bootHome } from '@/scripts/boot-home';
-import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useRef, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
 function activeFromPath(pathname: string): string | undefined {
@@ -63,7 +63,7 @@ function DetailSlot({
 
 /**
  * Work / view chrome. Home column loads after mount so /work HTML stays unique.
- * Pathname is passed from the page (MPA); no client router.
+ * First paint is MPA. Later /work/* clicks stay in-document (see bootWorkRoute).
  */
 export default function SplitShell({
   children,
@@ -77,7 +77,7 @@ export default function SplitShell({
   const active = activeFromPath(pathname);
   const open = Boolean(active);
   const shellRef = useRef<HTMLDivElement>(null);
-  const [showHome, setShowHome] = useState(false);
+  const shown = active;
 
   useEffect(() => {
     let cancelled = false;
@@ -103,10 +103,9 @@ export default function SplitShell({
           contactRoot.render(<ContactForm />);
         }
         bootHome(main);
-        setShowHome(true);
       })
       .catch(() => {
-        if (!cancelled) setShowHome(false);
+        /* home column stays empty; detail still works */
       });
 
     return () => {
@@ -114,20 +113,6 @@ export default function SplitShell({
       contactRoot?.unmount();
     };
   }, []);
-
-  useEffect(() => {
-    const root = shellRef.current;
-    if (!root) return;
-    root.querySelectorAll<HTMLElement>('.project-row[data-slug]').forEach((row) => {
-      const on = row.dataset.slug === active;
-      row.classList.toggle('is-active', on);
-      const link = row.querySelector<HTMLElement>('h3 a');
-      if (link) {
-        if (on) link.setAttribute('aria-current', 'page');
-        else link.removeAttribute('aria-current');
-      }
-    });
-  }, [active, children, showHome]);
 
   useEffect(() => {
     if (!open) return;
@@ -141,7 +126,7 @@ export default function SplitShell({
     if (!(main instanceof HTMLElement)) return;
     const narrow = window.matchMedia('(max-width: 63.999rem)');
     const sync = () => {
-      const hide = open && narrow.matches;
+      const hide = shellRef.current?.hasAttribute('data-open') && narrow.matches;
       main.toggleAttribute('inert', hide);
       if (hide) main.setAttribute('aria-hidden', 'true');
       else main.removeAttribute('aria-hidden');
@@ -149,7 +134,7 @@ export default function SplitShell({
     sync();
     narrow.addEventListener('change', sync);
     return () => narrow.removeEventListener('change', sync);
-  }, [open, showHome]);
+  }, []);
 
   useEffect(() => {
     if (open || pathname !== '/') return;
@@ -171,14 +156,15 @@ export default function SplitShell({
     <div
       ref={shellRef}
       className="split-shell"
-      data-open={open ? '' : undefined}
-      data-active={active || undefined}
+      data-react-shell=""
+      data-open={shown ? '' : undefined}
+      data-active={shown || undefined}
     >
       <div className="split-main" />
       <div
         className="split-detail"
-        aria-hidden={open ? undefined : true}
-        inert={open ? undefined : true}
+        aria-hidden={shown ? undefined : true}
+        inert={shown ? undefined : true}
       >
         <Suspense fallback={<div className="split-detail-slot">{children}</div>}>
           <DetailSlot active={active} viewUrl={viewUrl}>
