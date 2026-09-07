@@ -1,6 +1,6 @@
 /** Helpers for same-document /work/* routing. No DOM. */
 
-import { localPathForHref } from '@/lib/viewHref';
+import { localPathForHref, viewQueryFromHref } from '@/lib/viewHref';
 
 export const WORK_STATE = 'workRoute';
 
@@ -14,6 +14,22 @@ export function workSlugFromPathname(pathname: string): string | null {
 
 export function workPath(slug: string): string {
   return `/work/${slug}`;
+}
+
+/** Overlay click on `/` or Hire me. Do not treat hire as a plain close. */
+export function overlayHomeAction(
+  href: string,
+  pageOrigin?: string
+): 'hire' | 'home' | null {
+  try {
+    const origin = pageOrigin || 'https://www.aspauldingcode.com';
+    const u = new URL(href, origin);
+    if (u.origin !== new URL(origin).origin || u.pathname !== '/') return null;
+    if (u.searchParams.get('hire') === '1' || u.hash === '#contact') return 'hire';
+    return 'home';
+  } catch {
+    return null;
+  }
 }
 
 /** /work slug from a local path, first-party URL, mapped host, or /view?u=… */
@@ -35,6 +51,22 @@ export function workSlugFromHref(href: string, pageOrigin?: string): string | nu
   }
 }
 
+const clickGuard = (opts: {
+  defaultPrevented: boolean;
+  button: number;
+  metaKey: boolean;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  targetBlank: boolean;
+  download: boolean;
+}): boolean => {
+  if (opts.defaultPrevented || opts.button !== 0) return false;
+  if (opts.metaKey || opts.ctrlKey || opts.shiftKey || opts.altKey) return false;
+  if (opts.targetBlank || opts.download) return false;
+  return true;
+};
+
 /** True when a primary click should stay in-document and open the work pane. */
 export function shouldInterceptWorkClick(opts: {
   defaultPrevented: boolean;
@@ -50,11 +82,29 @@ export function shouldInterceptWorkClick(opts: {
   pathname: string;
   href?: string;
 }): boolean {
-  if (opts.defaultPrevented || opts.button !== 0) return false;
-  if (opts.metaKey || opts.ctrlKey || opts.shiftKey || opts.altKey) return false;
-  if (opts.targetBlank || opts.download) return false;
+  if (!clickGuard(opts)) return false;
   const href = opts.href || `${opts.origin}${opts.pathname}`;
   return workSlugFromHref(href, opts.pageOrigin) != null;
+}
+
+/** True when a primary click should stay in-document and open the /view pane. */
+export function shouldInterceptViewClick(opts: {
+  defaultPrevented: boolean;
+  button: number;
+  metaKey: boolean;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  targetBlank: boolean;
+  download: boolean;
+  origin: string;
+  pageOrigin: string;
+  pathname: string;
+  href?: string;
+}): boolean {
+  if (!clickGuard(opts)) return false;
+  const href = opts.href || `${opts.origin}${opts.pathname}`;
+  return viewQueryFromHref(href, opts.pageOrigin) != null;
 }
 
 export function normalizeSheetPath(href: string): string {

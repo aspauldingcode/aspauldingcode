@@ -42,7 +42,10 @@ function workSlugFromAnchor(anchor: HTMLAnchorElement): string | null {
 
 function bootWorkRouteLazy() {
   let started = false;
-  let queued: string | null = null;
+  let queued:
+    | { kind: 'work'; slug: string }
+    | { kind: 'view'; href: string }
+    | null = null;
   const load = () => {
     if (started) return;
     started = true;
@@ -51,17 +54,22 @@ function bootWorkRouteLazy() {
       document.removeEventListener('pointerdown', onIntent);
       document.removeEventListener('click', onClick, true);
       m.bootWorkRoute();
-      if (queued) m.openPreparedWork(queued, true);
+      if (queued?.kind === 'work') m.openPreparedWork(queued.slug, true);
+      if (queued?.kind === 'view') m.openPreparedView(queued.href, true);
     });
   };
   const onIntent = (event: Event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const anchor = target.closest('a[href^="/work/"]');
-    if (!(anchor instanceof HTMLAnchorElement)) return;
-    const slug = workSlugFromAnchor(anchor);
-    if (slug) void fetch(`/work/${slug}`);
-    load();
+    const work = target.closest('a[href^="/work/"]');
+    if (work instanceof HTMLAnchorElement) {
+      const slug = workSlugFromAnchor(work);
+      if (slug) void fetch(`/work/${slug}`);
+      load();
+      return;
+    }
+    const view = target.closest('a[href^="/view"]');
+    if (view instanceof HTMLAnchorElement) load();
   };
   const onClick = (event: Event) => {
     if (!(event instanceof MouseEvent) || event.button !== 0 || event.metaKey || event.ctrlKey) {
@@ -69,14 +77,22 @@ function bootWorkRouteLazy() {
     }
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const anchor = target.closest('a[href^="/work/"]');
-    if (!(anchor instanceof HTMLAnchorElement) || anchor.target === '_blank') return;
-    const slug = workSlugFromAnchor(anchor);
-    if (!slug) return;
-    event.preventDefault();
-    queued = slug;
-    void fetch(`/work/${slug}`);
-    load();
+    const work = target.closest('a[href^="/work/"]');
+    if (work instanceof HTMLAnchorElement && work.target !== '_blank') {
+      const slug = workSlugFromAnchor(work);
+      if (!slug) return;
+      event.preventDefault();
+      queued = { kind: 'work', slug };
+      void fetch(`/work/${slug}`);
+      load();
+      return;
+    }
+    const view = target.closest('a[href^="/view"]');
+    if (view instanceof HTMLAnchorElement && view.target !== '_blank') {
+      event.preventDefault();
+      queued = { kind: 'view', href: view.href };
+      load();
+    }
   };
   document.addEventListener('pointerover', onIntent, { passive: true });
   document.addEventListener('pointerdown', onIntent, { passive: true });

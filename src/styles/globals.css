@@ -101,18 +101,18 @@ body {
   -webkit-user-select: none;
 }
 
-/* Home-born work overlay. Visibility only (no opacity / will-change).
-   A child with visibility:visible paints through a hidden ancestor (CSS). */
+/* Home-born work overlay. Closed is display:none so Astro Audit skips
+   parked panes. Open is display:block plus visibility. No opacity. */
 .split-shell[data-home-shell] > .split-detail {
   position: fixed;
   inset: 0;
   z-index: 8;
-  display: block;
+  display: none;
   width: auto;
   height: auto;
-  overflow: auto;
+  overflow: hidden;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
   background: var(--bg);
   isolation: isolate;
   opacity: 1;
@@ -125,9 +125,12 @@ body {
 }
 
 .split-shell[data-home-shell][data-open] > .split-detail {
+  display: block;
   visibility: visible;
   pointer-events: auto;
   padding-top: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .split-shell[data-home-shell][data-open] [data-work-pane][data-show] .wrap {
@@ -141,6 +144,13 @@ body {
 html.work-open,
 body.work-open {
   overflow: hidden;
+}
+
+/* ensureShell wraps `/` in .split-shell. work.css used to lock
+   body:has(.split-shell). Keep window scroll until the overlay is open. */
+html:has(.split-shell[data-home-shell]:not([data-open])),
+body:has(.split-shell[data-home-shell]:not([data-open])) {
+  overflow: auto;
 }
 
 [data-work-cache] {
@@ -430,7 +440,7 @@ img {
 
 .wrap {
   width: min(40rem, 100%);
-  max-width: 100%;
+  max-width: min(40rem, 100%);
   margin: 0 auto;
   /* Horizontal inset matches home; padding (not width-shrink) so detail panes
      keep gutters when the column is 100vw on mobile. */
@@ -549,8 +559,7 @@ a.hire-me:focus-visible {
   pointer-events: auto;
 }
 
-.hire-bar-host:not(.is-on) .hire-bar-copy,
-.hire-bar-host:not(.is-on) .hire-bar-back {
+.hire-bar-host:not(.is-on) .hire-bar-copy {
   display: none;
 }
 
@@ -633,30 +642,6 @@ a.hire-me:focus-visible {
 
 .hire-bar.is-stack .hire-bar-copy {
   text-align: left;
-}
-
-.hire-bar-back {
-  display: none;
-  margin: 0;
-  padding: 0.4rem 1rem 0.5rem;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-  font-size: 0.9rem;
-}
-
-.hire-bar-back a {
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.hire-bar-back a:hover,
-.hire-bar-back a:focus-visible {
-  text-decoration: underline;
-}
-
-.hire-bar-host.is-on .hire-bar-back {
-  pointer-events: auto;
 }
 
 @media (min-width: 64rem) {

@@ -1,0 +1,58 @@
+name: Portfolio frameworks
+
+on:
+  schedule:
+    # Weekly. Complements Vercel / Portfolio tests on each push.
+    - cron: '19 8 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+      - scripts/check-frameworks.mjs
+      - bench/frameworks-badge.json
+      - .github/workflows/frameworks.yml
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+      - scripts/check-frameworks.mjs
+      - .github/workflows/frameworks.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  frameworks:
+    name: Frameworks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Write badge
+        run: node scripts/check-frameworks.mjs --write --report-only
+
+      - name: Commit badge if changed
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bench/frameworks.json bench/frameworks-badge.json
+          if git diff --cached --quiet; then
+            echo "No framework badge changes."
+            exit 0
+          fi
+          git commit -m "Update portfolio frameworks badge"
+          git push
+
+      - name: Fail if outdated
+        run: npm run frameworks:check

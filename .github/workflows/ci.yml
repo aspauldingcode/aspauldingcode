@@ -26,6 +26,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Frameworks
+        run: npm run frameworks:check
+
   bench:
     name: Bench
     runs-on: ubuntu-latest

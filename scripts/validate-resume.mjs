@@ -181,8 +181,8 @@ export function validateResume(resume, opts = {}) {
     if (text.includes('\u2014') || text.includes('\u2013')) {
       issues.push(`${trail}: em or en dash (use a hyphen)`);
     }
-    if (/\bUniversity of Montana\b/i.test(text)) {
-      issues.push(`${trail}: do not name University of Montana on the resume`);
+    if (trail.startsWith('$.education') && /\bUniversity of Montana\b/i.test(text)) {
+      issues.push(`${trail}: do not name University of Montana in Education`);
     }
     if (/(^|[^A-Za-z])CS([^A-Za-z]|$)/.test(text) && !/ChatGPT/.test(text)) {
       issues.push(`${trail}: write Computer Science, not CS`);

@@ -177,6 +177,7 @@ export default function ImageCarousel({
                     width={dims.w}
                     height={dims.h}
                     className="carousel-img"
+                    data-image-component="true"
                     loading={i === 0 ? 'eager' : 'lazy'}
                     decoding="async"
                     draggable={false}

@@ -15,7 +15,7 @@ function hashFromHref(href: string): string | null {
   }
 }
 
-/** Shared detail-pane breadcrumb: Home / Section / Current */
+/** Shared detail-pane breadcrumb: Section / Current */
 export default function DetailCrumb({ items }: { items: CrumbItem[] }) {
   if (items.length === 0) return null;
 
@@ -35,7 +35,6 @@ export default function DetailCrumb({ items }: { items: CrumbItem[] }) {
             ) : (
               <a
                 href={item.href}
-                className={i === 0 ? 'crumb-home' : undefined}
                 onClick={() => {
                   const hash = hashFromHref(item.href!);
                   if (hash) scheduleScrollToHomeSection(hash);

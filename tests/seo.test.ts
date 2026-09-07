@@ -64,6 +64,8 @@ describe('SEO', () => {
     const boot = readFileSync(path.join(root, 'src/scripts/boot-home.ts'), 'utf8');
     expect(boot).toContain("import('@/scripts/work-route')");
     expect(boot).toContain('openPreparedWork');
+    expect(boot).toContain('openPreparedView');
+    expect(boot).toContain('a[href^="/view"]');
     expect(boot).not.toMatch(/^import .*work-route/m);
     const index = readFileSync(path.join(root, 'src/pages/index.astro'), 'utf8');
     expect(index).not.toContain('site-chrome-foot');

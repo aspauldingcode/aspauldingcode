@@ -24,7 +24,8 @@ function yearRange(start, end) {
   const a = yearOf(start);
   if (!a) return '';
   if (!end) return `${a}-present`;
-  return `${a}-${yearOf(end)}`;
+  const b = yearOf(end);
+  return a === b ? a : `${a}-${b}`;
 }
 
 function writePdf(resume) {
@@ -231,7 +232,7 @@ function writePdf(resume) {
     }
 
     if (resume.awards?.length) {
-      section('Awards');
+      section('Achievements');
       const lines = [...resume.awards]
         .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
         .map((award) => {

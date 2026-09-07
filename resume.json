@@ -59,12 +59,37 @@
     {
       "name": "Sunburst Sensors",
       "position": "Assembly Technician",
+      "url": "https://sunburstsensors.com/",
       "startDate": "2022-01-01",
       "endDate": "2025-03-31",
       "summary": "",
       "location": "Missoula, MT",
       "highlights": [
         "Built and calibrated pCO2 and pH instruments; PCB soldering, firmware updates for 1,000+ microcontrollers, hydrostatic testing."
+      ]
+    },
+    {
+      "name": "University of Montana IT",
+      "position": "Technology Educator and Consultant",
+      "url": "https://www.umt.edu/it/",
+      "startDate": "2024-10-01",
+      "endDate": "2025-01-31",
+      "summary": "",
+      "location": "Missoula, MT",
+      "highlights": [
+        "Returned to train students and staff on campus accounts, devices, and software. Closed TeamDynamix tickets; wrote guides; Jamf and Windows imaging."
+      ]
+    },
+    {
+      "name": "University of Montana IT",
+      "position": "Technology Educator and Consultant",
+      "url": "https://www.umt.edu/it/",
+      "startDate": "2020-09-01",
+      "endDate": "2020-10-31",
+      "summary": "",
+      "location": "Missoula, MT",
+      "highlights": [
+        "Walk-in and phone support for students and employees. Closed 200+ TeamDynamix tickets; on-site sprints for hardware and account setup."
       ]
     }
   ],
@@ -97,13 +122,14 @@
     },
     {
       "title": "First place, Gonzaga University Hackathon",
-      "date": "2025-01-01",
+      "date": "2025-11-01",
       "awarder": "Gonzaga University",
       "summary": ""
     },
     {
-      "title": "First place, Cyber Capture The Flag",
-      "date": "2024-01-01",
+      "title": "First place, Spring Cyber Capture The Flag",
+      "date": "2024-05-01",
+      "awarder": "University of Montana Missoula College",
       "summary": ""
     }
   ],

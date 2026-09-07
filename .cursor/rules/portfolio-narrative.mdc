@@ -14,7 +14,7 @@ When editing profile README, `resume.json`, homepage copy, or project blurbs:
 - Homepage / bio one-liner: systems software · Apple platforms · Eastern Washington University
 - Resume `basics.label`: systems / compositors / Apple platforms; never Front-End
 - **Section order:** Education first, then Experience, then Selected work / Projects. See `education-first.mdc`.
-- Education copy: Eastern Washington University only, 2022-2027, expected 2027. Do not name the University of Montana or say transfer.
+- Education copy: Eastern Washington University only, 2022-2027, expected 2027. Do not name the University of Montana or say transfer on Education.
 
 ## Featured projects on the site
 
@@ -34,7 +34,7 @@ Do not dump the full GitHub catalog onto the site.
 - Keep `/resume` tight enough to print cleanly on one or two pages
 - No decorative symbols in resume copy (no middle dots, bullets, stars, em/en dashes, emoji). Prefer words or ASCII `/` and `-`
 - Keep: Sunburst Sensors on the resume (one tight bullet)
-- Do not list IT Help Desk / IT Consultant roles (University of Montana or otherwise)
+- Keep: University of Montana IT, Technology Educator and Consultant, two rows (2024-2025 and 2020). Do not merge the dates. Do not add University of Washington or Eastern Washington University Help Desk unless asked.
 - Web work (dumonds): omit from resume unless space allows a single historical line; not a site project
 - Skills: one compact Core line (ObjC/Swift/Rust/C/Nix first)
 - Follow `writing.mdc`: no em dashes, no AI filler language

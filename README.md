@@ -3,6 +3,7 @@
 [![Portfolio tests](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml/badge.svg)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml)
 [![Portfolio SEO](https://img.shields.io/badge/portfolio_SEO-100%2F100-brightgreen)](https://www.aspauldingcode.com)
 [![Portfolio speed](https://img.shields.io/badge/portfolio_speed-100%2F100-brightgreen)](https://www.aspauldingcode.com)
+[![Portfolio frameworks](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/aspauldingcode/aspauldingcode/main/bench/frameworks-badge.json)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/frameworks.yml)
 [![Resume](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/resume.yml/badge.svg)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/resume.yml)
 
 ### Systems software · Apple platforms · Wayland compositors
@@ -49,14 +50,15 @@ Bachelor of Science in Computer Science at Eastern Washington University (2022-2
 
 ## Site lab
 
-[aspauldingcode.com](https://aspauldingcode.com) measured 7 Sep 2026 with `npm run bench`.
+[aspauldingcode.com](https://aspauldingcode.com) measured 7 Sep 2026 with `npm run bench`. Frameworks are checked weekly and on each Portfolio tests / Vercel build.
 
 | Lab | Score |
 | --- | ---: |
 | Search engine optimization (SEO) | 100 / 100 |
 | Speed | 100 / 100 |
+| Frameworks | up to date |
 
-Search engine optimization (SEO) here is on-site only: unique `/work` HTML, www canonicals, robots, sitemap, and query-shaped titles. It is not a ranking guarantee and does not score LinkedIn, GitHub, or wawona.io. Speed is first-load JavaScript and CSS vs a static-first budget: homepage script is 21 KB (Next.js was 427 KB).
+Search engine optimization (SEO) here is on-site only: unique `/work` HTML, www canonicals, robots, sitemap, and query-shaped titles. It is not a ranking guarantee and does not score LinkedIn, GitHub, or wawona.io. Speed is first-load JavaScript and CSS vs a static-first budget: homepage script is 21 KB (Next.js was 427 KB). Frameworks are Astro, the Vercel adapter, React, and their current major line. A newer major is listed in CI, not a fail.
 
 ---
 

@@ -1,16 +1,24 @@
 import { canPrefetch } from '@/lib/prefetchImages';
+import { CLOSE_WORK_EVENT } from '@/lib/hireIntent';
+import { goToHireContact } from '@/lib/hireMeRuntime';
+import { VIEW_EVENT } from '@/lib/profileCardView';
+import { viewQueryFromHref } from '@/lib/viewHref';
 import {
   WORK_STATE,
   extractWorkDetail,
   normalizeSheetPath,
+  overlayHomeAction,
   sheetsToInject,
+  shouldInterceptViewClick,
+  shouldInterceptWorkClick,
   workPath,
   workSlugFromHref,
   workSlugFromPathname,
-  shouldInterceptWorkClick,
 } from '@/lib/workRoute';
 import { hydrateWorkIslands, retargetWorkIslands } from '@/scripts/hydrate-islands';
+import workSheet from '@/styles/work.css?url';
 
+const VIEW_PANE = 'view';
 const panes = new Map<string, HTMLElement>();
 const titles = new Map<string, string>();
 const inflight = new Map<string, Promise<HTMLElement | null>>();
@@ -18,6 +26,7 @@ const sheetLoads = new Map<string, Promise<void>>();
 let booted = false;
 let startedOnHome = false;
 let homeTitle = '';
+let viewMounted = false;
 
 function knownSlugs(): string[] {
   const slugs = new Set<string>();
@@ -153,6 +162,18 @@ function syncChrome(slug: string | null, open: boolean) {
   });
 }
 
+function setPaneShown(pane: HTMLElement, show: boolean) {
+  if (show) {
+    pane.setAttribute('data-show', '');
+    pane.removeAttribute('aria-hidden');
+    pane.removeAttribute('inert');
+    return;
+  }
+  pane.removeAttribute('data-show');
+  pane.setAttribute('aria-hidden', 'true');
+  pane.setAttribute('inert', '');
+}
+
 /** After the flip. Never block showPrepared. */
 function queuePaneHydrate(pane: HTMLElement) {
   if (pane.dataset.islands === 'ready' || pane.dataset.islands === 'busy') return;
@@ -177,8 +198,7 @@ function showPrepared(slug: string): boolean {
   }
   for (const child of host.children) {
     if (!(child instanceof HTMLElement)) continue;
-    if (child === pane) child.setAttribute('data-show', '');
-    else child.removeAttribute('data-show');
+    setPaneShown(child, child === pane);
   }
   syncChrome(slug, true);
   const title = titles.get(slug);
@@ -215,6 +235,7 @@ async function prepareSlug(slug: string, force = false): Promise<HTMLElement | n
       wrap.querySelectorAll('img').forEach((img) => {
         void img.decode?.().catch(() => undefined);
       });
+      setPaneShown(wrap, false);
       host.append(wrap);
       panes.set(slug, wrap);
       titles.set(slug, detail.title);
@@ -245,13 +266,62 @@ export function openPreparedWork(slug: string, push: boolean) {
   });
 }
 
+function ensureViewPane(): HTMLElement | null {
+  const ready = panes.get(VIEW_PANE);
+  if (ready) return ready;
+  const host = cacheHost();
+  if (!host) return null;
+  const wrap = document.createElement('div');
+  wrap.dataset.workPane = VIEW_PANE;
+  wrap.innerHTML = '<div class="detail-pane" data-view-mount></div>';
+  setPaneShown(wrap, false);
+  host.append(wrap);
+  panes.set(VIEW_PANE, wrap);
+  titles.set(VIEW_PANE, 'Preview');
+  return wrap;
+}
+
+async function mountView(pane: HTMLElement) {
+  const mount = pane.querySelector('[data-view-mount]');
+  if (!(mount instanceof HTMLElement)) return;
+  if (viewMounted) {
+    window.dispatchEvent(new Event(VIEW_EVENT));
+    return;
+  }
+  const [{ createElement }, { createRoot }, { default: EmbedViewer }] = await Promise.all([
+    import('react'),
+    import('react-dom/client'),
+    import('@/components/EmbedViewer'),
+  ]);
+  createRoot(mount).render(createElement(EmbedViewer));
+  viewMounted = true;
+}
+
+export function openPreparedView(href: string, push: boolean) {
+  const raw = viewQueryFromHref(href, window.location.origin);
+  if (!raw) return;
+  void ensureSheet(workSheet).then(() => {
+    const pane = ensureViewPane();
+    if (!pane) return;
+    const next = `/view?u=${encodeURIComponent(raw)}`;
+    const here = `${window.location.pathname}${window.location.search}`;
+    if (push && here !== next) {
+      history.pushState({ [WORK_STATE]: VIEW_PANE }, '', next);
+    }
+    if (!showPrepared(VIEW_PANE)) return;
+    requestAnimationFrame(() => {
+      void mountView(pane);
+    });
+  });
+}
+
 function closeToHome(push: boolean) {
   const host = document.querySelector('[data-work-cache]');
   if (host) {
     const shell = host.closest('.split-shell');
     if (shell instanceof HTMLElement) shell.setAttribute('data-instant', '');
     for (const child of host.children) {
-      if (child instanceof HTMLElement) child.removeAttribute('data-show');
+      if (child instanceof HTMLElement) setPaneShown(child, false);
     }
   }
   hideReactSlot(false);
@@ -301,6 +371,27 @@ function onClick(event: Event) {
   }
 
   if (
+    shouldInterceptViewClick({
+      defaultPrevented: event.defaultPrevented,
+      button: event.button,
+      metaKey: event.metaKey,
+      ctrlKey: event.ctrlKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+      targetBlank: anchor.target === '_blank',
+      download: anchor.hasAttribute('download'),
+      origin: url.origin,
+      pageOrigin: window.location.origin,
+      pathname: url.pathname,
+      href: url.href,
+    })
+  ) {
+    event.preventDefault();
+    openPreparedView(url.href, true);
+    return;
+  }
+
+  if (
     startedOnHome &&
     url.origin === window.location.origin &&
     url.pathname === '/' &&
@@ -310,6 +401,11 @@ function onClick(event: Event) {
     document.querySelector('.split-shell[data-open]')
   ) {
     event.preventDefault();
+    const home = overlayHomeAction(url.href, window.location.origin);
+    if (home === 'hire') {
+      goToHireContact(event);
+      return;
+    }
     if (history.state && history.state[WORK_STATE]) history.back();
     else closeToHome(true);
   }
@@ -322,12 +418,17 @@ function onIntent(event: Event) {
   if (!(anchor instanceof HTMLAnchorElement)) return;
   const slug = workSlugFromHref(anchor.href, window.location.origin);
   if (slug) void prepareSlug(slug, true);
+  if (viewQueryFromHref(anchor.href, window.location.origin)) void ensureSheet(workSheet);
 }
 
 function onPop() {
   const slug = workSlugFromPathname(window.location.pathname);
   if (slug) {
     openPreparedWork(slug, false);
+    return;
+  }
+  if (viewQueryFromHref(window.location.href, window.location.origin)) {
+    if (startedOnHome) openPreparedView(window.location.href, false);
     return;
   }
   if (window.location.pathname === '/') closeToHome(false);
@@ -344,6 +445,9 @@ export function bootWorkRoute() {
   const initial = workSlugFromPathname(window.location.pathname);
   if (initial) syncChrome(initial, true);
 
+  window.addEventListener(CLOSE_WORK_EVENT, () => {
+    if (startedOnHome) closeToHome(false);
+  });
   document.addEventListener('click', onClick);
   document.addEventListener('pointerdown', onIntent, { passive: true });
   document.addEventListener('pointerover', onIntent, { passive: true });

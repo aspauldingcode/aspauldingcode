@@ -2,6 +2,7 @@
 
 import ContactForm from '@/components/ContactForm';
 import SiteFooter from '@/components/SiteFooter';
+import { hasHireIntent } from '@/lib/hireIntent';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
 import { bootHome } from '@/scripts/boot-home';
 import { Suspense, useEffect, useRef, type ReactNode } from 'react';
@@ -100,7 +101,7 @@ export default function SplitShell({
         if (mount) {
           mount.replaceChildren();
           contactRoot = createRoot(mount);
-          contactRoot.render(<ContactForm />);
+          contactRoot.render(<ContactForm initialHiring={hasHireIntent()} />);
         }
         bootHome(main);
       })

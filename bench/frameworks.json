@@ -1,0 +1,46 @@
+{
+  "ok": true,
+  "checkedAt": "2026-09-07",
+  "packages": [
+    {
+      "name": "astro",
+      "status": "current",
+      "current": "5.18.2",
+      "wanted": "5.18.2",
+      "latest": "7.3.1",
+      "nextMajor": true
+    },
+    {
+      "name": "@astrojs/react",
+      "status": "current",
+      "current": "4.4.2",
+      "wanted": "4.4.2",
+      "latest": "6.0.5",
+      "nextMajor": true
+    },
+    {
+      "name": "@astrojs/vercel",
+      "status": "current",
+      "current": "8.2.11",
+      "wanted": "8.2.11",
+      "latest": "11.0.10",
+      "nextMajor": true
+    },
+    {
+      "name": "react",
+      "status": "current",
+      "current": "19.2.8",
+      "wanted": "19.2.8",
+      "latest": "19.2.8",
+      "nextMajor": false
+    },
+    {
+      "name": "react-dom",
+      "status": "current",
+      "current": "19.2.8",
+      "wanted": "19.2.8",
+      "latest": "19.2.8",
+      "nextMajor": false
+    }
+  ]
+}

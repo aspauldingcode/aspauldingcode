@@ -141,10 +141,10 @@ export function trailForViewUrl(
   };
 }
 
-/** Name / Section / Current */
+/** Section / Current. Home is the hire-bar name, not a third crumb. */
 export function detailTrail(
   section: string,
   current: string
 ): CrumbItem[] {
-  return [homeCrumb(), sectionCrumb(section), { label: current }];
+  return [sectionCrumb(section), { label: current }];
 }

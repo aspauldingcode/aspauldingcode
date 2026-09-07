@@ -172,6 +172,19 @@ export function parseViewTarget(raw: string | undefined | null): ViewTarget | nu
   }
 }
 
+/** Third-party `u` for `/view?u=`. Null for project hosts (those stay on /work). */
+export function viewQueryFromHref(href: string, pageOrigin?: string): string | null {
+  try {
+    const u = new URL(href, pageOrigin || 'https://www.aspauldingcode.com');
+    if (u.pathname !== '/view' && u.pathname !== '/view/') return null;
+    const raw = u.searchParams.get('u');
+    if (!raw || localPathForHref(raw, pageOrigin)) return null;
+    return parseViewTarget(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Map a link href to a same-origin path, or the in-pane viewer for third parties. */
 export function viewHref(href: string): string {
   if (!href || href.startsWith('#') || href.startsWith('mailto:')) return href;

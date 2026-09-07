@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { localPathForHref, parseViewTarget, viewHref } from '@/lib/viewHref';
-import { shouldInterceptWorkClick, workSlugFromHref } from '@/lib/workRoute';
+import { localPathForHref, parseViewTarget, viewHref, viewQueryFromHref } from '@/lib/viewHref';
+import {
+  shouldInterceptViewClick,
+  shouldInterceptWorkClick,
+  workSlugFromHref,
+} from '@/lib/workRoute';
 
 const localOrigin = 'http://127.0.0.1:4321';
 
@@ -73,6 +77,47 @@ describe('local project and site URLs', () => {
         origin: 'https://evil.example',
         href: 'https://evil.example/work/wawona',
         pathname: '/work/wawona',
+      })
+    ).toBe(false);
+  });
+
+  it('keeps EWU and other third-party /view clicks in-document', () => {
+    expect(viewHref('https://www.ewu.edu/')).toBe('/view?u=https%3A%2F%2Fwww.ewu.edu%2F');
+    expect(viewQueryFromHref('/view?u=https%3A%2F%2Fwww.ewu.edu%2F', localOrigin)).toBe(
+      'https://www.ewu.edu/'
+    );
+    expect(viewQueryFromHref('/view?u=https%3A%2F%2Fwawona.io', localOrigin)).toBeNull();
+    expect(workSlugFromHref('/view?u=https%3A%2F%2Fwww.ewu.edu%2F', localOrigin)).toBeNull();
+    expect(
+      shouldInterceptViewClick({
+        defaultPrevented: false,
+        button: 0,
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        targetBlank: false,
+        download: false,
+        origin: localOrigin,
+        pageOrigin: localOrigin,
+        pathname: '/view',
+        href: `${localOrigin}/view?u=https%3A%2F%2Fwww.ewu.edu%2F`,
+      })
+    ).toBe(true);
+    expect(
+      shouldInterceptViewClick({
+        defaultPrevented: false,
+        button: 0,
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        targetBlank: false,
+        download: false,
+        origin: localOrigin,
+        pageOrigin: localOrigin,
+        pathname: '/view',
+        href: `${localOrigin}/view?u=https%3A%2F%2Fwawona.io`,
       })
     ).toBe(false);
   });

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   extractWorkDetail,
   isGlobalsSheet,
+  overlayHomeAction,
   sheetsToInject,
   shouldInterceptWorkClick,
   workPath,
@@ -36,6 +37,14 @@ describe('work route', () => {
     expect(workSlugFromPathname('/view')).toBeNull();
     expect(workSlugFromPathname('/work/wawona/extra')).toBeNull();
     expect(workPath('apple-sharpener')).toBe('/work/apple-sharpener');
+  });
+
+  it('treats Hire me as hire, not a plain overlay close', () => {
+    const origin = 'https://www.aspauldingcode.com';
+    expect(overlayHomeAction('/?hire=1#contact', origin)).toBe('hire');
+    expect(overlayHomeAction('/#contact', origin)).toBe('hire');
+    expect(overlayHomeAction('/', origin)).toBe('home');
+    expect(overlayHomeAction('/work/wawona', origin)).toBeNull();
   });
 
   it('intercepts primary same-origin work clicks only', () => {
@@ -86,6 +95,10 @@ describe('work route', () => {
     const slugPage = readFileSync(path.join(root, 'src/pages/work/[slug].astro'), 'utf8');
     expect(slugPage).toContain("work.css?url");
     expect(slugPage).toContain('sheets={[workSheet]}');
+    expect(slugPage).toContain('ProjectFoot');
+    expect(readFileSync(path.join(root, 'src/components/ProjectFoot.tsx'), 'utf8')).toContain(
+      'Hire me'
+    );
     expect(slugPage).not.toMatch(/import '@\/styles\/work\.css'/);
     expect(
       sheetsToInject(detail!.stylesheets, ['https://www.aspauldingcode.com/_astro/globals.css'])
@@ -98,8 +111,9 @@ describe('work route', () => {
       route.indexOf('function showPrepared'),
       route.indexOf('async function prepareSlug')
     );
-    expect(show).toContain('data-show');
+    expect(show).toContain('setPaneShown');
     expect(show).toContain('data-instant');
+    expect(route).toContain("setAttribute('data-show'");
     expect(show).not.toContain('innerHTML');
     expect(show).not.toContain('fetch(');
     expect(show).not.toContain('extractWorkDetail');
@@ -113,9 +127,17 @@ describe('work route', () => {
     expect(prepare).not.toContain('document.fonts');
     expect(prepare).not.toContain('requestAnimationFrame');
     expect(route).toContain('queuePaneHydrate');
+    expect(route).toContain('openPreparedView');
+    expect(route).toContain('shouldInterceptViewClick');
+    const viewer = readFileSync(path.join(root, 'src/components/EmbedViewer.tsx'), 'utf8');
+    expect(viewer).toContain("from '@/lib/profileCardView'");
+    expect(viewer).not.toMatch(/from '@\/lib\/profileCard'/);
     const css = readFileSync(path.join(root, 'src/styles/work.css'), 'utf8');
+    expect(css).not.toMatch(/\.project-home\s*\{\s*display:\s*none/);
     expect(css).toContain('[data-work-pane][data-show]');
     expect(css).toContain('[data-home-shell]');
+    expect(css).toContain('body:has(.split-shell:not([data-home-shell]))');
+    expect(css).not.toMatch(/body:has\(\.split-shell\)\s*\{/);
     expect(css).toContain('opacity: 1 !important');
     expect(css).not.toContain('will-change: opacity');
     expect(route).toContain('data-home-shell');
@@ -123,9 +145,29 @@ describe('work route', () => {
     expect(route).toContain('sheetsToInject');
     const globals = readFileSync(path.join(root, 'src/styles/globals.css'), 'utf8');
     expect(globals).toContain('.split-shell[data-home-shell] > .split-detail');
+    expect(globals).toMatch(
+      /\.split-shell\[data-home-shell\] > \.split-detail \{[\s\S]*?display: none/
+    );
+    expect(globals).toMatch(
+      /\.split-shell\[data-home-shell\] > \.split-detail \{[\s\S]*?overflow: hidden/
+    );
+    expect(globals).toMatch(
+      /\[data-home-shell\]\[data-open\] > \.split-detail \{[\s\S]*?display: block/
+    );
+    expect(globals).toMatch(
+      /\[data-home-shell\]\[data-open\] > \.split-detail \{[\s\S]*?overflow: auto/
+    );
+    expect(route).toContain('aria-hidden');
+    expect(css).toContain(
+      '.split-shell:not([data-home-shell]) .split-detail'
+    );
+    expect(css).toContain('.split-shell:not([data-home-shell])');
     expect(globals).toContain('isolation: isolate');
     expect(globals).toContain('.split-shell[data-home-shell]:not([data-open]) [data-work-pane]');
     expect(globals).toContain('html.work-open');
+    expect(globals).toContain(
+      'html:has(.split-shell[data-home-shell]:not([data-open]))'
+    );
     expect(globals).toContain('[data-work-pane][data-show] .wrap');
     expect(globals).toContain('padding-top: calc(var(--hire-chrome, 0px) + 0.45rem)');
     expect(route).toContain("classList.toggle('work-open'");

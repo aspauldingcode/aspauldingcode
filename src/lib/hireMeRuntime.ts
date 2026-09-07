@@ -1,4 +1,4 @@
-import { HIRE_EVENT, HIRE_HREF, markHireIntent } from '@/lib/hireIntent';
+import { CLOSE_WORK_EVENT, HIRE_HREF, markHireIntent } from '@/lib/hireIntent';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
 
 export const HIRE_COPY =
@@ -12,8 +12,8 @@ type Box = { left: number; top: number; width: number; height: number };
 
 export function goToHireContact(event: Event) {
   event.preventDefault();
-  window.dispatchEvent(new Event(HIRE_EVENT));
-  if (window.location.pathname !== '/') {
+  window.dispatchEvent(new Event(CLOSE_WORK_EVENT));
+  if (!document.querySelector('.split-shell[data-home-shell]') && window.location.pathname !== '/') {
     window.location.assign(HIRE_HREF);
     return;
   }
@@ -225,8 +225,7 @@ export function initHireMe(els: HireMeEls): () => void {
       document.documentElement.style.removeProperty('--hire-chrome');
       return;
     }
-    const back = hostEl.querySelector('.hire-bar-back');
-    const h = Math.min(rowHeight(barEl) + rowHeight(back), 220);
+    const h = Math.min(rowHeight(barEl), 220);
     const next = h > 8 ? `${h}px` : '';
     if (next === chromeH) return;
     chromeH = next;

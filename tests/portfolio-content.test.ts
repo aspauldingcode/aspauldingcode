@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { detailTrail } from '@/lib/detailTrail';
+import { detailTrail } from '@/lib/detailTrail';
 import { isEwuPreviewHost, papersForUrl, papersFromResume } from '@/lib/profileCard';
 
 const root = path.resolve(__dirname, '..');
@@ -17,7 +19,35 @@ describe('education and papers', () => {
     expect(school.startDate).toMatch(/^2022-/);
     expect(school.endDate).toMatch(/^2027-/);
     expect(school.studyType).toMatch(/2027/);
-    expect(JSON.stringify(resume)).not.toMatch(/University of Montana/i);
+    expect(JSON.stringify(resume.education)).not.toMatch(/University of Montana/i);
+  });
+
+  it('lists first-place Gonzaga hackathon and Montana Capture The Flag', () => {
+    const titles = (resume.awards ?? []).map((row) => row.title);
+    expect(titles).toContain('First place, Gonzaga University Hackathon');
+    expect(titles).toContain('First place, Spring Cyber Capture The Flag');
+    const ctf = resume.awards.find((row) => row.title.includes('Capture The Flag'));
+    expect(ctf.awarder).toBe('University of Montana Missoula College');
+    expect(ctf.date).toMatch(/^2024-05/);
+    const hack = resume.awards.find((row) => row.title.includes('Gonzaga'));
+    expect(hack.awarder).toBe('Gonzaga University');
+    expect(hack.date).toMatch(/^2025-11/);
+  });
+
+  it('lists both University of Montana IT Technology Educator stints', () => {
+    const umit = (resume.work ?? []).filter((job) => job.name === 'University of Montana IT');
+    expect(umit).toHaveLength(2);
+    expect(umit.every((job) => job.position === 'Technology Educator and Consultant')).toBe(true);
+    expect(umit.map((job) => [job.startDate, job.endDate])).toEqual([
+      ['2024-10-01', '2025-01-31'],
+      ['2020-09-01', '2020-10-31'],
+    ]);
+  });
+
+  it('keeps overlay crumbs to section and current', () => {
+    const items = detailTrail('Experience', 'Sunburst Sensors');
+    expect(items.map((row) => row.label)).toEqual(['Experience', 'Sunburst Sensors']);
+    expect(items[0].href).toMatch(/#/);
   });
 
   it('maps the symposium poster onto EWU preview cards', () => {

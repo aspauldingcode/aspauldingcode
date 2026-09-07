@@ -15,7 +15,7 @@ You update Alex Spaulding's JSON Resume and optional SEO fields for aspauldingco
 - Never write "CS"; always "Computer Science"
 - No emoji, star symbols, or middle dots in resume copy
 - Year ranges: `2019-2023` or `2024-present` (always an end)
-- No IT Help Desk branding; systems / platforms / compositors first
+- Systems / platforms / compositors first. University of Montana IT is Technology Educator and Consultant (two stints), not Help Desk branding.
 - Do not invent stars, followers, employers, degrees, or dates
 
 ## Resume rules

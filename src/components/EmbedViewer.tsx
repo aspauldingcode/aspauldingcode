@@ -1,11 +1,13 @@
 'use client';
 
 import DetailCrumb from '@/components/DetailCrumb';
+import ProjectFoot from '@/components/ProjectFoot';
 import EmbedFrame from '@/components/EmbedFrame';
 import { detailTrail, trailForViewUrl } from '@/lib/detailTrail';
 import GitHubStats from '@/components/GitHubStats';
 import {
   EWU_SYMPOSIUM_HREF,
+  VIEW_EVENT,
   formatStatCount,
   isEwuPreviewHost,
   isOwnGitHubProfile,
@@ -13,7 +15,7 @@ import {
   type ProfileCard,
   type ProfilePaper,
   type ProfilePin,
-} from '@/lib/profileCard';
+} from '@/lib/profileCardView';
 import { localPathForHref, parseViewTarget, type ViewTarget } from '@/lib/viewHref';
 import { resume } from '@/content/resume';
 import { useEffect, useState } from 'react';
@@ -25,24 +27,32 @@ type PreviewState =
   | { status: 'empty' };
 
 export default function EmbedViewer() {
-  const homeLabel = resume.basics.name;
   const [target, setTarget] = useState<ViewTarget | null>(null);
   const [preview, setPreview] = useState<PreviewState>({ status: 'idle' });
 
   useEffect(() => {
-    const raw = new URL(window.location.href).searchParams.get('u');
-    if (!raw) {
-      setTarget(null);
-      return;
-    }
-    const local = localPathForHref(raw, window.location.origin);
-    if (local) {
-      window.location.replace(local);
-      return;
-    }
-    const next = parseViewTarget(raw);
-    setTarget(next);
-    setPreview(next?.embeddable ? { status: 'idle' } : { status: 'loading' });
+    const sync = () => {
+      const raw = new URL(window.location.href).searchParams.get('u');
+      if (!raw) {
+        setTarget(null);
+        return;
+      }
+      const local = localPathForHref(raw, window.location.origin);
+      if (local) {
+        window.location.replace(local);
+        return;
+      }
+      const next = parseViewTarget(raw);
+      setTarget(next);
+      setPreview(next?.embeddable ? { status: 'idle' } : { status: 'loading' });
+    };
+    sync();
+    window.addEventListener('popstate', sync);
+    window.addEventListener(VIEW_EVENT, sync);
+    return () => {
+      window.removeEventListener('popstate', sync);
+      window.removeEventListener(VIEW_EVENT, sync);
+    };
   }, []);
 
   useEffect(() => {
@@ -83,9 +93,7 @@ export default function EmbedViewer() {
     return (
       <div className="detail-pane">
         <div className="wrap">
-          <p className="project-home">
-            <a href="/">← Back to {homeLabel}</a>
-          </p>
+          <ProjectFoot />
         </div>
       </div>
     );
@@ -109,16 +117,21 @@ export default function EmbedViewer() {
       }
     >
       <div className="wrap">
-        <DetailCrumb items={crumbs} />
-
-        <p className="detail-actions no-print">
-          <a href={target.openHref} target="_blank" rel="noopener noreferrer">
-            Open in new tab{' '}
+        <div className="detail-nav">
+          <DetailCrumb items={crumbs} />
+          <a
+            className="detail-open no-print"
+            href={target.openHref}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open
             <span className="nf" aria-hidden>
+              {' '}
               󰏌
             </span>
           </a>
-        </p>
+        </div>
 
         {target.embeddable ? null : (
           <ProfileCardView
@@ -129,11 +142,7 @@ export default function EmbedViewer() {
           />
         )}
 
-        {target.embeddable ? null : (
-          <p className="project-home">
-            <a href="/">← Back to {homeLabel}</a>
-          </p>
-        )}
+        {target.embeddable ? null : <ProjectFoot />}
       </div>
 
       {target.embeddable ? (
@@ -145,9 +154,9 @@ export default function EmbedViewer() {
               title={trailMeta.current}
             />
           </div>
-          <p className="project-home embed-home">
-            <a href="/">← Back to {homeLabel}</a>
-          </p>
+          <div className="wrap">
+            <ProjectFoot />
+          </div>
         </>
       ) : null}
     </div>

@@ -40,6 +40,7 @@ export type HomeModel = {
   education: {
     institution: string;
     href?: string;
+    prefetch?: string;
     when: string;
     line: string;
     score?: string;
@@ -48,6 +49,7 @@ export type HomeModel = {
   experience: {
     title: string;
     href?: string;
+    prefetch?: string;
     when: string;
     highlights: string[];
     key: string;
@@ -114,6 +116,7 @@ export function homeModel(): HomeModel {
   const education = (resume.education ?? []).map((ed) => ({
     institution: ed.institution,
     href: ed.url ? viewHref(ed.url) : undefined,
+    prefetch: ed.url?.startsWith('https://') ? ed.url : undefined,
     when: formatYearRange(ed.startDate, ed.endDate),
     line: [ed.studyType, ed.area].filter(Boolean).join(', '),
     score: ed.score,
@@ -123,6 +126,7 @@ export function homeModel(): HomeModel {
   const experience = (resume.work ?? []).map((job) => ({
     title: [job.position, job.name].filter(Boolean).join(', '),
     href: job.url ? viewHref(job.url) : undefined,
+    prefetch: job.url?.startsWith('https://') ? job.url : undefined,
     when: formatYearRange(job.startDate, job.endDate),
     highlights: job.highlights ?? [],
     key: `${job.name}-${job.startDate}`,

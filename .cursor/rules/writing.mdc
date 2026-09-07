@@ -23,7 +23,7 @@ Write like a precise engineer, not a chatbot.
 - Always write **Computer Science**, never the shorthand "CS" (README, portfolio, resume, rules, commits)
 - Do not mention a Mathematics minor (dropped; not part of the narrative)
 - School and org names: full form (Eastern Washington University, not EWU alone)
-- Resume and site Education: Eastern Washington University only. Do not write University of Montana or "transfer" on those pages. College dates are 2022-2027.
+- Resume and site Education: Eastern Washington University only. Do not write University of Montana or "transfer" on Education. College dates are 2022-2027. Experience may name University of Montana IT.
 - Keep product and protocol names as written when they are the proper name: Nix, Wayland, Mach-O, dyld, AppKit, Metal, Vulkan, Ammonia, Ghidra, LLDB, TIDAL
 - No emoji in README or resume copy
 - Prefer no star symbols; write "stars" in words when needed

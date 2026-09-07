@@ -4,6 +4,7 @@ import {
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -87,11 +88,15 @@ function cursorForEdge(edge: ResizeEdge): string {
   return 'nwse-resize';
 }
 
-export default function ContactForm() {
+export default function ContactForm({
+  initialHiring = false,
+}: {
+  initialHiring?: boolean;
+}) {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [hiring, setHiring] = useState(false);
+  const [hiring, setHiring] = useState(initialHiring);
   const [boxHeight, setBoxHeight] = useState(MESSAGE_BOX_MIN_PX);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gripRef = useRef<HTMLButtonElement>(null);
@@ -121,7 +126,7 @@ export default function ContactForm() {
     document.head.append(script);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const syncHire = () => {
       if (hasHireIntent()) setHiring(true);
     };

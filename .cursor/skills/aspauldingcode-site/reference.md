@@ -1,6 +1,6 @@
 # Site cost reference
 
-Re-measure before treating these as law. Commands: `npm test`, `npm run build`, `npm run bench`, `npm run resume:check`.
+Re-measure before treating these as law. Commands: `npm test`, `npm run build`, `npm run bench`, `npm run resume:check`, `npm run frameworks:check`.
 
 ## Bench scores (2026-09-07, Astro)
 
@@ -8,6 +8,7 @@ Re-measure before treating these as law. Commands: `npm test`, `npm run build`, 
 | --- | ---: | --- |
 | On-site search engine optimization | 100 | Portfolio SEO |
 | First-load JS/CSS vs static-first budget | 100 | Portfolio speed |
+| Site frameworks (current major) | up to date | Portfolio frameworks |
 | Homepage script | 21 KB | (Next.js was 427 KB) |
 
 Lighthouse in CI is warn-only. Do not copy a Lighthouse or old Next number onto the speed shield.

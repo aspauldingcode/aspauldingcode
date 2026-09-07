@@ -87,7 +87,7 @@ export type Resume = {
 
 export const resume = resumeData as Resume;
 
-/** Awards newest-first by date. */
+/** Achievements newest-first by date. */
 export function awardsByYear(): ResumeAward[] {
   return [...(resume.awards ?? [])].sort((a, b) =>
     String(b.date || '').localeCompare(String(a.date || ''))
@@ -103,7 +103,8 @@ export function formatYearRange(start?: string, end?: string): string {
   const a = yearOf(start);
   if (!a) return '';
   if (!end) return `${a}-present`;
-  return `${a}-${yearOf(end)}`;
+  const b = yearOf(end);
+  return a === b ? a : `${a}-${b}`;
 }
 
 /** Map resume project names to portfolio `/work/[slug]` pages when they exist. */
