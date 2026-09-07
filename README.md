@@ -1,6 +1,8 @@
 # Alex Spaulding · [Hire me](https://aspauldingcode.com/?hire=1#contact)
 
 [![CI](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml/badge.svg)](https://github.com/aspauldingcode/aspauldingcode/actions/workflows/ci.yml)
+[![On-site search](https://img.shields.io/badge/on--site_search-100%2F100-brightgreen)](https://aspauldingcode.com)
+[![Speed](https://img.shields.io/badge/speed-69%2F100-yellow)](https://aspauldingcode.com)
 
 ### Systems software · Apple platforms · Wayland compositors
 
@@ -43,6 +45,17 @@ Bachelor of Science in Computer Science at Eastern Washington University (2022-2
 ## Contact
 
 [Website](https://aspauldingcode.com) · [Wawona](https://wawona.io) · [LinkedIn](https://www.linkedin.com/in/aspauldingcode/) · [X](https://x.com/aspauldingcode) · [Email](mailto:aspauldingcode@gmail.com)
+
+## Site lab
+
+[aspauldingcode.com](https://aspauldingcode.com) measured 7 Sep 2026 with `npm run bench`.
+
+| Lab | Score |
+| --- | ---: |
+| Search engine optimization (on-site) | 100 / 100 |
+| Speed | 100 / 100 |
+
+On-site search is unique `/work` HTML, www canonicals, robots, sitemap, and query-shaped titles. It is not a ranking guarantee and does not score LinkedIn, GitHub, or wawona.io. Speed is first-load JavaScript and CSS vs a static-first budget: homepage script is 18 KB (Next.js was 427 KB).
 
 ---
 

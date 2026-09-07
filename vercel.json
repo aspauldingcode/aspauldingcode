@@ -1,0 +1,25 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "aspauldingcode.com" }],
+      "destination": "https://www.aspauldingcode.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/resume",
+      "destination": "/resume.pdf",
+      "permanent": true
+    },
+    {
+      "source": "/projects",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/projects/:path*",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
+}

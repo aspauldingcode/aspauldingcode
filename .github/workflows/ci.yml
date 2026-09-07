@@ -25,3 +25,43 @@ jobs:
 
       - name: Test
         run: npm test
+
+  bench:
+    name: Bench
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Preview
+        run: |
+          node scripts/preview-static.mjs &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:3000/ >/dev/null && break
+            sleep 1
+          done
+
+      - name: Transfer sizes
+        run: node scripts/bench-assets.mjs
+
+      - name: Lighthouse
+        run: npx --yes @lhci/cli@0.14 autorun
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench
+          path: |
+            bench/latest.json
+            .lighthouseci

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import Image from 'next/image';
 
 type ImgSize = { w: number; h: number };
 
@@ -166,7 +165,7 @@ export default function ImageCarousel({
                   aria-label={`${i + 1} of ${count}`}
                   aria-hidden={multi && i !== index ? true : undefined}
                 >
-                  <Image
+                  <img
                     src={src}
                     alt={
                       alts?.[i]?.trim() ||
@@ -174,10 +173,9 @@ export default function ImageCarousel({
                     }
                     width={dims.w}
                     height={dims.h}
-                    sizes="(max-width: 640px) 100vw, 40rem"
-                    quality={75}
                     className="carousel-img"
-                    priority={i === 0}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
                     draggable={false}
                   />
                 </div>

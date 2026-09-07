@@ -4,35 +4,80 @@
  *   - public/github/stats.json  (site React cards)
  *   - profile/github-overview.svg + public/github/github-overview.svg (README)
  *
- * Contribution counts/streaks cover FROM_YEAR through present (one GraphQL year
- * window at a time; GitHub limits contributionsCollection to ~1 year).
+ * Languages, stars, forks, and repository counts cover @LOGIN-owned public
+ * non-fork repos plus every public non-fork repo in ATTRIBUTION_ORGS (Wawona
+ * by default). Language bytes skip unmarked vendor trees in LANGUAGE_SKIP_REPOS
+ * (Wawona/agent-device by default) so that tree does not drown Wawona compositor
+ * share. GitHub forks stay excluded, same as personal repos. Contribution
+ * counts and streaks still come from the user's public contribution calendar.
  */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || 'aspauldingcode';
-const FROM_YEAR = Number(process.env.CONTRIB_FROM_YEAR || 2023);
+export const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || 'aspauldingcode';
+export const FROM_YEAR = Number(process.env.CONTRIB_FROM_YEAR || 2023);
+export const ATTRIBUTION_ORGS = (process.env.GITHUB_ATTRIBUTION_ORGS || 'Wawona')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+/** Unmarked vendor trees. Counted as repos/stars, omitted from language bytes. */
+export const LANGUAGE_SKIP_REPOS = new Set(
+  (process.env.GITHUB_LANGUAGE_SKIP_REPOS || 'Wawona/agent-device')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+);
+
 const outDir = path.resolve(process.cwd(), 'public', 'github');
 const profileDir = path.resolve(process.cwd(), 'profile');
 const jsonPath = path.join(outDir, 'stats.json');
 
-const USER_QUERY = `
-query($login: String!) {
+const REPO_FIELDS = `
+  nameWithOwner
+  stargazerCount
+  forkCount
+  languages(first: 25, orderBy: {field: SIZE, direction: DESC}) {
+    edges {
+      size
+      node { name color }
+    }
+  }
+`;
+
+const USER_PAGE_QUERY = `
+query($login: String!, $cursor: String) {
   user(login: $login) {
     followers { totalCount }
-    repositories(ownerAffiliations: OWNER, isFork: false, first: 100, orderBy: {field: UPDATED_AT, direction: DESC}) {
+    repositories(
+      ownerAffiliations: OWNER
+      isFork: false
+      first: 50
+      after: $cursor
+      orderBy: {field: UPDATED_AT, direction: DESC}
+    ) {
       totalCount
-      nodes {
-        stargazerCount
-        forkCount
-        languages(first: 8, orderBy: {field: SIZE, direction: DESC}) {
-          edges {
-            size
-            node { name color }
-          }
-        }
-      }
+      pageInfo { hasNextPage endCursor }
+      nodes { ${REPO_FIELDS} }
+    }
+  }
+}
+`;
+
+const ORG_PAGE_QUERY = `
+query($login: String!, $cursor: String) {
+  organization(login: $login) {
+    repositories(
+      isFork: false
+      first: 50
+      after: $cursor
+      orderBy: {field: UPDATED_AT, direction: DESC}
+    ) {
+      totalCount
+      pageInfo { hasNextPage endCursor }
+      nodes { ${REPO_FIELDS} }
     }
   }
 }
@@ -92,6 +137,36 @@ function graphql(query, variables) {
   );
 }
 
+function paginateRepos(query, login, pickPage) {
+  const nodes = [];
+  let cursor = null;
+  let firstPage = null;
+
+  do {
+    const data = graphql(query, { login, cursor });
+    const page = pickPage(data);
+    if (!page?.repositories) {
+      console.error(`Failed listing repos for ${login}:`, JSON.stringify(data, null, 2));
+      process.exit(1);
+    }
+    if (!firstPage) firstPage = page;
+    nodes.push(...(page.repositories.nodes || []));
+    cursor = page.repositories.pageInfo?.hasNextPage
+      ? page.repositories.pageInfo.endCursor
+      : null;
+  } while (cursor);
+
+  return { page: firstPage, nodes };
+}
+
+function fetchOwnedRepos(login) {
+  return paginateRepos(USER_PAGE_QUERY, login, (data) => data?.data?.user);
+}
+
+function fetchOrgRepos(org) {
+  return paginateRepos(ORG_PAGE_QUERY, org, (data) => data?.data?.organization);
+}
+
 function yearRange(year, now) {
   const from = `${year}-01-01T00:00:00Z`;
   const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59));
@@ -119,7 +194,7 @@ function fetchYearCollections(fromYear) {
   return collections;
 }
 
-function computeStreaks(days) {
+export function computeStreaks(days) {
   const byDate = new Map();
   for (const d of days) {
     byDate.set(d.date, (byDate.get(d.date) || 0) + d.contributionCount);
@@ -156,11 +231,11 @@ function computeStreaks(days) {
   return { current, longest, totalActiveDays };
 }
 
-const LANG_TOP_N = 8;
-const OTHER_LANG_COLOR = '#8b949e';
+export const LANG_TOP_N = 8;
+export const OTHER_LANG_COLOR = '#8b949e';
 
 /** Top N languages by bytes; remainder rolled into a single Other slice. */
-function withOtherBucket(langs, topN = LANG_TOP_N) {
+export function withOtherBucket(langs, topN = LANG_TOP_N) {
   const ranked = langs.filter((l) => l.size > 0).sort((a, b) => b.size - a.size);
   if (ranked.length <= topN) return ranked;
   const head = ranked.slice(0, topN);
@@ -181,10 +256,26 @@ function withOtherBucket(langs, topN = LANG_TOP_N) {
   ];
 }
 
-function aggregateLanguages(repos) {
+export function repoKey(repo) {
+  return String(repo?.nameWithOwner || '').toLowerCase();
+}
+
+/** Deduped union of personal + attribution-org repositories. First wins. */
+export function mergeRepos(...lists) {
+  const byKey = new Map();
+  for (const repo of lists.flat()) {
+    const key = repoKey(repo);
+    if (!key || byKey.has(key)) continue;
+    byKey.set(key, repo);
+  }
+  return [...byKey.values()];
+}
+
+export function aggregateLanguages(repos, skipRepos = LANGUAGE_SKIP_REPOS) {
   const sizes = new Map();
   const colors = new Map();
   for (const repo of repos) {
+    if (skipRepos.has(repoKey(repo))) continue;
     for (const edge of repo.languages?.edges || []) {
       const name = edge.node?.name;
       if (!name) continue;
@@ -204,7 +295,7 @@ function aggregateLanguages(repos) {
   return withOtherBucket(all);
 }
 
-function buildStats(user, yearCollections) {
+export function buildStats(user, yearCollections, repos, attributionOrgs = ATTRIBUTION_ORGS) {
   const days = [];
   let commits = 0;
   let contributions = 0;
@@ -223,7 +314,6 @@ function buildStats(user, yearCollections) {
     }
   }
 
-  const repos = user.repositories.nodes || [];
   const stars = repos.reduce((s, r) => s + (r.stargazerCount || 0), 0);
   const forks = repos.reduce((s, r) => s + (r.forkCount || 0), 0);
 
@@ -231,13 +321,15 @@ function buildStats(user, yearCollections) {
     login: LOGIN,
     generatedAt: new Date().toISOString(),
     fromYear: FROM_YEAR,
+    attributionOrgs,
+    languageSkipRepos: [...LANGUAGE_SKIP_REPOS],
     metrics: {
       commits,
       contributions,
       pullRequests,
       issues,
       reviews,
-      repositories: user.repositories.totalCount,
+      repositories: repos.length,
       stars,
       forks,
       followers: user.followers.totalCount,
@@ -247,7 +339,7 @@ function buildStats(user, yearCollections) {
   };
 }
 
-function renderOverviewSvg(stats) {
+export function renderOverviewSvg(stats) {
   const langs = stats.languages.slice(0, 5);
   const w = 720;
   const h = 160 + Math.max(langs.length, 1) * 18;
@@ -314,23 +406,35 @@ function renderOverviewSvg(stats) {
 `;
 }
 
-const userData = graphql(USER_QUERY, { login: LOGIN });
-const user = userData?.data?.user;
-if (!user) {
-  console.error(JSON.stringify(userData, null, 2));
-  process.exit(1);
+function main() {
+  const owned = fetchOwnedRepos(LOGIN);
+  const followers = owned.page?.followers;
+  if (!followers) {
+    console.error('Missing followers on user query');
+    process.exit(1);
+  }
+
+  const orgLists = ATTRIBUTION_ORGS.map((org) => fetchOrgRepos(org).nodes);
+  const repos = mergeRepos(owned.nodes, ...orgLists);
+  const yearCollections = fetchYearCollections(FROM_YEAR);
+  const stats = buildStats({ followers }, yearCollections, repos);
+  const svg = renderOverviewSvg(stats);
+
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.mkdirSync(profileDir, { recursive: true });
+  fs.writeFileSync(jsonPath, JSON.stringify(stats, null, 2) + '\n');
+  fs.writeFileSync(path.join(outDir, 'github-overview.svg'), svg);
+  fs.writeFileSync(path.join(profileDir, 'github-overview.svg'), svg);
+
+  console.log(
+    `Wrote ${jsonPath} and overview SVGs (contributions=${stats.metrics.contributions}, repos=${stats.metrics.repositories}, orgs=${ATTRIBUTION_ORGS.join(',')}, streak=${stats.streak.current}/${stats.streak.longest})`
+  );
 }
 
-const yearCollections = fetchYearCollections(FROM_YEAR);
-const stats = buildStats(user, yearCollections);
-const svg = renderOverviewSvg(stats);
+const isMain =
+  Boolean(process.argv[1]) &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-fs.mkdirSync(outDir, { recursive: true });
-fs.mkdirSync(profileDir, { recursive: true });
-fs.writeFileSync(jsonPath, JSON.stringify(stats, null, 2) + '\n');
-fs.writeFileSync(path.join(outDir, 'github-overview.svg'), svg);
-fs.writeFileSync(path.join(profileDir, 'github-overview.svg'), svg);
-
-console.log(
-  `Wrote ${jsonPath} and overview SVGs (contributions=${stats.metrics.contributions}, streak=${stats.streak.current}/${stats.streak.longest})`
-);
+if (isMain) {
+  main();
+}

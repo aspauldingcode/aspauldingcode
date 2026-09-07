@@ -1,0 +1,25 @@
+---
+import '@/styles/work.css';
+import EmbedViewer from '@/components/EmbedViewer';
+import SplitShell from '@/components/SplitShell';
+import Base from '@/layouts/Base.astro';
+import { parseViewTarget } from '@/lib/viewHref';
+
+const target = parseViewTarget(Astro.url.searchParams.get('u'));
+if (!target) {
+  return new Response(null, { status: 404 });
+}
+
+const seo = {
+  title: target.label,
+  description: `In-portfolio preview of ${target.label}`,
+  canonicalPath: '/view',
+  robots: 'noindex, nofollow, noarchive',
+};
+---
+
+<Base seo={seo}>
+  <SplitShell client:idle pathname="/view" viewUrl={target.openHref}>
+    <EmbedViewer client:visible target={target} />
+  </SplitShell>
+</Base>

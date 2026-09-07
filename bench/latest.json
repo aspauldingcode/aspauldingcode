@@ -1,0 +1,117 @@
+{
+  "framework": "astro",
+  "measuredAt": "2026-09-07",
+  "origin": "http://127.0.0.1:3001",
+  "seoScore": 100,
+  "speedScore": 100,
+  "seo": {
+    "score": 100,
+    "checks": [
+      {
+        "id": "home-title",
+        "pts": 8,
+        "ok": true
+      },
+      {
+        "id": "home-h1",
+        "pts": 8,
+        "ok": true
+      },
+      {
+        "id": "home-canonical-www",
+        "pts": 8,
+        "ok": true
+      },
+      {
+        "id": "wawona-title",
+        "pts": 12,
+        "ok": true
+      },
+      {
+        "id": "whisperer-title",
+        "pts": 12,
+        "ok": true
+      },
+      {
+        "id": "unique-work-html",
+        "pts": 16,
+        "ok": true
+      },
+      {
+        "id": "jsonld-no-email",
+        "pts": 8,
+        "ok": true
+      },
+      {
+        "id": "robots",
+        "pts": 10,
+        "ok": true
+      },
+      {
+        "id": "sitemap-www",
+        "pts": 10,
+        "ok": true
+      },
+      {
+        "id": "projects-301",
+        "pts": 8,
+        "ok": true
+      }
+    ]
+  },
+  "speed": {
+    "score": 100,
+    "homepageScriptKb": 18,
+    "nextHomepageScriptKb": 427
+  },
+  "routes": {
+    "/": {
+      "path": "/",
+      "status": 200,
+      "htmlBytes": 57026,
+      "scriptBytes": 18255,
+      "styleBytes": 19593,
+      "containsEducation": true,
+      "containsContactForm": true,
+      "title": "Alex Spaulding / Systems Software / Apple Platforms / Compositors",
+      "h1": "Alex Spaulding",
+      "canonical": "https://www.aspauldingcode.com/"
+    },
+    "/work/wawona": {
+      "path": "/work/wawona",
+      "status": 200,
+      "htmlBytes": 14832,
+      "scriptBytes": 4150,
+      "styleBytes": 35091,
+      "containsEducation": false,
+      "containsContactForm": false,
+      "title": "Wawona: native Wayland compositor for macOS / Alex Spaulding",
+      "h1": "Wawona: native Wayland compositor for macOS",
+      "canonical": "https://www.aspauldingcode.com/work/wawona"
+    },
+    "/work/whisperer": {
+      "path": "/work/whisperer",
+      "status": 200,
+      "htmlBytes": 24289,
+      "scriptBytes": 5056,
+      "styleBytes": 35091,
+      "containsEducation": false,
+      "containsContactForm": false,
+      "title": "Whisperer: ChatGPT for Apple Watch / Alex Spaulding",
+      "h1": "Whisperer: ChatGPT for Apple Watch",
+      "canonical": "https://www.aspauldingcode.com/work/whisperer"
+    },
+    "/work/modernorange-band": {
+      "path": "/work/modernorange-band",
+      "status": 200,
+      "htmlBytes": 29205,
+      "scriptBytes": 5056,
+      "styleBytes": 35091,
+      "containsEducation": false,
+      "containsContactForm": false,
+      "title": "ModernOrange Band / Alex Spaulding",
+      "h1": "ModernOrange Band",
+      "canonical": "https://www.aspauldingcode.com/work/modernorange-band"
+    }
+  }
+}

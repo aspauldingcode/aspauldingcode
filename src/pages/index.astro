@@ -1,0 +1,18 @@
+---
+export const prerender = true;
+
+import HomePage from '@/components/HomePage.astro';
+import SiteFooter from '@/components/SiteFooter';
+import Base from '@/layouts/Base.astro';
+import {
+  personJsonLd,
+  profilePageJsonLd,
+  rootSeo,
+  websiteJsonLd,
+} from '@/lib/seo';
+---
+
+<Base seo={rootSeo()} jsonLd={[personJsonLd(), websiteJsonLd(), profilePageJsonLd()]}>
+  <HomePage />
+  <SiteFooter className="site-chrome-foot" />
+</Base>

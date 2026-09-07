@@ -1,17 +1,24 @@
 import { defineConfig, globalIgnores } from 'eslint/config';
-import nextVitals from 'eslint-config-next/core-web-vitals';
-import nextTs from 'eslint-config-next/typescript';
+import astro from 'eslint-plugin-astro';
+import tseslint from 'typescript-eslint';
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  globalIgnores(['.next/**', 'node_modules/**', 'dist/**', 'out/**', 'next-env.d.ts']),
+export default defineConfig([
+  globalIgnores([
+    '.astro/**',
+    '.vercel/**',
+    'dist/**',
+    'node_modules/**',
+    'public/**',
+  ]),
+  ...tseslint.configs.recommended,
+  ...astro.configs.recommended,
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
-      'react/no-unescaped-entities': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 ]);
-
-export default eslintConfig;

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { viewHref } from '@/lib/viewHref';
 import { prefetchLinkPreview } from '@/lib/prefetchLinkPreview';
 
@@ -17,12 +16,8 @@ export default function PrefetchViewLink({
   };
 
   return (
-    <Link
-      href={viewHref(href)}
-      onPointerEnter={warm}
-      onFocus={warm}
-    >
+    <a href={viewHref(href)} onPointerEnter={warm} onFocus={warm}>
       {children}
-    </Link>
+    </a>
   );
 }

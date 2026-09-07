@@ -1,8 +1,8 @@
 'use client';
 
 import {
-  FormEvent,
-  PointerEvent as ReactPointerEvent,
+  type FormEvent,
+  type PointerEvent as ReactPointerEvent,
   useEffect,
   useMemo,
   useRef,
@@ -110,6 +110,18 @@ export default function ContactForm() {
     status !== 'sending' && !underWordLimit && !overWordLimit && wordCount > 0;
 
   useEffect(() => {
+    const siteKey = emailConfig.recaptchaSiteKey;
+    if (!siteKey) return;
+    if (document.querySelector('script[data-recaptcha]')) return;
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+    script.async = true;
+    script.defer = true;
+    script.dataset.recaptcha = '1';
+    document.head.append(script);
+  }, []);
+
+  useEffect(() => {
     const syncHire = () => {
       if (hasHireIntent()) setHiring(true);
     };
@@ -146,12 +158,15 @@ export default function ContactForm() {
       );
       if (next !== ta.offsetHeight) {
         ta.style.height = `${next}px`;
-        setBoxHeight(next);
+        const wrap = ta.closest('.contact-message');
+        if (wrap instanceof HTMLElement) wrap.dataset.resize = edgeForHeight(next);
       }
       document.body.style.cursor = cursorForEdge(edgeForHeight(next));
     }
 
     function onUp(e: PointerEvent) {
+      const ta = textareaRef.current;
+      if (ta) setBoxHeight(ta.offsetHeight);
       stopDrag(e.pointerId);
     }
 
@@ -358,6 +373,7 @@ export default function ContactForm() {
       <button type="submit" className="ctrl-link" disabled={!canSubmit}>
         {status === 'sending' ? 'Sending...' : 'Send message'}
       </button>
+      <p className="contact-recaptcha">This site is protected by reCAPTCHA.</p>
       {status === 'sent' && (
         <p className="ok" role="status">
           Sent. Thanks.

@@ -1,5 +1,5 @@
 import { promises as dns } from 'node:dns';
-import validator from 'validator';
+import { isValidEmail } from '@/lib/contactLimits';
 
 /** Common throwaway hosts. Real providers (Gmail, iCloud, school, work) stay allowed. */
 const DISPOSABLE = new Set(
@@ -36,22 +36,11 @@ function domainOf(email: string): string | null {
 }
 
 export function normalizeEmail(raw: string): string {
-  return validator.normalizeEmail(raw.trim(), {
-    gmail_remove_dots: false,
-    gmail_remove_subaddress: false,
-    outlookdotcom_remove_subaddress: false,
-    yahoo_remove_subaddress: false,
-    icloud_remove_subaddress: false,
-  }) || raw.trim().toLowerCase();
+  return raw.trim().toLowerCase();
 }
 
 export function isWellFormedEmail(email: string): boolean {
-  return validator.isEmail(email, {
-    allow_utf8_local_part: false,
-    require_tld: true,
-    allow_ip_domain: false,
-    blacklisted_chars: ' ',
-  });
+  return isValidEmail(email);
 }
 
 async function domainAcceptsMail(domain: string): Promise<boolean> {

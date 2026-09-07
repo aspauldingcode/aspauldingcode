@@ -1,8 +1,9 @@
 'use client';
 
+import HomeContent from '@/components/HomeContent';
 import SiteFooter from '@/components/SiteFooter';
+import type { HomeModel } from '@/lib/homeData';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
-import { usePathname, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 
 function activeFromPath(pathname: string): string | undefined {
@@ -35,21 +36,20 @@ function detailKeyFor(active: string | undefined, viewUrl: string | null) {
 /** Keyed slot so only one right-column target is mounted. */
 function DetailSlot({
   active,
+  viewUrl,
   children,
 }: {
   active: string | undefined;
+  viewUrl: string | null;
   children: ReactNode;
 }) {
-  const searchParams = useSearchParams();
-  const liveUrl = active === 'view' ? searchParams.get('u') : null;
-  const viewUrlRef = useRef(liveUrl);
-  if (active === 'view' && liveUrl) viewUrlRef.current = liveUrl;
-  const viewUrl = active === 'view' ? liveUrl ?? viewUrlRef.current : null;
-  const detailKey = detailKeyFor(active, viewUrl);
+  const viewUrlRef = useRef(viewUrl);
+  if (active === 'view' && viewUrl) viewUrlRef.current = viewUrl;
+  const resolved = active === 'view' ? viewUrl ?? viewUrlRef.current : null;
+  const detailKey = detailKeyFor(active, resolved);
 
   useEffect(() => {
     if (active === 'view') return;
-    // Safety net: anything framed must die when we leave /view.
     unloadIframes(document.querySelector('.split-detail'));
   }, [active, detailKey]);
 
@@ -61,30 +61,43 @@ function DetailSlot({
 }
 
 /**
- * Pathname drives open state. Detail pane is keyed so only one right-column
- * target exists; leaving /view hard-unloads any framed sites.
+ * Work / view chrome. Home column loads after mount so /work HTML stays unique.
+ * Pathname is passed from the page (MPA); no client router.
  */
 export default function SplitShell({
-  home,
   children,
+  pathname,
+  viewUrl = null,
 }: {
-  home: ReactNode;
   children: ReactNode;
+  pathname: string;
+  viewUrl?: string | null;
 }) {
-  const pathname = usePathname();
   const active = activeFromPath(pathname);
   const open = Boolean(active);
   const shellRef = useRef<HTMLDivElement>(null);
-  const heldRef = useRef<{ active: string; node: ReactNode } | null>(null);
-  const [, setHeldTick] = useState(0);
+  const [home, setHome] = useState<HomeModel | null>(null);
+  const [showHome, setShowHome] = useState(false);
 
-  if (open && active) {
-    heldRef.current = { active, node: children };
-  }
-
-  const held = heldRef.current;
-  const paneActive = active ?? held?.active;
-  const paneChildren = open ? children : held?.node;
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/home.json')
+      .then((res) => {
+        if (!res.ok) throw new Error('home.json');
+        return res.json() as Promise<HomeModel>;
+      })
+      .then((model) => {
+        if (cancelled) return;
+        setHome(model);
+        setShowHome(true);
+      })
+      .catch(() => {
+        if (!cancelled) setShowHome(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const root = shellRef.current;
@@ -98,40 +111,8 @@ export default function SplitShell({
         else link.removeAttribute('aria-current');
       }
     });
-  }, [active, open, children]);
+  }, [active, children]);
 
-  // Keep the departing page mounted so the 0fr track still has something to lerp.
-  useEffect(() => {
-    if (open) return;
-    if (!heldRef.current) return;
-
-    const shell = shellRef.current;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const finish = () => {
-      if (!heldRef.current) return;
-      heldRef.current = null;
-      setHeldTick((n) => n + 1);
-    };
-
-    if (!shell || reduce) {
-      finish();
-      return;
-    }
-
-    const onEnd = (event: TransitionEvent) => {
-      if (event.target !== shell) return;
-      if (event.propertyName !== 'grid-template-columns') return;
-      finish();
-    };
-    shell.addEventListener('transitionend', onEnd);
-    const t = window.setTimeout(finish, 500);
-    return () => {
-      shell.removeEventListener('transitionend', onEnd);
-      window.clearTimeout(t);
-    };
-  }, [open]);
-
-  // Safari often leaves window scroll at the home footer after soft nav.
   useEffect(() => {
     if (!open) return;
     window.scrollTo(0, 0);
@@ -154,7 +135,6 @@ export default function SplitShell({
     return () => narrow.removeEventListener('change', sync);
   }, [open]);
 
-  // Home section crumbs (/#links, /#selected-work, …): scroll the left column.
   useEffect(() => {
     if (open || pathname !== '/') return;
 
@@ -178,21 +158,19 @@ export default function SplitShell({
       data-open={open ? '' : undefined}
       data-active={active || undefined}
     >
-      <div className="split-main">{home}</div>
+      <div className="split-main">
+        {showHome && home ? <HomeContent model={home} /> : null}
+      </div>
       <div
         className="split-detail"
         aria-hidden={open ? undefined : true}
         inert={open ? undefined : true}
       >
-        {paneChildren ? (
-          <Suspense
-            fallback={
-              <div className="split-detail-slot">{paneChildren}</div>
-            }
-          >
-            <DetailSlot active={paneActive}>{paneChildren}</DetailSlot>
-          </Suspense>
-        ) : null}
+        <Suspense fallback={<div className="split-detail-slot">{children}</div>}>
+          <DetailSlot active={active} viewUrl={viewUrl}>
+            {children}
+          </DetailSlot>
+        </Suspense>
       </div>
       <SiteFooter className="site-chrome-foot" />
     </div>

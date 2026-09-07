@@ -1,0 +1,21 @@
+{
+  "framework": "next-16.3.0",
+  "measuredAt": "2026-09-07",
+  "note": "Compiled client JS after next compile (typecheck in tests blocked the printed route table). Homepage hydrates SplitShell plus the home client tree. allClientJs includes hls.js and unused route chunks.",
+  "allClientJsBytes": 1274499,
+  "allClientJsGzip": 369283,
+  "sharedMainJsBytes": 437369,
+  "routes": {
+    "/": {
+      "firstLoadJsBytes": 437369,
+      "note": "rootMainFiles only; layout islands add more at runtime"
+    },
+    "/work/wawona": {
+      "firstLoadJsBytes": 437369
+    },
+    "/work/modernorange-band": {
+      "firstLoadJsBytes": 437369,
+      "note": "hls.js (~500 KB) loads after play"
+    }
+  }
+}

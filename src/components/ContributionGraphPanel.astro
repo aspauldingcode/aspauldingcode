@@ -1,0 +1,36 @@
+---
+import data from '../../public/github/contributions.json';
+import {
+  currentYearBand,
+  renderContributionSvg,
+  type ContribData,
+} from '@/lib/contributionGraph';
+
+interface Props {
+  href: string;
+}
+
+const { href } = Astro.props;
+const graph = data as ContribData;
+const svg = renderContributionSvg(graph, currentYearBand(graph));
+---
+
+<div class="github-graph-panel" data-graph-panel>
+  <p class="github-graph-toolbar no-print" hidden>
+    <button type="button" class="ctrl-link github-graph-toggle" aria-pressed="false">
+      <span class="nf" aria-hidden>󰘖</span>{' '}
+      <span data-graph-label>Show entire graph</span>
+    </button>
+  </p>
+
+  <div
+    class="github-graph-scroll-wrap"
+    data-mode="scroll"
+    data-fade-left="0"
+    data-fade-right="0"
+  >
+    <div class="github-graph-scroller">
+      <a class="github-graph-link" href={href} set:html={svg} />
+    </div>
+  </div>
+</div>

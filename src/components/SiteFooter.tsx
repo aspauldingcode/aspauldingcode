@@ -1,9 +1,8 @@
 import { resume } from '@/content/resume';
-import { viewHref } from '@/lib/viewHref';
-import Link from 'next/link';
 
 const year = new Date().getFullYear();
 const name = resume.basics.name;
+const SOURCE_HREF = 'https://github.com/aspauldingcode/aspauldingcode';
 
 export default function SiteFooter({ className }: { className?: string }) {
   return (
@@ -11,11 +10,11 @@ export default function SiteFooter({ className }: { className?: string }) {
       <hr className="footer-rule" aria-hidden="true" />
       <p>
         © {year > 2023 ? `2023-${year}` : '2023'} {name} /{' '}
-        <Link href={viewHref('https://github.com/aspauldingcode/aspauldingcode')}>
+        <a href={SOURCE_HREF} target="_blank" rel="noopener noreferrer">
           source
-        </Link>
+        </a>
       </p>
-      <p className="footer-stack">Proudly written with TypeScript / Next.js</p>
+      <p className="footer-stack">Proudly written with TypeScript / Astro</p>
     </footer>
   );
 }

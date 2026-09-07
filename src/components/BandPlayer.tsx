@@ -100,16 +100,9 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
     index: 0,
     error: '',
   });
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    tracksRef.current = tracks;
-  }, [tracks]);
-
-  useEffect(() => {
-    indexRef.current = playback.index;
-  }, [playback.index]);
+  const seekRef = useRef<HTMLInputElement>(null);
+  tracksRef.current = tracks;
+  indexRef.current = playback.index;
 
   useEffect(() => {
     let cancelled = false;
@@ -165,6 +158,14 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
     };
   }, [catalog]);
 
+  function writeSeek(time: number, dur: number) {
+    const seek = seekRef.current;
+    if (!seek) return;
+    const max = Number.isFinite(dur) && dur > 0 ? dur : 0;
+    if (seek.max !== String(max)) seek.max = String(max);
+    if (!seek.matches(':active')) seek.value = String(Math.min(time, max));
+  }
+
   const attach = useCallback(async (url: string) => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -206,7 +207,7 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
 
       const gen = ++genRef.current;
       dispatch({ type: 'load', index: i });
-      setProgress(0);
+      writeSeek(0, Number(seekRef.current?.max) || 0);
 
       try {
         await attach(track.streamUrl);
@@ -225,9 +226,7 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
     [attach]
   );
 
-  useEffect(() => {
-    playRef.current = playAt;
-  }, [playAt]);
+  playRef.current = playAt;
 
   function step(dir: -1 | 1) {
     const list = tracksRef.current;
@@ -269,8 +268,7 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
         preload="auto"
         onTimeUpdate={(e) => {
           const a = e.currentTarget;
-          setProgress(a.currentTime || 0);
-          setDuration(Number.isFinite(a.duration) ? a.duration : 0);
+          writeSeek(a.currentTime || 0, Number.isFinite(a.duration) ? a.duration : 0);
         }}
         onPlay={() => dispatch({ type: 'playing' })}
         onPause={() => dispatch({ type: 'paused' })}
@@ -291,7 +289,6 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
       <div className="player-head">
         <p className="player-label">Listen (TIDAL preview)</p>
         {current?.coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={current.coverUrl} alt={`${current.title} album cover`} className="player-cover" width={48} height={48} />
         ) : null}
       </div>
@@ -344,17 +341,17 @@ export default function BandPlayer({ catalog }: { catalog: MusicTrack[] }) {
       </p>
 
       <input
+        ref={seekRef}
         className="player-seek"
         type="range"
         min={0}
-        max={duration || 0}
+        max={0}
         step={0.1}
-        value={Math.min(progress, duration || 0)}
+        defaultValue={0}
         onChange={(e) => {
           const t = Number(e.target.value);
           const audio = audioRef.current;
           if (audio) audio.currentTime = t;
-          setProgress(t);
         }}
         aria-label="Seek"
       />

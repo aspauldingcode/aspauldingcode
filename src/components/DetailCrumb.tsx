@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { Fragment } from 'react';
 import type { CrumbItem } from '@/lib/detailTrail';
 import { scheduleScrollToHomeSection } from '@/lib/scrollHomeSection';
@@ -14,14 +13,6 @@ function hashFromHref(href: string): string | null {
   } catch {
     return null;
   }
-}
-
-function crumbHref(href: string): string | { pathname: '/'; hash: string } {
-  const hash = hashFromHref(href);
-  if (hash && (href === `/#${hash}` || href === `#${hash}`)) {
-    return { pathname: '/', hash };
-  }
-  return href;
 }
 
 /** Shared detail-pane breadcrumb: Home / Section / Current */
@@ -42,8 +33,8 @@ export default function DetailCrumb({ items }: { items: CrumbItem[] }) {
             {last || !item.href ? (
               <span aria-current={last ? 'page' : undefined}>{item.label}</span>
             ) : (
-              <Link
-                href={crumbHref(item.href)}
+              <a
+                href={item.href}
                 className={i === 0 ? 'crumb-home' : undefined}
                 onClick={() => {
                   const hash = hashFromHref(item.href!);
@@ -51,7 +42,7 @@ export default function DetailCrumb({ items }: { items: CrumbItem[] }) {
                 }}
               >
                 {item.label}
-              </Link>
+              </a>
             )}
           </Fragment>
         );

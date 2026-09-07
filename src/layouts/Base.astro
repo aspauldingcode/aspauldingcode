@@ -1,0 +1,76 @@
+---
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-sans/latin-700.css';
+import '@/styles/globals.css';
+import {
+  absoluteUrl,
+  DEFAULT_OG_IMAGE,
+  jsonLdScript,
+  SITE_HANDLE,
+  SITE_NAME,
+  type SeoMeta,
+} from '@/lib/seo';
+
+interface Props {
+  seo: SeoMeta;
+  jsonLd?: object | object[];
+}
+
+const { seo, jsonLd } = Astro.props;
+const title = seo.title.includes(SITE_NAME) ? seo.title : `${seo.title} / ${SITE_NAME}`;
+const canonical = absoluteUrl(seo.canonicalPath);
+const ogImage = absoluteUrl(seo.ogImage || DEFAULT_OG_IMAGE);
+const ogAlt = seo.ogImageAlt || `${SITE_NAME} portrait photo`;
+const robots = seo.robots || 'index, follow';
+const keywords = seo.keywords?.join(', ');
+---
+
+<!doctype html>
+<html lang="en" data-scroll-behavior="smooth" style="--font-body: 'IBM Plex Sans'">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f2ec" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121411" />
+    <meta name="referrer" content="origin-when-cross-origin" />
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
+    <title>{title}</title>
+    <meta name="description" content={seo.description} />
+    {keywords ? <meta name="keywords" content={keywords} /> : null}
+    <meta name="author" content={SITE_NAME} />
+    <meta name="creator" content={SITE_NAME} />
+    <meta name="publisher" content={SITE_NAME} />
+    <meta name="application-name" content={SITE_NAME} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href={DEFAULT_OG_IMAGE} />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta property="og:type" content={seo.ogType || 'website'} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={seo.description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:alt" content={ogAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={seo.description} />
+    <meta name="twitter:creator" content={SITE_HANDLE} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogAlt} />
+    {seo.canonicalPath === '/' ? (
+      <link rel="preload" as="image" href="/profile_avatar.jpg" />
+    ) : null}
+    {jsonLd ? (
+      <script type="application/ld+json" set:html={jsonLdScript(jsonLd)} />
+    ) : null}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

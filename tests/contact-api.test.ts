@@ -15,8 +15,8 @@ const COMPLETE =
   'Hello Alex, I work on compositor tooling and would like to talk about an internship on platform or developer tools this year.';
 
 async function post(body: unknown) {
-  const { POST } = await import('@/app/api/contact/route');
-  return POST(
+  const { handleContactPost } = await import('@/lib/contactApi');
+  return handleContactPost(
     new Request('http://localhost/api/contact', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

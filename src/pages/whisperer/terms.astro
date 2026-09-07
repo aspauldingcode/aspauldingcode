@@ -1,0 +1,19 @@
+---
+export const prerender = true;
+
+import '@/styles/work.css';
+import WhispererTermsOfUse from '@/components/WhispererTerms';
+import Base from '@/layouts/Base.astro';
+
+const seo = {
+  title: 'Whisperer Terms of Use',
+  description:
+    'Terms of Use (EULA) for Whisperer, the voice ChatGPT client for Apple Watch and iPhone by Alex Spaulding.',
+  canonicalPath: '/whisperer/terms',
+  ogType: 'article',
+};
+---
+
+<Base seo={seo}>
+  <WhispererTermsOfUse />
+</Base>

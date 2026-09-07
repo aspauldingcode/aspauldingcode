@@ -9,7 +9,12 @@
 # testing
 /coverage
 
-# next.js
+# astro
+/.astro/
+/dist/
+.lighthouseci/
+
+# next.js (removed)
 /.next/
 /out/
 

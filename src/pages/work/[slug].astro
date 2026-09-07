@@ -1,0 +1,106 @@
+---
+export const prerender = true;
+
+import '@/styles/work.css';
+import BandPlayer from '@/components/BandPlayer';
+import DetailCrumb from '@/components/DetailCrumb';
+import ImageCarousel from '@/components/ImageCarousel';
+import SectionTitle from '@/components/SectionTitle';
+import SplitShell from '@/components/SplitShell';
+import { getProject, getProjectSlugs } from '@/content/projects';
+import { resume } from '@/content/resume';
+import Base from '@/layouts/Base.astro';
+import { detailTrail } from '@/lib/detailTrail';
+import { imageSize } from '@/lib/imageSize';
+import {
+  breadcrumbJsonLd,
+  projectDocumentTitle,
+  projectImageAlt,
+  projectJsonLd,
+  projectSeo,
+  SITE_NAME,
+} from '@/lib/seo';
+import { formatProjectStars, formatStarCount, starsForHref } from '@/lib/projectStars';
+import { viewHref } from '@/lib/viewHref';
+
+export function getStaticPaths() {
+  return getProjectSlugs().map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const project = slug ? getProject(slug) : undefined;
+if (!project) {
+  return new Response(null, { status: 404 });
+}
+
+const homeLabel = resume.basics.name;
+const heading = projectDocumentTitle(project);
+const sizes = project.images.map((src) => imageSize(src) ?? { w: 1600, h: 1200 });
+const alts = project.images.map((_, i) => projectImageAlt(project, i));
+const starLabel = formatProjectStars(project.links.map((link) => link.href));
+const seo = projectSeo(project);
+---
+
+<Base
+  seo={seo}
+  jsonLd={[
+    projectJsonLd(project),
+    breadcrumbJsonLd([
+      { name: homeLabel, path: '/' },
+      { name: 'Selected work', path: '/#selected-work' },
+      { name: heading, path: `/work/${project.slug}` },
+    ]),
+  ]}
+>
+  <SplitShell client:idle pathname={Astro.url.pathname}>
+    <div class="wrap detail-pane">
+      <DetailCrumb items={detailTrail('Selected work', heading)} />
+
+      <article class="project-detail">
+        <header>
+          <SectionTitle as="h1" label={heading} />
+          <p class="years">{project.years}</p>
+          {starLabel ? <p class="project-stars">{starLabel}</p> : null}
+        </header>
+
+        <ImageCarousel
+          client:visible
+          images={project.images}
+          alts={alts}
+          alt={project.title}
+          sizes={sizes}
+        />
+
+        <div class="project-body" set:html={project.bodyHtml} />
+
+        {
+          project.links.length > 0 ? (
+            <ul class="links">
+              {project.links.map((link) => {
+                const count = starsForHref(link.href);
+                const label =
+                  count != null ? `${link.label} (${formatStarCount(count)})` : link.label;
+                const href = link.href.startsWith('/') ? link.href : viewHref(link.href);
+                return (
+                  <li>
+                    <a href={href}>{label}</a>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null
+        }
+
+        {
+          project.music && project.tracks?.length ? (
+            <BandPlayer client:visible catalog={project.tracks} />
+          ) : null
+        }
+      </article>
+
+      <p class="project-home">
+        <a href="/">← Back to {SITE_NAME}</a>
+      </p>
+    </div>
+  </SplitShell>
+</Base>

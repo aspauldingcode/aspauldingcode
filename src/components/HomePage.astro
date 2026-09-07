@@ -1,0 +1,209 @@
+---
+import ContactForm from '@/components/ContactForm';
+import ContributionGraphPanel from '@/components/ContributionGraphPanel.astro';
+import GitHubStats from '@/components/GitHubStats';
+import HireBar from '@/components/HireBar.astro';
+import PrintButton from '@/components/PrintButton';
+import Section from '@/components/Section';
+import SiteFooter from '@/components/SiteFooter';
+import { getProjects } from '@/content/projects';
+import { HIRE_HREF } from '@/lib/hireIntent';
+import { homeModel } from '@/lib/homeData';
+import { viewHref } from '@/lib/viewHref';
+
+const home = homeModel();
+const warmProjects = getProjects().map((p) => ({
+  slug: p.slug,
+  images: p.images.slice(0, 1),
+}));
+---
+
+<div class="wrap">
+  <header class="hero">
+    <img
+      class="avatar"
+      src="/profile_avatar.jpg"
+      alt={`${home.name}, square portrait photograph`}
+      width="112"
+      height="112"
+      decoding="async"
+    />
+    <div class="hero-text">
+      <div class="hero-name">
+        <h1 class="hero-title">{home.name}</h1>
+        <a class="hire-me" href={HIRE_HREF} data-hero-hire>Hire me</a>
+      </div>
+      {home.label ? <p class="role">{home.label}</p> : null}
+      {home.summary ? <p class="about">{home.summary}</p> : null}
+      <p class="hero-actions">
+        <PrintButton />
+      </p>
+    </div>
+  </header>
+
+  {
+    home.hasEducation ? (
+      <Section title="Education">
+        <ul class="resume-list">
+          {home.education.map((ed) => (
+            <li class="resume-entry">
+              <h3>
+                {ed.href ? <a href={ed.href}>{ed.institution}</a> : ed.institution}
+              </h3>
+              {ed.when ? <p class="when">{ed.when}</p> : null}
+              {ed.line ? <p class="resume-meta">{ed.line}</p> : null}
+              {ed.score ? <p class="resume-meta">GPA {ed.score}</p> : null}
+            </li>
+          ))}
+        </ul>
+      </Section>
+    ) : null
+  }
+
+  {
+    home.hasExperience ? (
+      <Section title="Experience">
+        <ul class="resume-list">
+          {home.experience.map((job) => (
+            <li class="resume-entry">
+              <h3>{job.href ? <a href={job.href}>{job.title}</a> : job.title}</h3>
+              {job.when ? <p class="when">{job.when}</p> : null}
+              {job.highlights.length > 0 ? (
+                <ul class="resume-bullets">
+                  {job.highlights.map((h) => (
+                    <li>{h}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </Section>
+    ) : null
+  }
+
+  <Section title="Selected work">
+    <ul class="projects">
+      {
+        home.galleryWork.map((project) => (
+          <li class="project-row" data-slug={project.slug}>
+            <a href={`/work/${project.slug}`} class="project-thumb-link">
+              <img
+                src={project.thumb}
+                alt={project.thumbAlt}
+                width="116"
+                height="87"
+                class="project-thumb"
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+            <div>
+              <h3>
+                <a href={`/work/${project.slug}`}>{project.title}</a>
+              </h3>
+              {project.years ? <p class="years">{project.years}</p> : null}
+              {project.starLabel ? <p class="project-stars">{project.starLabel}</p> : null}
+              {project.blurb ? <p class="blurb">{project.blurb}</p> : null}
+              <p class="more">
+                <a href={`/work/${project.slug}`}>View project</a>
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+    {
+      home.alsoLinks.length > 0 ? (
+        <p class="also-projects">
+          Also see:{' '}
+          {home.alsoLinks.map((item, i) => (
+            <span>
+              {i > 0 ? ' / ' : ''}
+              {item.href ? <a href={item.href}>{item.label}</a> : item.label}
+            </span>
+          ))}
+        </p>
+      ) : null
+    }
+  </Section>
+
+  {
+    home.hasSkills ? (
+      <Section title="Skills">
+        <div class="resume-skills">
+          {home.skills.map((skill) => (
+            <p>
+              {skill.name ? <strong>{skill.name}: </strong> : null}
+              {skill.words}
+            </p>
+          ))}
+        </div>
+      </Section>
+    ) : null
+  }
+
+  {
+    home.hasAwards ? (
+      <Section title="Awards">
+        <ul class="resume-bullets">
+          {home.awards.map((award) => (
+            <li>
+              {award.href ? (
+                <a href={award.href} target="_blank" rel="noopener noreferrer">
+                  {award.line}
+                </a>
+              ) : (
+                award.line
+              )}
+            </li>
+          ))}
+        </ul>
+      </Section>
+    ) : null
+  }
+
+  <Section title="GitHub">
+    <p class="more github-profile-link">
+      <a href={viewHref(home.githubProfile)} data-prefetch-view={home.githubProfile}>
+        {home.githubProfileLabel}
+      </a>
+    </p>
+    <ContributionGraphPanel href={home.githubViewHref} />
+    <GitHubStats />
+  </Section>
+
+  <Section title="Links">
+    <ul class="site-links">
+      {
+        home.profiles.map((profile) =>
+          profile.url ? (
+            <li>
+              <a href={viewHref(profile.url)} data-prefetch-view={profile.url}>
+                {profile.network}
+              </a>
+            </li>
+          ) : null
+        )
+      }
+    </ul>
+  </Section>
+
+  <Section title="Contact">
+    <ContactForm client:visible />
+  </Section>
+
+  <SiteFooter />
+</div>
+
+<HireBar name={home.name} />
+
+<script
+  is:inline
+  type="application/json"
+  id="image-warm-data"
+  set:html={JSON.stringify(warmProjects)}
+/>
+<script>
+  import '@/scripts/home';
+</script>

@@ -101,8 +101,25 @@ function LanguagePie({ slices }: { slices: PieSlice[] }) {
   );
 }
 
+export function attributionFootnote(login: string, orgs: string[]): string {
+  if (!orgs.length) {
+    return `Language share by bytes across @${login} public repositories.`;
+  }
+  if (orgs.length === 1) {
+    return `Language share by bytes across @${login} public repositories and the ${orgs[0]} GitHub organization.`;
+  }
+  return `Language share by bytes across @${login} public repositories and the ${orgs.join(', ')} GitHub organizations.`;
+}
+
 export default function GitHubStats() {
   const { metrics, streak, languages, fromYear, login } = stats;
+  const attributionOrgs = Array.isArray(
+    (stats as { attributionOrgs?: unknown }).attributionOrgs
+  )
+    ? (stats as { attributionOrgs: unknown[] }).attributionOrgs.filter(
+        (org): org is string => typeof org === 'string' && org.length > 0
+      )
+    : ['Wawona'];
 
   const cards = [
     { label: 'Commits', value: metrics.commits },
@@ -166,9 +183,7 @@ export default function GitHubStats() {
             ))}
           </ul>
         </div>
-        <p className="gh-footnote">
-          Language share by bytes across @{login} public repositories.
-        </p>
+        <p className="gh-footnote">{attributionFootnote(login, attributionOrgs)}</p>
       </div>
     </div>
   );

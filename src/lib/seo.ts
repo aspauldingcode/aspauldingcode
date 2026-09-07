@@ -1,14 +1,26 @@
-import type { Metadata } from 'next';
 import { resume } from '@/content/resume';
 import type { ProjectMeta } from '@/content/types';
 
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://aspauldingcode.com'
+  process.env.PUBLIC_SITE_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://www.aspauldingcode.com'
 ).replace(/\/$/, '');
 
 export const SITE_NAME = resume.basics.name;
 export const SITE_HANDLE = '@aspauldingcode';
 export const DEFAULT_OG_IMAGE = '/profile_square.jpg';
+
+export type SeoMeta = {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  robots?: string;
+  ogType?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
+  keywords?: string[];
+};
 
 export function absoluteUrl(path = '/'): string {
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
@@ -45,113 +57,69 @@ export function defaultKeywords(): string[] {
   ];
 }
 
-/** Shared root metadata pieces for Open Graph / Twitter / robots. */
-export function rootMetadata(): Metadata {
-  const title = `${SITE_NAME} / ${resume.basics.label ?? 'Systems Software'}`;
-  const description = siteDescription();
-  const ogImage = absoluteUrl(DEFAULT_OG_IMAGE);
-
+export function rootSeo(): SeoMeta {
   return {
-    metadataBase: new URL(SITE_URL),
-    title: {
-      default: title,
-      template: `%s / ${SITE_NAME}`,
-    },
-    description,
+    title: `${SITE_NAME} / ${resume.basics.label ?? 'Systems Software'}`,
+    description: siteDescription(),
+    canonicalPath: '/',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogImageAlt: `${SITE_NAME} portrait photo`,
     keywords: defaultKeywords(),
-    authors: [{ name: SITE_NAME, url: SITE_URL }],
-    creator: SITE_NAME,
-    publisher: SITE_NAME,
-    applicationName: SITE_NAME,
-    category: 'technology',
-    referrer: 'origin-when-cross-origin',
-    formatDetection: {
-      email: false,
-      address: false,
-      telephone: false,
-    },
-    alternates: {
-      canonical: '/',
-    },
-    openGraph: {
-      type: 'website',
-      locale: 'en_US',
-      url: SITE_URL,
-      siteName: SITE_NAME,
-      title,
-      description,
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 1200,
-          alt: `${SITE_NAME} portrait photo`,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      creator: SITE_HANDLE,
-      images: [
-        {
-          url: ogImage,
-          alt: `${SITE_NAME} portrait photo`,
-        },
-      ],
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-        'max-video-preview': -1,
-      },
-    },
-    icons: {
-      icon: [{ url: '/favicon.ico', sizes: 'any' }],
-      apple: [{ url: DEFAULT_OG_IMAGE }],
-    },
   };
 }
 
-export function projectMetadata(project: ProjectMeta): Metadata {
-  const title = project.title;
-  const description = project.blurb;
-  const path = `/work/${project.slug}`;
-  const image = project.images[0]
-    ? absoluteUrl(project.images[0])
-    : absoluteUrl(DEFAULT_OG_IMAGE);
-  const imageAlt = projectImageAlt(project, 0);
+export function projectDocumentTitle(project: Pick<ProjectMeta, 'slug' | 'title'>): string {
+  if (project.slug === 'wawona') {
+    return 'Wawona: native Wayland compositor for macOS';
+  }
+  if (project.slug === 'whisperer') {
+    return 'Whisperer: ChatGPT for Apple Watch';
+  }
+  return project.title;
+}
 
+export function projectKeywords(project: ProjectMeta): string[] {
+  const years = project.years.split(/[^\w]+/).filter(Boolean);
+  const base = [project.title, SITE_NAME, 'portfolio', 'selected work', ...years];
+  if (project.slug === 'wawona') {
+    return [
+      ...base,
+      'Wayland',
+      'compositor',
+      'macOS',
+      'iOS',
+      'Android',
+      'Wawona',
+      'Alex Spaulding',
+    ];
+  }
+  if (project.slug === 'whisperer') {
+    return [
+      ...base,
+      'ChatGPT',
+      'Apple Watch',
+      'watchOS',
+      'Whisperer',
+      'voice',
+      'Alex Spaulding',
+    ];
+  }
+  return base;
+}
+
+export function projectSeo(project: ProjectMeta): SeoMeta {
+  const title = projectDocumentTitle(project);
+  const path = `/work/${project.slug}`;
+  const image = project.images[0] || DEFAULT_OG_IMAGE;
   return {
     title,
-    description,
-    keywords: [
-      project.title,
-      SITE_NAME,
-      'portfolio',
-      'selected work',
-      ...project.years.split(/[^\w]+/).filter(Boolean),
-    ],
-    alternates: { canonical: path },
-    openGraph: {
-      type: 'article',
-      url: absoluteUrl(path),
-      title: `${project.title} / ${SITE_NAME}`,
-      description,
-      images: [{ url: image, alt: imageAlt }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${project.title} / ${SITE_NAME}`,
-      description,
-      images: [{ url: image, alt: imageAlt }],
-    },
+    description: project.blurb,
+    canonicalPath: path,
+    ogType: 'article',
+    ogImage: image,
+    ogImageAlt: projectImageAlt(project, 0),
+    keywords: projectKeywords(project),
   };
 }
 
@@ -189,7 +157,6 @@ export function personJsonLd() {
     image: absoluteUrl(DEFAULT_OG_IMAGE),
     jobTitle: resume.basics.label ?? undefined,
     description: siteDescription(),
-    email: resume.basics.email ? `mailto:${resume.basics.email}` : undefined,
     address: resume.basics.location
       ? {
           '@type': 'PostalAddress',
@@ -235,24 +202,30 @@ export function profilePageJsonLd() {
 
 export function projectJsonLd(project: ProjectMeta) {
   const image = project.images[0] ? absoluteUrl(project.images[0]) : undefined;
+  const isApp = project.slug === 'whisperer';
   return {
     '@context': 'https://schema.org',
-    '@type': 'CreativeWork',
+    '@type': isApp ? 'SoftwareApplication' : 'CreativeWork',
     '@id': absoluteUrl(`/work/${project.slug}#work`),
-    name: project.title,
+    name: projectDocumentTitle(project),
+    alternateName: project.title,
     description: project.blurb,
     url: absoluteUrl(`/work/${project.slug}`),
     image,
     author: { '@id': `${SITE_URL}/#person` },
     creator: { '@id': `${SITE_URL}/#person` },
-    dateCreated: project.years.split(/[-–]/)[0]?.trim() || undefined,
-    keywords: project.title,
+    dateCreated: project.years.split(/[-]/)[0]?.trim() || undefined,
+    keywords: projectKeywords(project).join(', '),
+    ...(isApp
+      ? {
+          applicationCategory: 'LifestyleApplication',
+          operatingSystem: 'watchOS, iOS',
+        }
+      : {}),
   };
 }
 
-export function breadcrumbJsonLd(
-  crumbs: { name: string; path?: string }[]
-) {
+export function breadcrumbJsonLd(crumbs: { name: string; path?: string }[]) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -263,4 +236,23 @@ export function breadcrumbJsonLd(
       ...(c.path ? { item: absoluteUrl(c.path) } : {}),
     })),
   };
+}
+
+export function jsonLdScript(data: object | object[]): string {
+  const items = (Array.isArray(data) ? data : [data]).filter(
+    (item): item is object => Boolean(item) && typeof item === 'object'
+  );
+  const body =
+    items.length === 1
+      ? items[0]
+      : {
+          '@context': 'https://schema.org',
+          '@graph': items.map((item) => {
+            const rec = item as Record<string, unknown>;
+            if (!('@context' in rec)) return item;
+            const { '@context': _ctx, ...rest } = rec;
+            return rest;
+          }),
+        };
+  return JSON.stringify(body).replace(/</g, '\\u003c');
 }

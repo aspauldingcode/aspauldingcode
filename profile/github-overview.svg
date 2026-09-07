@@ -28,16 +28,16 @@
   <text class="lbl" y="28">PRs</text>
 </g>
 <g transform="translate(438,36)">
-  <text class="num">465</text>
+  <text class="num">729</text>
   <text class="lbl" y="28">Stars</text>
 </g>
 <g transform="translate(576,36)">
-  <text class="num">56</text>
+  <text class="num">114</text>
   <text class="lbl" y="28">Repos</text>
 </g>
   <g transform="translate(24,100)">
   <text class="sec">Streak</text>
-  <text class="body" y="26">Current 2 days · Longest 17 days · 610 active days</text>
+  <text class="body" y="26">Current 2 days · Longest 14 days · 604 active days</text>
 </g>
   <g transform="translate(24,148)">
     <text class="sec">Languages</text>
@@ -45,31 +45,31 @@
   <text class="lang" x="0" y="0">Objective-C</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
   <rect x="100" y="-9" width="280" height="10" rx="2" fill="#438eff"/>
-  <text class="lang" x="390" y="0">29.8%</text>
+  <text class="lang" x="390" y="0">22.9%</text>
 </g>
 <g transform="translate(0,42)">
-  <text class="lang" x="0" y="0">Swift</text>
+  <text class="lang" x="0" y="0">Rust</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="248" height="10" rx="2" fill="#F05138"/>
-  <text class="lang" x="390" y="0">26.4%</text>
+  <rect x="100" y="-9" width="202" height="10" rx="2" fill="#dea584"/>
+  <text class="lang" x="390" y="0">16.5%</text>
 </g>
 <g transform="translate(0,60)">
-  <text class="lang" x="0" y="0">Nix</text>
+  <text class="lang" x="0" y="0">Swift</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="120" height="10" rx="2" fill="#7e7eff"/>
-  <text class="lang" x="390" y="0">12.8%</text>
+  <rect x="100" y="-9" width="183" height="10" rx="2" fill="#F05138"/>
+  <text class="lang" x="390" y="0">15%</text>
 </g>
 <g transform="translate(0,78)">
-  <text class="lang" x="0" y="0">Shell</text>
+  <text class="lang" x="0" y="0">Nix</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="57" height="10" rx="2" fill="#89e051"/>
-  <text class="lang" x="390" y="0">6.1%</text>
+  <rect x="100" y="-9" width="165" height="10" rx="2" fill="#7e7eff"/>
+  <text class="lang" x="390" y="0">13.5%</text>
 </g>
 <g transform="translate(0,96)">
-  <text class="lang" x="0" y="0">Python</text>
+  <text class="lang" x="0" y="0">C</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="53" height="10" rx="2" fill="#3572A5"/>
-  <text class="lang" x="390" y="0">5.6%</text>
+  <rect x="100" y="-9" width="97" height="10" rx="2" fill="#555555"/>
+  <text class="lang" x="390" y="0">7.9%</text>
 </g>
   </g>
 </svg>

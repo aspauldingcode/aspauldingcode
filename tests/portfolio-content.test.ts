@@ -1,13 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 import { isEwuPreviewHost, papersForUrl, papersFromResume } from '@/lib/profileCard';
 
 const root = path.resolve(__dirname, '..');
-const require = createRequire(import.meta.url);
 const resume = JSON.parse(readFileSync(path.join(root, 'resume.json'), 'utf8'));
-const nextConfig = require(path.join(root, 'next.config.js'));
+const astroConfig = readFileSync(path.join(root, 'astro.config.mjs'), 'utf8');
+const vercelConfig = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 
 describe('education and papers', () => {
   it('lists Eastern Washington University only, 2022-2027', () => {
@@ -37,17 +36,48 @@ describe('education and papers', () => {
 });
 
 describe('resume PDF', () => {
-  it('keeps a committed PDF and redirects /resume to it', async () => {
+  it('keeps a committed PDF and redirects /resume to it', () => {
     expect(existsSync(path.join(root, 'public', 'resume.pdf'))).toBe(true);
-    const redirects = await nextConfig.redirects();
-    expect(redirects).toEqual(
+    expect(astroConfig).toMatch(/['"]\/resume['"]/);
+    expect(astroConfig).toMatch(/['"]\/resume\.pdf['"]/);
+    expect(vercelConfig.redirects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           source: '/resume',
           destination: '/resume.pdf',
           permanent: true,
         }),
+        expect.objectContaining({
+          source: '/projects',
+          destination: '/',
+          permanent: true,
+        }),
       ])
     );
+  });
+});
+
+describe('site lab scores', () => {
+  it('publishes bench search and speed scores in the profile README', () => {
+    const readme = readFileSync(path.join(root, 'README.md'), 'utf8');
+    const bench = JSON.parse(readFileSync(path.join(root, 'bench/latest.json'), 'utf8'));
+    expect(bench.seoScore).toBe(100);
+    expect(bench.speedScore).toBe(100);
+    expect(readme).toContain('Search engine optimization (on-site)');
+    expect(readme).toContain('100 / 100');
+    expect(readme).toContain('18 KB');
+  });
+});
+
+describe('site footer', () => {
+  it('opens the GitHub source repo in a new tab, not the in-site viewer', () => {
+    const footer = readFileSync(
+      path.join(root, 'src/components/SiteFooter.tsx'),
+      'utf8'
+    );
+    expect(footer).toContain('https://github.com/aspauldingcode/aspauldingcode');
+    expect(footer).toContain('target="_blank"');
+    expect(footer).toContain('rel="noopener noreferrer"');
+    expect(footer).not.toMatch(/viewHref/);
   });
 });

@@ -1,76 +1,82 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-09-07T14:16:17.942Z",
+  "generatedAt": "2026-09-07T18:04:36.295Z",
   "fromYear": 2023,
+  "attributionOrgs": [
+    "Wawona"
+  ],
+  "languageSkipRepos": [
+    "wawona/agent-device"
+  ],
   "metrics": {
     "commits": 3493,
     "contributions": 4275,
     "pullRequests": 49,
     "issues": 599,
     "reviews": 17,
-    "repositories": 56,
-    "stars": 465,
-    "forks": 12,
+    "repositories": 114,
+    "stars": 729,
+    "forks": 53,
     "followers": 75
   },
   "streak": {
     "current": 2,
-    "longest": 17,
-    "totalActiveDays": 610
+    "longest": 14,
+    "totalActiveDays": 604
   },
   "languages": [
     {
       "name": "Objective-C",
-      "size": 3063810,
-      "percent": 29.8,
+      "size": 4973119,
+      "percent": 22.9,
       "color": "#438eff"
     },
     {
+      "name": "Rust",
+      "size": 3594486,
+      "percent": 16.5,
+      "color": "#dea584"
+    },
+    {
       "name": "Swift",
-      "size": 2716862,
-      "percent": 26.4,
+      "size": 3268358,
+      "percent": 15,
       "color": "#F05138"
     },
     {
       "name": "Nix",
-      "size": 1318644,
-      "percent": 12.8,
+      "size": 2930963,
+      "percent": 13.5,
       "color": "#7e7eff"
     },
     {
+      "name": "C",
+      "size": 1722808,
+      "percent": 7.9,
+      "color": "#555555"
+    },
+    {
       "name": "Shell",
-      "size": 629509,
-      "percent": 6.1,
+      "size": 1062190,
+      "percent": 4.9,
       "color": "#89e051"
     },
     {
       "name": "Python",
-      "size": 579558,
-      "percent": 5.6,
+      "size": 758265,
+      "percent": 3.5,
       "color": "#3572A5"
     },
     {
-      "name": "JavaScript",
-      "size": 505132,
-      "percent": 4.9,
-      "color": "#f1e05a"
-    },
-    {
-      "name": "TypeScript",
-      "size": 494681,
-      "percent": 4.8,
-      "color": "#3178c6"
-    },
-    {
-      "name": "Rust",
-      "size": 289852,
-      "percent": 2.8,
-      "color": "#dea584"
+      "name": "Java",
+      "size": 725022,
+      "percent": 3.3,
+      "color": "#b07219"
     },
     {
       "name": "Other",
-      "size": 691617,
-      "percent": 6.7,
+      "size": 2712961,
+      "percent": 12.5,
       "color": "#8b949e"
     }
   ]

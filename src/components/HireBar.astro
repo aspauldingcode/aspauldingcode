@@ -1,0 +1,33 @@
+---
+import { HIRE_COPY } from '@/lib/hireMeRuntime';
+import { HIRE_HREF } from '@/lib/hireIntent';
+import { RESUME_PDF_FILENAME, RESUME_PDF_HREF } from '@/components/PrintButton';
+
+interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+---
+
+<div class="hire-bar-host" aria-hidden="true" data-hire-host>
+  <div class="hire-bar">
+    <div class="hire-bar-lead is-group-hidden">
+      <a class="hire-bar-name" href="/" tabindex="-1">{name}</a>
+      <a class="hire-me" href={HIRE_HREF} tabindex="-1" data-dest-hire>Hire me</a>
+    </div>
+    <p class="hire-bar-copy">
+      {HIRE_COPY}{' '}
+      <a class="ctrl-link resume-print" href={RESUME_PDF_HREF} download={RESUME_PDF_FILENAME}>
+        Resume
+      </a>
+    </p>
+  </div>
+  <p class="hire-bar-back">
+    <a href="/">← Back to {name}</a>
+  </p>
+</div>
+<div class="hire-group-fly" aria-hidden data-hire-fly>
+  <span class="hire-group-fly-name">{name}</span>
+  <span class="hire-me">Hire me</span>
+</div>

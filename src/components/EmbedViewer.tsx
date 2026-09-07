@@ -16,7 +16,6 @@ import {
 } from '@/lib/profileCard';
 import type { ViewTarget } from '@/lib/viewHref';
 import { resume } from '@/content/resume';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 type PreviewState =
@@ -105,7 +104,7 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
 
         {target.embeddable ? null : (
           <p className="project-home">
-            <Link href="/">← Back to {homeLabel}</Link>
+            <a href="/">← Back to {homeLabel}</a>
           </p>
         )}
       </div>
@@ -120,7 +119,7 @@ export default function EmbedViewer({ target }: { target: ViewTarget }) {
             />
           </div>
           <p className="project-home embed-home">
-            <Link href="/">← Back to {homeLabel}</Link>
+            <a href="/">← Back to {homeLabel}</a>
           </p>
         </>
       ) : null}
@@ -152,7 +151,6 @@ function PublishedPapers({
         {papers.map((paper) => (
           <li key={paper.href}>
             {paper.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="profile-papers-photo"
                 src={paper.image}
@@ -321,7 +319,6 @@ function ProfileCardView({
       >
         <div className="profile-card-avatar">
           {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={avatar}
               alt=""
@@ -341,7 +338,6 @@ function ProfileCardView({
         <div className="profile-card-identity">
           <p className="profile-card-network">
             {favicon ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="profile-card-favicon"
                 src={favicon}
