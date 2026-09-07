@@ -15,7 +15,7 @@ import { viewHref } from '@/lib/viewHref';
 const home = homeModel();
 const warmProjects = getProjects().map((p) => ({
   slug: p.slug,
-  images: p.images.slice(0, 1),
+  images: p.images,
 }));
 ---
 

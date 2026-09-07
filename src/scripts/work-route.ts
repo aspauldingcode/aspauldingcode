@@ -1,4 +1,4 @@
-import { canPrefetch } from '@/lib/prefetchImages';
+import { canPrefetch, enqueueImages, paneImageSrcs } from '@/lib/prefetchImages';
 import { CLOSE_WORK_EVENT } from '@/lib/hireIntent';
 import { goToHireContact } from '@/lib/hireMeRuntime';
 import { VIEW_EVENT } from '@/lib/profileCardView';
@@ -162,6 +162,13 @@ function syncChrome(slug: string | null, open: boolean) {
   });
 }
 
+function warmPane(pane: HTMLElement, urgent: boolean) {
+  const srcs = paneImageSrcs(pane);
+  if (!srcs.length) return;
+  enqueueImages(srcs.slice(0, 1), { decode: true, urgent });
+  enqueueImages(srcs.slice(1), { decode: false, urgent });
+}
+
 function setPaneShown(pane: HTMLElement, show: boolean) {
   if (show) {
     pane.setAttribute('data-show', '');
@@ -232,13 +239,11 @@ async function prepareSlug(slug: string, force = false): Promise<HTMLElement | n
       wrap.innerHTML = detail.pane;
       wrap.querySelectorAll('script').forEach((el) => el.remove());
       retargetWorkIslands(wrap);
-      wrap.querySelectorAll('img').forEach((img) => {
-        void img.decode?.().catch(() => undefined);
-      });
       setPaneShown(wrap, false);
       host.append(wrap);
       panes.set(slug, wrap);
       titles.set(slug, detail.title);
+      warmPane(wrap, false);
       return wrap;
     } catch {
       return null;
@@ -257,7 +262,10 @@ export function openPreparedWork(slug: string, push: boolean) {
   }
   if (showPrepared(slug)) {
     const pane = panes.get(slug);
-    if (pane) queuePaneHydrate(pane);
+    if (pane) {
+      warmPane(pane, true);
+      queuePaneHydrate(pane);
+    }
     return;
   }
   void prepareSlug(slug, true).then((pane) => {

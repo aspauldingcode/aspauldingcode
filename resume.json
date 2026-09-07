@@ -172,7 +172,7 @@
   "projects": [
     {
       "name": "Wawona",
-      "description": "Native Wayland for macOS, iOS, and Android (Rust, Metal, Vulkan, Nix)",
+      "description": "Native Wayland for macOS, iOS, and Android (Rust, Metal, Vulkan, Nix).",
       "highlights": [],
       "keywords": [],
       "startDate": "2025-01-01",
@@ -183,7 +183,7 @@
     },
     {
       "name": "apple-sharpener",
-      "description": "macOS Ammonia tweak for window corner radii (300+ stars)",
+      "description": "macOS Ammonia tweak for window corner radii (300+ stars).",
       "highlights": [],
       "keywords": [],
       "startDate": "2024-12-01",
@@ -194,7 +194,7 @@
     },
     {
       "name": "Whisperer",
-      "description": "Voice ChatGPT client for Apple Watch (Swift, watchOS)",
+      "description": "Voice ChatGPT client for Apple Watch (Swift, watchOS).",
       "highlights": [],
       "keywords": [],
       "startDate": "2024-09-01",

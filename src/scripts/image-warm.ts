@@ -1,20 +1,36 @@
-import { canPrefetch, prefetchImages, prefetchLqip, HERO_WIDTHS } from '@/lib/prefetchImages';
+import {
+  connectionBudget,
+  enqueueImages,
+  warmPlan,
+} from '@/lib/prefetchImages';
 
 type WarmProject = { slug: string; images: string[] };
 
-/**
- * Idle: LQIP for every project hero + full hero when the link allows.
- * Hover/focus: warm that project's first slide (LQIP always, full if allowed).
- */
+function hints() {
+  if (typeof navigator === 'undefined') return {};
+  const conn = (
+    navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }
+  ).connection;
+  return {
+    saveData: conn?.saveData,
+    effectiveType: conn?.effectiveType,
+    hardwareConcurrency: navigator.hardwareConcurrency,
+    deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
+  };
+}
+
+/** Heroes decode first. Remaining slides fill HTTP cache. Hover jumps that
+ *  project to the front. Save-data / 2g stay idle until pointer intent. */
 export function bootImageWarm(projects: WarmProject[]) {
   const bySlug = new Map(projects.map((p) => [p.slug, p.images] as const));
 
-  const warmSlug = (slug: string) => {
+  const warmSlug = (slug: string, urgent: boolean) => {
     const images = bySlug.get(slug);
-    const hero = images?.[0];
-    if (!hero) return;
-    prefetchLqip([hero]);
-    if (canPrefetch()) prefetchImages([hero], { widths: HERO_WIDTHS });
+    if (!images?.length) return;
+    enqueueImages(images.slice(0, 1), { decode: true, urgent });
+    enqueueImages(images.slice(1), { decode: false, urgent });
   };
 
   const onIntent = (event: Event) => {
@@ -23,23 +39,21 @@ export function bootImageWarm(projects: WarmProject[]) {
     const anchor = target.closest('a[href^="/work/"]');
     if (!(anchor instanceof HTMLAnchorElement)) return;
     const slug = anchor.pathname.replace(/^\/work\//, '').split('/')[0];
-    if (slug) warmSlug(slug);
+    if (slug) warmSlug(slug, true);
   };
 
   document.addEventListener('pointerover', onIntent, { passive: true });
   document.addEventListener('focusin', onIntent, { passive: true });
 
   const warmIdle = () => {
-    for (const p of projects) {
-      if (!p.images[0]) continue;
-      prefetchLqip([p.images[0]]);
-      if (canPrefetch()) prefetchImages([p.images[0]], { widths: [640] });
-    }
+    const plan = warmPlan(projects, connectionBudget(hints()));
+    enqueueImages(plan.decode, { decode: true });
+    enqueueImages(plan.cache, { decode: false });
   };
 
   const ric = window.requestIdleCallback;
   if (typeof ric === 'function') {
-    ric(warmIdle, { timeout: 1500 });
+    ric(warmIdle, { timeout: 800 });
   } else {
     window.setTimeout(warmIdle, 250);
   }

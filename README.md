@@ -8,7 +8,7 @@
 
 ### Systems software · Apple platforms · Wayland compositors
 
-[Portfolio](https://aspauldingcode.com) · [Resume](https://aspauldingcode.com/resume.pdf) · Computer Science at [Eastern Washington University](https://www.ewu.edu/)
+[Portfolio](https://aspauldingcode.com) · [Resume](https://aspauldingcode.com/resume) · Computer Science at [Eastern Washington University](https://www.ewu.edu/)
 
 This repository is the GitHub profile README and the source for the portfolio and resume at [aspauldingcode.com](https://aspauldingcode.com).
 

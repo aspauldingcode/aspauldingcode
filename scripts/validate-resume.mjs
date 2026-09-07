@@ -6,10 +6,14 @@
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  RESUME_CALVER_RE,
+  publicResumePdfPath,
+  readResumePdfMeta,
+} from './resumeCalver.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RESUME_PATH = path.join(ROOT, 'resume.json');
-const PDF_PATH = path.join(ROOT, 'public', 'resume.pdf');
 const SCHEMA_HREF =
   'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json';
 
@@ -97,7 +101,16 @@ function checkUrl(value, trail, issues) {
 
 export function validateResume(resume, opts = {}) {
   const issues = [];
-  const pdfPath = opts.pdfPath ?? PDF_PATH;
+  let pdfMeta;
+  try {
+    pdfMeta = opts.pdfMeta ?? readResumePdfMeta(ROOT);
+  } catch {
+    issues.push('src/lib/resumePdf.json is missing (run npm run resume:pdf)');
+  }
+  if (pdfMeta && !RESUME_CALVER_RE.test(pdfMeta.version)) {
+    issues.push(`resume CalVer must be vYYYY.MM.DD (got ${pdfMeta.version})`);
+  }
+  const pdfPath = opts.pdfPath ?? (pdfMeta ? publicResumePdfPath(ROOT, pdfMeta) : '');
 
   if (!resume || typeof resume !== 'object' || Array.isArray(resume)) {
     return ['resume.json must be a JSON object'];
@@ -150,12 +163,23 @@ export function validateResume(resume, opts = {}) {
     checkDate(school.endDate, '$.education[0].endDate', issues);
   }
 
+  const endsWithStop = (text) => /[.!?]$/.test(String(text).trim());
+
+  if (basics?.summary && !endsWithStop(basics.summary)) {
+    issues.push('$.basics.summary must end with a period');
+  }
+
   for (const [i, job] of (resume.work ?? []).entries()) {
     if (!job?.name) issues.push(`$.work[${i}].name is required`);
     if (!job?.position) issues.push(`$.work[${i}].position is required`);
     checkDate(job?.startDate, `$.work[${i}].startDate`, issues);
     checkDate(job?.endDate, `$.work[${i}].endDate`, issues);
     checkUrl(job?.url, `$.work[${i}].url`, issues);
+    for (const [j, line] of (job.highlights ?? []).entries()) {
+      if (line && !endsWithStop(line)) {
+        issues.push(`$.work[${i}].highlights[${j}] must end with a period`);
+      }
+    }
   }
 
   for (const [i, award] of (resume.awards ?? []).entries()) {
@@ -168,6 +192,9 @@ export function validateResume(resume, opts = {}) {
     if (!pub?.name) issues.push(`$.publications[${i}].name is required`);
     checkDate(pub?.releaseDate, `$.publications[${i}].releaseDate`, issues);
     checkUrl(pub?.url, `$.publications[${i}].url`, issues);
+    if (pub?.summary && !endsWithStop(pub.summary)) {
+      issues.push(`$.publications[${i}].summary must end with a period`);
+    }
   }
 
   for (const [i, project] of (resume.projects ?? []).entries()) {
@@ -175,6 +202,9 @@ export function validateResume(resume, opts = {}) {
     checkDate(project?.startDate, `$.projects[${i}].startDate`, issues);
     checkDate(project?.endDate, `$.projects[${i}].endDate`, issues);
     checkUrl(project?.url, `$.projects[${i}].url`, issues);
+    if (project?.description && !endsWithStop(project.description)) {
+      issues.push(`$.projects[${i}].description must end with a period`);
+    }
   }
 
   walkStrings(resume, (text, trail) => {
@@ -189,12 +219,12 @@ export function validateResume(resume, opts = {}) {
     }
   });
 
-  if (!existsSync(pdfPath)) {
-    issues.push('public/resume.pdf is missing (run npm run resume:pdf)');
-  } else {
+  if (pdfPath && !existsSync(pdfPath)) {
+    issues.push(`${pdfMeta.filename} is missing (run npm run resume:pdf)`);
+  } else if (pdfPath) {
     const head = readFileSync(pdfPath).subarray(0, 5).toString('latin1');
     if (head !== '%PDF-') {
-      issues.push('public/resume.pdf is not a PDF');
+      issues.push(`${pdfMeta.filename} is not a PDF`);
     }
   }
 

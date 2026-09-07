@@ -6,6 +6,7 @@ import {
   whispererLegalLastmod,
   workLastmod,
 } from '@/lib/contentMtime';
+import resumePdf from '@/lib/resumePdf.json';
 import { SITE_URL } from '@/lib/seo';
 
 export const prerender = true;
@@ -15,7 +16,7 @@ export const GET: APIRoute = () => {
   const urls = [
     { loc: SITE_URL, lastmod: homeLastmod(root), changefreq: 'weekly', priority: '1.0' },
     {
-      loc: `${SITE_URL}/resume.pdf`,
+      loc: `${SITE_URL}${resumePdf.href}`,
       lastmod: resumePdfLastmod(root),
       changefreq: 'monthly',
       priority: '0.9',

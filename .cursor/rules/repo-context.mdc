@@ -13,7 +13,7 @@ Minimal personal site + GitHub profile README + JSON Resume for Alex Spaulding.
 - Projects (galleries): one Markdown file each in `content/work/{slug}.md` (YAML frontmatter + body)
 - Profile README (`README.md`): systems identity; no em dashes, emoji, or unexplained acronyms
 - Profile stats: custom cards from `scripts/generate-github-stats.mjs` → `public/github/stats.json` (site React) + `profile/github-overview.svg`; contribution graph via `scripts/generate-contribution-graph.mjs` (years newest-first). Both refreshed by `.github/workflows/update-readme-stats.yml`. Languages, stars, forks, and repository counts include public non-fork repos in the Wawona GitHub organization, not only @aspauldingcode-owned repos.
-- Resume: `resume.json` drives the homepage. The Resume control downloads `public/resume.pdf` (built by `scripts/export-resume.mjs`). `/resume` redirects to that PDF. No webview resume page. After resume edits run `npm run resume:check` and `npm run resume:pdf`. The Resume badge is `.github/workflows/resume.yml`.
+- Resume: `resume.json` drives the homepage. The Resume control downloads `public/vYYYY.MM.DD.pdf` (CalVer, `v` prefix, built by `scripts/export-resume.mjs`). `/resume` and `/resume.pdf` redirect to that file. No webview resume page. After resume edits run `npm run resume:check` and `npm run resume:pdf`. The Resume badge is `.github/workflows/resume.yml`.
 - Do not put email or phone on the public site; contact form only (`/#contact`)
 - Contact send goes through `/api/contact` (HTTPS + EmailJS private key). Template fields: `from_name`, `from_email`, `reply_to`, `hire_me` (`true`/`false`), `message`
 - Whisperer App Store legal: `/whisperer/privacy`, `/whisperer/terms`

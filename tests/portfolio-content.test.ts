@@ -2,7 +2,6 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { detailTrail } from '@/lib/detailTrail';
-import { detailTrail } from '@/lib/detailTrail';
 import { isEwuPreviewHost, papersForUrl, papersFromResume } from '@/lib/profileCard';
 
 const root = path.resolve(__dirname, '..');
@@ -66,10 +65,15 @@ describe('education and papers', () => {
 });
 
 describe('resume PDF', () => {
-  it('keeps a committed PDF and redirects /resume to it', () => {
-    expect(existsSync(path.join(root, 'public', 'resume.pdf'))).toBe(true);
+  it('keeps a committed CalVer PDF and redirects /resume to it', () => {
+    const meta = JSON.parse(
+      readFileSync(path.join(root, 'src/lib/resumePdf.json'), 'utf8')
+    );
+    expect(meta.version).toMatch(/^v\d{4}\.\d{2}\.\d{2}$/);
+    expect(existsSync(path.join(root, 'public', meta.filename))).toBe(true);
     expect(astroConfig).toMatch(/['"]\/resume['"]/);
     expect(astroConfig).toMatch(/['"]\/resume\.pdf['"]/);
+    expect(astroConfig).toContain('resumePdf.href');
     expect(astroConfig).toMatch(/['"]\/projects['"]/);
     expect(vercelConfig.redirects).toEqual(
       expect.arrayContaining([

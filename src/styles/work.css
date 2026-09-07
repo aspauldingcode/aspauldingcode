@@ -186,8 +186,7 @@
     display: block !important;
   }
 
-  .split-shell:not([data-home-shell]) .split-detail,
-  .split-shell[data-home-shell][data-open] > .split-detail {
+  .split-shell:not([data-home-shell]) .split-detail {
     display: block !important;
     height: 100%;
     overflow: hidden;
@@ -197,6 +196,19 @@
     transition:
       opacity 0.28s ease,
       border-color 0.28s ease;
+  }
+
+  /* Home overlay is viewport-fixed. Do not use the MPA 100% + overflow
+     hidden box or GitHub cards and project pages cannot scroll. */
+  .split-shell[data-home-shell][data-open] > .split-detail {
+    display: block !important;
+    height: auto;
+    max-height: none;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    border-left: none;
+    background: var(--bg);
+    opacity: 1;
   }
 
   .split-shell[data-open] .split-detail {

@@ -1,5 +1,6 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import resumePdf from '@/lib/resumePdf.json';
 
 function fileMtimeMs(path: string): number {
   try {
@@ -38,7 +39,7 @@ export function homeLastmod(root: string): string {
 }
 
 export function resumePdfLastmod(root: string): string {
-  return isoFromMtime(fileMtimeMs(join(root, 'public/resume.pdf')));
+  return isoFromMtime(fileMtimeMs(join(root, 'public', resumePdf.filename)));
 }
 
 export function workLastmod(root: string, slug: string): string {

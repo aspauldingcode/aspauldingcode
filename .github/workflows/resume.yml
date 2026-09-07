@@ -5,17 +5,21 @@ on:
     branches: [main]
     paths:
       - resume.json
-      - public/resume.pdf
+      - public/v*.pdf
+      - src/lib/resumePdf.json
       - scripts/validate-resume.mjs
       - scripts/export-resume.mjs
+      - scripts/resumeCalver.mjs
       - tests/resume.test.ts
       - .github/workflows/resume.yml
   pull_request:
     paths:
       - resume.json
-      - public/resume.pdf
+      - public/v*.pdf
+      - src/lib/resumePdf.json
       - scripts/validate-resume.mjs
       - scripts/export-resume.mjs
+      - scripts/resumeCalver.mjs
       - tests/resume.test.ts
       - .github/workflows/resume.yml
   workflow_dispatch:

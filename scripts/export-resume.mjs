@@ -4,15 +4,22 @@
  *
  *   npm run resume:pdf
  *
- * Writes public/resume.pdf for static download from /resume.
+ * Writes public/vYYYY.MM.DD.pdf. /resume and /resume.pdf redirect there.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import PDFDocument from 'pdfkit';
+import {
+  publicResumePdfPath,
+  removeStaleResumePdfs,
+  resumePdfRecord,
+  writeResumePdfMeta,
+} from './resumeCalver.mjs';
 
 const ROOT = path.resolve(process.cwd());
 const RESUME_PATH = path.join(ROOT, 'resume.json');
-const OUT_PATH = path.join(ROOT, 'public', 'resume.pdf');
+const PDF_META = resumePdfRecord();
+const OUT_PATH = publicResumePdfPath(ROOT, PDF_META);
 
 function yearOf(iso) {
   if (!iso) return '';
@@ -46,40 +53,49 @@ function writePdf(resume) {
     const ink = '#1a1a18';
     const muted = '#5a5a55';
     const pageRight = doc.page.width - doc.page.margins.right;
-    const contentWidth =
-      doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const leftX = doc.page.margins.left;
+    const contentWidth = doc.page.width - leftX - doc.page.margins.right;
+    const bodyIndent = 12;
+
+    const atLeft = () => {
+      doc.x = leftX;
+    };
 
     const ensureSpace = (need = 48) => {
       if (doc.y + need > doc.page.height - doc.page.margins.bottom) {
         doc.addPage();
       }
+      atLeft();
     };
 
     const section = (title) => {
       ensureSpace(36);
+      atLeft();
       doc.moveDown(0.55);
       doc
         .font('Helvetica-Bold')
         .fontSize(10)
         .fillColor(ink)
-        .text(title.toUpperCase(), { characterSpacing: 0.6 });
+        .text(title.toUpperCase(), leftX, doc.y, { characterSpacing: 0.6 });
       const y = doc.y + 2;
       doc
-        .moveTo(doc.page.margins.left, y)
+        .moveTo(leftX, y)
         .lineTo(pageRight, y)
         .strokeColor('#c8c8c2')
         .lineWidth(0.6)
         .stroke();
-      doc.moveDown(0.45);
+      doc.y = y + 8;
+      atLeft();
       doc.fillColor(ink);
     };
 
     const entryHead = (left, right) => {
       ensureSpace(28);
+      atLeft();
       const rightW = 88;
       const leftW = contentWidth - rightW - 8;
       const y0 = doc.y;
-      doc.font('Helvetica-Bold').fontSize(10).fillColor(ink).text(left, {
+      doc.font('Helvetica-Bold').fontSize(10).fillColor(ink).text(left, leftX, y0, {
         width: leftW,
         continued: false,
       });
@@ -88,30 +104,42 @@ function writePdf(resume) {
         .font('Helvetica')
         .fontSize(9)
         .fillColor(muted)
-        .text(right, doc.page.margins.left + leftW + 8, y0, {
+        .text(right, leftX + leftW + 8, y0, {
           width: rightW,
           align: 'right',
           lineBreak: false,
         });
       doc.y = Math.max(afterLeft, y0 + 12);
-      doc.x = doc.page.margins.left;
+      atLeft();
       doc.fillColor(ink);
+    };
+
+    const indentedBody = (text, size = 9.5, color = ink) => {
+      if (!text) return;
+      ensureSpace(20);
+      atLeft();
+      doc.font('Helvetica').fontSize(size).fillColor(color).text(text, leftX + bodyIndent, doc.y, {
+        width: contentWidth - bodyIndent,
+        align: 'left',
+      });
+      atLeft();
     };
 
     const bullets = (items) => {
       for (const item of items) {
         if (!item) continue;
         ensureSpace(20);
-        const bulletX = doc.page.margins.left;
-        const textX = bulletX + 12;
+        const textX = leftX + bodyIndent;
         const y = doc.y;
         doc.font('Helvetica').fontSize(9.5).fillColor(ink);
-        doc.text('•', bulletX, y, { width: 10, lineBreak: false });
+        doc.text('•', leftX, y, { width: 10, lineBreak: false });
         doc.text(item, textX, y, {
-          width: contentWidth - 12,
+          width: contentWidth - bodyIndent,
           align: 'left',
         });
+        atLeft();
         doc.moveDown(0.12);
+        atLeft();
       }
     };
 
@@ -176,10 +204,16 @@ function writePdf(resume) {
           .join(', ');
         entryHead(left, yearRange(ed.startDate, ed.endDate));
         if (ed.score) {
-          doc.font('Helvetica').fontSize(9).fillColor(muted).text(`GPA ${ed.score}`);
+          atLeft();
+          doc.font('Helvetica').fontSize(9).fillColor(muted).text(`GPA ${ed.score}`, leftX, doc.y, {
+            width: contentWidth,
+          });
+          atLeft();
           doc.fillColor(ink);
         }
+        atLeft();
         doc.moveDown(0.15);
+        atLeft();
       }
     }
 
@@ -190,11 +224,17 @@ function writePdf(resume) {
         entryHead(title, yearRange(job.startDate, job.endDate));
         const meta = [job.location].filter(Boolean).join(' / ');
         if (meta) {
-          doc.font('Helvetica').fontSize(9).fillColor(muted).text(meta);
+          atLeft();
+          doc.font('Helvetica').fontSize(9).fillColor(muted).text(meta, leftX, doc.y, {
+            width: contentWidth,
+          });
+          atLeft();
           doc.fillColor(ink);
         }
         if (job.highlights?.length) bullets(job.highlights);
+        atLeft();
         doc.moveDown(0.25);
+        atLeft();
       }
     }
 
@@ -206,13 +246,11 @@ function writePdf(resume) {
         const line = [project.description, project.url?.replace(/^https?:\/\//, '')]
           .filter(Boolean)
           .join('  /  ');
-        if (line) {
-          doc.font('Helvetica').fontSize(9.5).fillColor(ink).text(line, {
-            width: contentWidth,
-          });
-        }
+        if (line) indentedBody(line);
         if (project.highlights?.length) bullets(project.highlights);
+        atLeft();
         doc.moveDown(0.2);
+        atLeft();
       }
     }
 
@@ -222,12 +260,14 @@ function writePdf(resume) {
         const words = (group.keywords || []).join(', ');
         if (!words) continue;
         ensureSpace(18);
+        atLeft();
         doc
           .font('Helvetica-Bold')
           .fontSize(9.5)
           .fillColor(ink)
-          .text(`${group.name}: `, { continued: true });
+          .text(`${group.name}: `, leftX, doc.y, { continued: true });
         doc.font('Helvetica').text(words);
+        atLeft();
       }
     }
 
@@ -251,6 +291,8 @@ function writePdf(resume) {
 
 const resume = JSON.parse(fs.readFileSync(RESUME_PATH, 'utf8'));
 fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
+removeStaleResumePdfs(ROOT, PDF_META.filename);
+writeResumePdfMeta(ROOT, PDF_META);
 await writePdf(resume);
 const size = fs.statSync(OUT_PATH).size;
-console.log(`Wrote ${OUT_PATH} (${size} bytes)`);
+console.log(`Wrote ${OUT_PATH} (${size} bytes) ${PDF_META.version}`);

@@ -157,6 +157,12 @@ describe('work route', () => {
     expect(globals).toMatch(
       /\[data-home-shell\]\[data-open\] > \.split-detail \{[\s\S]*?overflow: auto/
     );
+    expect(css).toMatch(
+      /\[data-home-shell\]\[data-open\] > \.split-detail \{[\s\S]*?overflow: auto/
+    );
+    expect(css).not.toMatch(
+      /\.split-shell:not\(\[data-home-shell\]\) \.split-detail,\s*\.split-shell\[data-home-shell\]\[data-open\]/
+    );
     expect(route).toContain('aria-hidden');
     expect(css).toContain(
       '.split-shell:not([data-home-shell]) .split-detail'
@@ -177,6 +183,8 @@ describe('work route', () => {
     expect(globals).toMatch(/Symbols Nerd Font[\s\S]*font-display: swap/);
     expect(globals).toContain('[data-work-island]');
     expect(route).toContain('retargetWorkIslands');
+    expect(route).toContain('enqueueImages');
+    expect(route).toContain('paneImageSrcs');
     const hydrate = readFileSync(path.join(root, 'src/scripts/hydrate-islands.ts'), 'utf8');
     expect(hydrate).toContain('component-url');
     expect(hydrate).toContain('data-work-island');

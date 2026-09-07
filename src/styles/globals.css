@@ -129,8 +129,15 @@ body {
   visibility: visible;
   pointer-events: auto;
   padding-top: 0;
+  height: auto;
+  max-height: none;
   overflow: auto;
   overscroll-behavior: contain;
+}
+
+.split-shell[data-home-shell][data-open] [data-work-pane][data-show] {
+  align-self: start;
+  height: auto;
 }
 
 .split-shell[data-home-shell][data-open] [data-work-pane][data-show] .wrap {

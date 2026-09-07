@@ -2,8 +2,13 @@
 /** Serve prerendered dist/client for benches. /view is a static shell.
  *  Live /api/preview and TIDAL need `astro dev` or Vercel. */
 import { createServer } from 'node:http';
+import { readFileSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+
+const resumePdf = JSON.parse(
+  readFileSync(new URL('../src/lib/resumePdf.json', import.meta.url), 'utf8')
+);
 
 const roots = [
   join(process.cwd(), '.vercel', 'output', 'static'),
@@ -56,7 +61,8 @@ async function fileFor(urlPath) {
 
 const redirects = new Map([
   ['/projects', '/'],
-  ['/resume', '/resume.pdf'],
+  ['/resume', resumePdf.href],
+  ['/resume.pdf', resumePdf.href],
 ]);
 
 const server = createServer(async (req, res) => {

@@ -1,5 +1,9 @@
-export const RESUME_PDF_HREF = '/resume.pdf';
-export const RESUME_PDF_FILENAME = 'Alex-Spaulding-Resume.pdf';
+import resumePdf from '@/lib/resumePdf.json';
+
+
+export const RESUME_PDF_VERSION = resumePdf.version;
+export const RESUME_PDF_HREF = resumePdf.href;
+export const RESUME_PDF_FILENAME = resumePdf.filename;
 
 /** Download the prebuilt Letter PDF. Not a webview. */
 export default function PrintButton({
