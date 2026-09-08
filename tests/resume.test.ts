@@ -100,7 +100,7 @@ describe('resume.json', () => {
     expect(resumeCalVer(new Date(2026, 8, 7))).toBe('v2026.09.07');
     const meta = readResumePdfMeta(root);
     expect(meta.version).toMatch(RESUME_CALVER_RE);
-    expect(meta.filename).toBe(`${meta.version}.pdf`);
+    expect(meta.filename).toBe(`Alex-Spaulding-${meta.version}.pdf`);
     expect(meta.href).toBe(`/${meta.filename}`);
     expect(existsSync(publicResumePdfPath(root, meta))).toBe(true);
   });

@@ -84,7 +84,7 @@ Run Audit on `/` after HomePage, hire bar, or graph edits. Idle wrap injects fiv
 
 ## Resume JSON
 
-[`scripts/validate-resume.mjs`](../../../scripts/validate-resume.mjs) (`npm run resume:check`) plus [`.github/workflows/resume.yml`](../../../.github/workflows/resume.yml) (Resume badge). After `resume.json` edits: `resume:check` then `npm run resume:pdf`. The PDF is CalVer `vYYYY.MM.DD.pdf` (`src/lib/resumePdf.json`). `/resume` and `/resume.pdf` redirect to it. Delete stale `v*.pdf` and `resume.pdf` on export.
+[`scripts/validate-resume.mjs`](../../../scripts/validate-resume.mjs) (`npm run resume:check`) plus [`.github/workflows/resume.yml`](../../../.github/workflows/resume.yml) (Resume badge). After `resume.json` edits: `resume:check` then `npm run resume:pdf`. The PDF is CalVer `Alex-Spaulding-vYYYY.MM.DD.pdf` (`src/lib/resumePdf.json`). `/resume` and `/resume.pdf` redirect to it. Delete stale `v*.pdf`, `Alex-Spaulding-v*.pdf`, and `resume.pdf` on export.
 
 - JSON Resume v1.0.0: omit empty `endDate` and `url` (empty string fails iso8601 / uri). Current roles omit `endDate` (`formatYearRange` prints `YYYY-present`).
 - Publication extras (`author`, `image`, and similar) are allowed (`additionalProperties: true` on that object). Do not add unknown root keys.

@@ -4,7 +4,7 @@
  *
  *   npm run resume:pdf
  *
- * Writes public/vYYYY.MM.DD.pdf. /resume and /resume.pdf redirect there.
+ * Writes public/Alex-Spaulding-vYYYY.MM.DD.pdf. /resume and /resume.pdf redirect there.
  */
 import fs from 'node:fs';
 import path from 'node:path';

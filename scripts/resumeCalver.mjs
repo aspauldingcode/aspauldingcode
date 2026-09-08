@@ -1,9 +1,10 @@
-/** CalVer for the resume PDF: vYYYY.MM.DD (zero-padded, v prefix). */
+/** CalVer resume PDF: Alex-Spaulding-vYYYY.MM.DD.pdf */
 import fs from 'node:fs';
 import path from 'node:path';
 
+export const RESUME_PDF_STEM = 'Alex-Spaulding';
 export const RESUME_CALVER_RE = /^v(\d{4})\.(\d{2})\.(\d{2})$/;
-export const RESUME_PDF_NAME_RE = /^v\d{4}\.\d{2}\.\d{2}\.pdf$/;
+export const RESUME_PDF_NAME_RE = /^(?:Alex-Spaulding-)?v\d{4}\.\d{2}\.\d{2}\.pdf$/;
 
 export function resumeCalVer(date = new Date()) {
   const y = date.getFullYear();
@@ -13,7 +14,7 @@ export function resumeCalVer(date = new Date()) {
 }
 
 export function resumePdfFilename(version) {
-  return `${version}.pdf`;
+  return `${RESUME_PDF_STEM}-${version}.pdf`;
 }
 
 export function resumePdfHref(version) {

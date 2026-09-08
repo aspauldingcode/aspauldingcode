@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - resume.json
+      - public/Alex-Spaulding-v*.pdf
       - public/v*.pdf
       - src/lib/resumePdf.json
       - scripts/validate-resume.mjs
@@ -15,6 +16,7 @@ on:
   pull_request:
     paths:
       - resume.json
+      - public/Alex-Spaulding-v*.pdf
       - public/v*.pdf
       - src/lib/resumePdf.json
       - scripts/validate-resume.mjs
