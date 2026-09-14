@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
   "label": "portfolio frameworks",
-  "message": "up to date",
-  "color": "brightgreen"
+  "message": "outdated",
+  "color": "yellow"
 }

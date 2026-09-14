@@ -1,13 +1,13 @@
 {
-  "ok": true,
-  "checkedAt": "2026-09-07",
+  "ok": false,
+  "checkedAt": "2026-09-14",
   "packages": [
     {
       "name": "astro",
       "status": "current",
       "current": "5.18.2",
       "wanted": "5.18.2",
-      "latest": "7.3.1",
+      "latest": "7.3.2",
       "nextMajor": true
     },
     {
@@ -28,18 +28,18 @@
     },
     {
       "name": "react",
-      "status": "current",
+      "status": "behind",
       "current": "19.2.8",
-      "wanted": "19.2.8",
-      "latest": "19.2.8",
+      "wanted": "19.3.0",
+      "latest": "19.3.0",
       "nextMajor": false
     },
     {
       "name": "react-dom",
-      "status": "current",
+      "status": "behind",
       "current": "19.2.8",
-      "wanted": "19.2.8",
-      "latest": "19.2.8",
+      "wanted": "19.3.0",
+      "latest": "19.3.0",
       "nextMajor": false
     }
   ]
