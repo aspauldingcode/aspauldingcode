@@ -1,13 +1,13 @@
 {
   "ok": false,
-  "checkedAt": "2026-09-21",
+  "checkedAt": "2026-09-28",
   "packages": [
     {
       "name": "astro",
       "status": "current",
       "current": "5.18.2",
       "wanted": "5.18.2",
-      "latest": "7.3.3",
+      "latest": "7.3.5",
       "nextMajor": true
     },
     {
@@ -15,7 +15,7 @@
       "status": "current",
       "current": "4.4.2",
       "wanted": "4.4.2",
-      "latest": "6.0.6",
+      "latest": "7.0.0",
       "nextMajor": true
     },
     {
@@ -23,7 +23,7 @@
       "status": "current",
       "current": "8.2.11",
       "wanted": "8.2.11",
-      "latest": "11.0.10",
+      "latest": "11.0.11",
       "nextMajor": true
     },
     {
