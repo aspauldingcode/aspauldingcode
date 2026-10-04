@@ -16,15 +16,15 @@
   </style>
   <rect class="panel" x="0.5" y="0.5" width="719" height="249" rx="8"/>
   <g transform="translate(24,36)">
-  <text class="num">3,787</text>
+  <text class="num">3,757</text>
   <text class="lbl" y="28">Commits</text>
 </g>
 <g transform="translate(162,36)">
-  <text class="num">4,607</text>
+  <text class="num">4,574</text>
   <text class="lbl" y="28">Contributions</text>
 </g>
 <g transform="translate(300,36)">
-  <text class="num">57</text>
+  <text class="num">56</text>
   <text class="lbl" y="28">PRs</text>
 </g>
 <g transform="translate(438,36)">
@@ -32,12 +32,12 @@
   <text class="lbl" y="28">Stars</text>
 </g>
 <g transform="translate(576,36)">
-  <text class="num">93</text>
+  <text class="num">94</text>
   <text class="lbl" y="28">Repos</text>
 </g>
   <g transform="translate(24,100)">
   <text class="sec">Streak</text>
-  <text class="body" y="26">Current 1 days · Longest 17 days · 628 active days</text>
+  <text class="body" y="26">Current 2 days · Longest 17 days · 629 active days</text>
 </g>
   <g transform="translate(24,148)">
     <text class="sec">Languages</text>
@@ -45,31 +45,31 @@
   <text class="lang" x="0" y="0">Objective-C</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
   <rect x="100" y="-9" width="280" height="10" rx="2" fill="#438eff"/>
-  <text class="lang" x="390" y="0">24.9%</text>
+  <text class="lang" x="390" y="0">23.8%</text>
 </g>
 <g transform="translate(0,42)">
-  <text class="lang" x="0" y="0">Swift</text>
-  <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="190" height="10" rx="2" fill="#F05138"/>
-  <text class="lang" x="390" y="0">16.9%</text>
-</g>
-<g transform="translate(0,60)">
   <text class="lang" x="0" y="0">Rust</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="162" height="10" rx="2" fill="#dea584"/>
-  <text class="lang" x="390" y="0">14.4%</text>
+  <rect x="100" y="-9" width="205" height="10" rx="2" fill="#dea584"/>
+  <text class="lang" x="390" y="0">17.4%</text>
+</g>
+<g transform="translate(0,60)">
+  <text class="lang" x="0" y="0">Swift</text>
+  <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
+  <rect x="100" y="-9" width="201" height="10" rx="2" fill="#F05138"/>
+  <text class="lang" x="390" y="0">17.1%</text>
 </g>
 <g transform="translate(0,78)">
   <text class="lang" x="0" y="0">Nix</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
   <rect x="100" y="-9" width="108" height="10" rx="2" fill="#7e7eff"/>
-  <text class="lang" x="390" y="0">9.6%</text>
+  <text class="lang" x="390" y="0">9.2%</text>
 </g>
 <g transform="translate(0,96)">
   <text class="lang" x="0" y="0">C</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="103" height="10" rx="2" fill="#555555"/>
-  <text class="lang" x="390" y="0">9.2%</text>
+  <rect x="100" y="-9" width="104" height="10" rx="2" fill="#555555"/>
+  <text class="lang" x="390" y="0">8.8%</text>
 </g>
   </g>
 </svg>
