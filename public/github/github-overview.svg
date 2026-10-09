@@ -16,11 +16,11 @@
   </style>
   <rect class="panel" x="0.5" y="0.5" width="719" height="249" rx="8"/>
   <g transform="translate(24,36)">
-  <text class="num">3,987</text>
+  <text class="num">3,990</text>
   <text class="lbl" y="28">Commits</text>
 </g>
 <g transform="translate(162,36)">
-  <text class="num">4,823</text>
+  <text class="num">4,826</text>
   <text class="lbl" y="28">Contributions</text>
 </g>
 <g transform="translate(300,36)">
@@ -37,7 +37,7 @@
 </g>
   <g transform="translate(24,100)">
   <text class="sec">Streak</text>
-  <text class="body" y="26">Current 6 days · Longest 17 days · 634 active days</text>
+  <text class="body" y="26">Current 8 days · Longest 17 days · 636 active days</text>
 </g>
   <g transform="translate(24,148)">
     <text class="sec">Languages</text>
@@ -62,8 +62,8 @@
 <g transform="translate(0,78)">
   <text class="lang" x="0" y="0">Nix</text>
   <rect class="track" x="100" y="-9" width="280" height="10" rx="2"/>
-  <rect x="100" y="-9" width="97" height="10" rx="2" fill="#7e7eff"/>
-  <text class="lang" x="390" y="0">8.2%</text>
+  <rect x="100" y="-9" width="98" height="10" rx="2" fill="#7e7eff"/>
+  <text class="lang" x="390" y="0">8.3%</text>
 </g>
 <g transform="translate(0,96)">
   <text class="lang" x="0" y="0">C</text>
