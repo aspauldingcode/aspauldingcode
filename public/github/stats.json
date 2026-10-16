@@ -1,6 +1,6 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-10-15T13:27:38.879Z",
+  "generatedAt": "2026-10-16T13:16:50.698Z",
   "fromYear": 2023,
   "attributionOrgs": [
     "Wawona"
@@ -9,8 +9,8 @@
     "wawona/agent-device"
   ],
   "metrics": {
-    "commits": 3999,
-    "contributions": 4834,
+    "commits": 4595,
+    "contributions": 5430,
     "pullRequests": 58,
     "issues": 638,
     "reviews": 17,
@@ -20,63 +20,63 @@
     "followers": 75
   },
   "streak": {
-    "current": 2,
+    "current": 14,
     "longest": 17,
-    "totalActiveDays": 641
+    "totalActiveDays": 642
   },
   "languages": [
     {
       "name": "Swift",
-      "size": 5417547,
-      "percent": 23.5,
+      "size": 6856237,
+      "percent": 28.3,
       "color": "#F05138"
     },
     {
-      "name": "Objective-C",
-      "size": 4903217,
-      "percent": 21.3,
-      "color": "#438eff"
-    },
-    {
       "name": "Rust",
-      "size": 4133281,
-      "percent": 17.9,
+      "size": 4651617,
+      "percent": 19.2,
       "color": "#dea584"
     },
     {
+      "name": "Objective-C",
+      "size": 3446250,
+      "percent": 14.2,
+      "color": "#438eff"
+    },
+    {
       "name": "Nix",
-      "size": 1895140,
-      "percent": 8.2,
+      "size": 1973084,
+      "percent": 8.1,
       "color": "#7e7eff"
     },
     {
       "name": "C",
-      "size": 1774267,
-      "percent": 7.7,
+      "size": 1758323,
+      "percent": 7.3,
       "color": "#555555"
     },
     {
       "name": "Shell",
-      "size": 1106725,
-      "percent": 4.8,
+      "size": 1316142,
+      "percent": 5.4,
       "color": "#89e051"
     },
     {
       "name": "Python",
-      "size": 815311,
-      "percent": 3.5,
+      "size": 967701,
+      "percent": 4,
       "color": "#3572A5"
     },
     {
-      "name": "JavaScript",
-      "size": 648065,
-      "percent": 2.8,
-      "color": "#f1e05a"
+      "name": "Kotlin",
+      "size": 770629,
+      "percent": 3.2,
+      "color": "#A97BFF"
     },
     {
       "name": "Other",
-      "size": 2336822,
-      "percent": 10.1,
+      "size": 2472906,
+      "percent": 10.2,
       "color": "#8b949e"
     }
   ]
