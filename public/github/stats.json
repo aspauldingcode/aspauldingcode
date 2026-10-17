@@ -1,6 +1,6 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-10-16T13:16:50.698Z",
+  "generatedAt": "2026-10-17T12:12:56.587Z",
   "fromYear": 2023,
   "attributionOrgs": [
     "Wawona"
@@ -15,12 +15,12 @@
     "issues": 638,
     "reviews": 17,
     "repositories": 93,
-    "stars": 761,
+    "stars": 763,
     "forks": 52,
     "followers": 75
   },
   "streak": {
-    "current": 14,
+    "current": 0,
     "longest": 17,
     "totalActiveDays": 642
   },
