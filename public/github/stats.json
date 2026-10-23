@@ -1,6 +1,6 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-10-22T13:49:11.022Z",
+  "generatedAt": "2026-10-23T13:28:31.852Z",
   "fromYear": 2023,
   "attributionOrgs": [
     "Wawona"
@@ -9,55 +9,55 @@
     "wawona/agent-device"
   ],
   "metrics": {
-    "commits": 4598,
-    "contributions": 5436,
+    "commits": 4470,
+    "contributions": 5308,
     "pullRequests": 60,
     "issues": 639,
     "reviews": 17,
-    "repositories": 93,
-    "stars": 766,
-    "forks": 53,
+    "repositories": 89,
+    "stars": 767,
+    "forks": 50,
     "followers": 75
   },
   "streak": {
-    "current": 2,
+    "current": 3,
     "longest": 17,
-    "totalActiveDays": 645
+    "totalActiveDays": 646
   },
   "languages": [
     {
       "name": "Swift",
-      "size": 6856237,
-      "percent": 28.3,
+      "size": 7204560,
+      "percent": 29.4,
       "color": "#F05138"
     },
     {
       "name": "Rust",
-      "size": 4657129,
-      "percent": 19.2,
+      "size": 4541951,
+      "percent": 18.6,
       "color": "#dea584"
     },
     {
       "name": "Objective-C",
-      "size": 3446250,
+      "size": 3477843,
       "percent": 14.2,
       "color": "#438eff"
     },
     {
       "name": "Nix",
-      "size": 1972891,
-      "percent": 8.1,
+      "size": 1936955,
+      "percent": 7.9,
       "color": "#7e7eff"
     },
     {
       "name": "C",
-      "size": 1758323,
-      "percent": 7.3,
+      "size": 1752541,
+      "percent": 7.2,
       "color": "#555555"
     },
     {
       "name": "Shell",
-      "size": 1316142,
+      "size": 1320847,
       "percent": 5.4,
       "color": "#89e051"
     },
@@ -70,13 +70,13 @@
     {
       "name": "Kotlin",
       "size": 770629,
-      "percent": 3.2,
+      "percent": 3.1,
       "color": "#A97BFF"
     },
     {
       "name": "Other",
-      "size": 2486771,
-      "percent": 10.3,
+      "size": 2486755,
+      "percent": 10.2,
       "color": "#8b949e"
     }
   ]
