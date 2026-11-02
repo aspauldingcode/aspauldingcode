@@ -1,6 +1,6 @@
 {
   "login": "aspauldingcode",
-  "generatedAt": "2026-11-01T15:12:54.028Z",
+  "generatedAt": "2026-11-02T18:24:38.358Z",
   "fromYear": 2023,
   "attributionOrgs": [
     "Wawona"
@@ -9,74 +9,74 @@
     "wawona/agent-device"
   ],
   "metrics": {
-    "commits": 4590,
-    "contributions": 5434,
-    "pullRequests": 66,
-    "issues": 639,
+    "commits": 5107,
+    "contributions": 5982,
+    "pullRequests": 69,
+    "issues": 665,
     "reviews": 17,
-    "repositories": 89,
+    "repositories": 91,
     "stars": 774,
     "forks": 52,
     "followers": 75
   },
   "streak": {
-    "current": 0,
-    "longest": 17,
-    "totalActiveDays": 651
+    "current": 2,
+    "longest": 26,
+    "totalActiveDays": 656
   },
   "languages": [
     {
-      "name": "Swift",
-      "size": 7509212,
-      "percent": 29.6,
-      "color": "#F05138"
+      "name": "Python",
+      "size": 20983311,
+      "percent": 32.7,
+      "color": "#3572A5"
     },
     {
       "name": "Rust",
-      "size": 5121411,
-      "percent": 20.2,
+      "size": 15682076,
+      "percent": 24.4,
       "color": "#dea584"
     },
     {
+      "name": "Swift",
+      "size": 8734197,
+      "percent": 13.6,
+      "color": "#F05138"
+    },
+    {
       "name": "Objective-C",
-      "size": 3477843,
-      "percent": 13.7,
+      "size": 4806229,
+      "percent": 7.5,
       "color": "#438eff"
+    },
+    {
+      "name": "JavaScript",
+      "size": 4257298,
+      "percent": 6.6,
+      "color": "#f1e05a"
+    },
+    {
+      "name": "C",
+      "size": 3716537,
+      "percent": 5.8,
+      "color": "#555555"
     },
     {
       "name": "Nix",
       "size": 1911371,
-      "percent": 7.5,
+      "percent": 3,
       "color": "#7e7eff"
     },
     {
-      "name": "C",
-      "size": 1762205,
-      "percent": 6.9,
-      "color": "#555555"
-    },
-    {
       "name": "Shell",
-      "size": 1331533,
-      "percent": 5.2,
+      "size": 1340329,
+      "percent": 2.1,
       "color": "#89e051"
     },
     {
-      "name": "Python",
-      "size": 984461,
-      "percent": 3.9,
-      "color": "#3572A5"
-    },
-    {
-      "name": "Kotlin",
-      "size": 787293,
-      "percent": 3.1,
-      "color": "#A97BFF"
-    },
-    {
       "name": "Other",
-      "size": 2496065,
-      "percent": 9.8,
+      "size": 2805852,
+      "percent": 4.4,
       "color": "#8b949e"
     }
   ]
