@@ -1,13 +1,13 @@
 {
   "ok": false,
-  "checkedAt": "2026-11-16",
+  "checkedAt": "2026-11-23",
   "packages": [
     {
       "name": "astro",
       "status": "current",
       "current": "5.18.2",
       "wanted": "5.18.2",
-      "latest": "7.4.12",
+      "latest": "7.4.13",
       "nextMajor": true
     },
     {
